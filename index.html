@@ -30,7 +30,7 @@
   .meta{margin-top:18px;color:var(--muted);font-size:13.5px}
   .meta b{color:var(--text)}
 
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin:40px 0 8px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:22px;margin:40px 0 8px}
   @media(max-width:920px){.grid{grid-template-columns:1fr;max-width:520px;margin-inline:auto}}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;
     display:flex;flex-direction:column;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
@@ -41,6 +41,8 @@
     border:1px solid var(--line);color:var(--text);font-size:11.5px;font-weight:600;padding:5px 9px;border-radius:999px}
   .fav{position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#f59e0b,#ff6b4a);
     color:#1b2430;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px}
+  .newb{position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#9AD9B8,#8CC9EC);
+    color:#173b30;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px}
   .body{padding:18px 18px 20px;display:flex;flex-direction:column;gap:9px;flex:1}
   .name{font-size:20px;font-weight:700;letter-spacing:-.01em}
   .vibe{color:var(--muted);font-size:14.5px;flex:1}
@@ -77,7 +79,7 @@
   <div class="wrap">
     <div class="brand"><span class="badge">ПДР</span> Drivers School</div>
     <h1>Оберіть напрям дизайну лендінга</h1>
-    <p class="sub">Три фіналісти для підготовки до теоретичного іспиту з ПДР. Відкрийте кожен, погортайте, поділіться — і вирішимо разом, який стиль наш.</p>
+    <p class="sub">Фіналісти дизайну для підготовки до теоретичного іспиту з ПДР. Відкрийте кожен, погортайте, поділіться — і вирішимо разом, який стиль наш. (F та G — спокійний напрям: «глина» vs «рідке скло».)</p>
     <p class="meta">Натисніть <b>«Відкрити повністю»</b> на будь-якому варіанті · усі сторінки інтерактивні (спробуйте питання в герої) · адаптовані під телефон</p>
   </div>
 </header>
@@ -111,14 +113,27 @@
     </article>
 
     <article class="card">
-      <a class="shot" href="variant-f.html" aria-label="Відкрити варіант F — Calm Pastel">
-        <span class="tag">F · Calm Pastel</span>
-        <img src="thumb-f.png" alt="Прев'ю варіанта F — спокійні пастельні кольори">
+      <a class="shot" href="variant-f.html" aria-label="Відкрити варіант F — Calm Pastel (clay)">
+        <span class="tag">F · Спокій · Clay</span>
+        <img src="thumb-f.png" alt="Прев'ю варіанта F — спокійні пастелі, об'ємні картки">
       </a>
       <div class="body">
-        <div class="name">F · Спокій / Calm Pastel 🫧</div>
-        <p class="vibe">М'які пастелі, клеймор­фізм і маскот-помічник — щоб іспит не лякав. Спокійно, по-людськи, але все ще серйозно й надійно.</p>
+        <div class="name">F · Спокій · Clay 🫧</div>
+        <p class="vibe">Спокій у стилі claymorphism: м'які пастелі + об'ємні «глиняні» картки + маскот Світлик. По-людськи й тепло.</p>
         <a class="open" href="variant-f.html">Відкрити повністю ↗</a>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="shot" href="variant-g.html" aria-label="Відкрити варіант G — Liquid Glass">
+        <span class="tag">G · Liquid Glass</span>
+        <span class="newb">✨ Нове</span>
+        <img src="thumb-g.png" alt="Прев'ю варіанта G — рідке скло, напівпрозорі панелі">
+      </a>
+      <div class="body">
+        <div class="name">G · Спокій · Рідке скло 🪟</div>
+        <p class="vibe">Той самий спокій у стилі Apple «Liquid Glass»: напівпрозорі скляні панелі, що заломлюють м'які пастельні кольори. Сучасно, легко, делікатно.</p>
+        <a class="open" href="variant-g.html">Відкрити повністю ↗</a>
       </div>
     </article>
 

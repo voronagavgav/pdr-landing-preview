@@ -1,0 +1,1220 @@
+<!-- @dsCard group="Лендінг" -->
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drivers School — Рідке скло / Liquid Glass</title>
+<meta name="description" content="Підготовка до теоретичного іспиту з ПДР. Усі офіційні питання, реальні дорожні ситуації та розумні тренування — спокійно, крок за кроком.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Nunito:wght@600;700&display=swap&subset=cyrillic,cyrillic-ext,latin" rel="stylesheet">
+
+<style>
+/* ============================================================
+   VARIANT G — "Рідке скло / Liquid Glass" (calm pastel · Apple-2025)
+   Pastel BLOBS behind glass that REFRACTS at the rim.
+   Frosted glass = cross-browser floor · SVG edge-lensing = Chromium
+   enhancement gated by .refraction-ok · dark slate text on light glass
+   only · reading content on near-opaque cards · soft green CTA glass.
+   ============================================================ */
+
+:root{
+  --bg-base:#F4F8F6;       /* very soft off-white-green page base */
+  --ink:#1F2933;           /* slate — body text on opaque cards (NEVER #000) */
+  --muted:#46515D;         /* secondary text (>=4.5:1 on opaque card) */
+  --green-soft:#9AD9B8;    /* soft pastel green — CTA glass tint / success fills */
+  --green-deep:#226157;    /* deep green — ONLY green text/icons on white where contrast needed */
+  --green-ink:#173B30;     /* dark slate-green text used on green glass CTA */
+  --warn:#B4532E;          /* calm clear "wrong" (icon+label, never color alone) */
+
+  /* glass tint (HSL parts so opacity is tunable) */
+  --glass-tint:200 50% 97%;          /* soft cool-white */
+  --glass-line:0 0% 100% / .55;      /* thin bright border */
+
+  --font-display:'Nunito',system-ui,'Segoe UI',Roboto,sans-serif;
+  --font-body:'Manrope',system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+
+  --radius:30px;
+  --radius-md:22px;
+  --radius-sm:16px;
+  --radius-pill:999px;
+
+  --calm-ease:cubic-bezier(0.16,1,0.3,1);
+
+  /* floating drop shadow for glass panels */
+  --float:0 10px 34px hsl(210 40% 40% / .16);
+  --float-hi:0 18px 48px hsl(210 40% 40% / .20);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:17px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+  /* ---- pastel BLOBS the glass refracts (muted, calm, not neon) ---- */
+  background:
+    radial-gradient(38rem 38rem at 14% 18%, hsl(158 52% 84% / .7), transparent 60%),
+    radial-gradient(36rem 36rem at 86% 22%, hsl(205 60% 86% / .7), transparent 60%),
+    radial-gradient(40rem 40rem at 50% 92%, hsl(28 70% 88% / .6), transparent 60%),
+    radial-gradient(30rem 30rem at 75% 70%, hsl(265 45% 89% / .5), transparent 60%),
+    var(--bg-base);
+  background-attachment:fixed;
+}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:700;line-height:1.18;margin:0;letter-spacing:-.005em}
+h3,h4{font-weight:600}
+p{margin:0}
+a{color:inherit;text-decoration:none}
+ul{margin:0;padding:0;list-style:none}
+img,svg{display:block}
+button{font-family:inherit;cursor:pointer}
+
+/* focus visibility floor — independent of glass */
+:focus-visible{outline:3px solid var(--green-deep);outline-offset:3px;border-radius:10px}
+
+.wrap{width:100%;max-width:1160px;margin:0 auto;padding:0 22px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* drifting blobs ON TOP of the gradient give the glass moving color to refract */
+.drift{position:fixed;border-radius:50%;filter:blur(60px);z-index:-1;pointer-events:none;opacity:.55;will-change:transform}
+.drift.b1{width:42vw;height:42vw;max-width:560px;max-height:560px;background:hsl(158 56% 80%);top:-8vh;left:-6vw;animation:drift1 14s ease-in-out infinite}
+.drift.b2{width:38vw;height:38vw;max-width:520px;max-height:520px;background:hsl(205 64% 82%);top:12vh;right:-8vw;animation:drift2 16s ease-in-out infinite}
+.drift.b3{width:40vw;height:40vw;max-width:560px;max-height:560px;background:hsl(28 74% 85%);bottom:-12vh;left:18vw;animation:drift3 18s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(3vw,4vh) scale(1.06)}}
+@keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-3vw,3vh) scale(1.05)}}
+@keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(2vw,-3vh) scale(1.07)}}
+
+/* ============================================================
+   LIQUID GLASS — frosted floor (cross-browser) + SVG refraction
+   (Chromium enhancement gated by .refraction-ok).
+   ============================================================ */
+.glass{
+  position:relative;border-radius:var(--radius);
+  background:hsl(var(--glass-tint) / .62);
+  border:1px solid hsl(var(--glass-line));
+  isolation:isolate;overflow:hidden;
+  box-shadow:
+    var(--float),
+    inset 1px 1px 1px hsl(0 0% 100% / .65),         /* specular rim, top-left light */
+    inset -1px -1px 2px hsl(210 40% 50% / .16);
+}
+.glass::before{
+  content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+  -webkit-backdrop-filter:blur(14px) saturate(160%) brightness(108%);
+  backdrop-filter:blur(14px) saturate(160%) brightness(108%);
+}
+.glass>*{position:relative;z-index:1}
+/* SVG edge lensing — reserved for hero panel + hero CTA only */
+.refraction-ok .glass.lens::before{
+  backdrop-filter:url(#liquid-glass) blur(14px) saturate(160%) brightness(108%);
+}
+
+/* near-opaque READING card — for question text + options + feature copy */
+.solid{
+  position:relative;border-radius:var(--radius-md);
+  background:hsl(var(--glass-tint) / .93);
+  border:1px solid hsl(210 22% 86%);
+  box-shadow:var(--float);
+}
+.lift{transition:transform .3s var(--calm-ease), box-shadow .3s var(--calm-ease)}
+.lift:hover{transform:translateY(-4px);box-shadow:var(--float-hi)}
+
+/* ============================================================
+   BUTTONS — soft green-tinted glass CTA + DARK slate text (green fix)
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.55em;
+  font-family:var(--font-display);font-weight:700;font-size:1.02rem;
+  padding:.86em 1.5em;border-radius:var(--radius-pill);border:1px solid transparent;
+  transition:transform .18s var(--calm-ease), box-shadow .18s ease, background .18s ease;
+  will-change:transform;
+}
+/* PRIMARY = green-tinted liquid glass pill, dark green-slate text */
+.cta-glass{
+  position:relative;color:var(--green-ink);font-weight:700;
+  background:hsl(152 46% 84% / .82);
+  border:1px solid hsl(152 50% 99% / .7);
+  isolation:isolate;overflow:hidden;
+  box-shadow:
+    0 6px 18px hsl(152 40% 35% / .22),
+    inset 1px 1px 1px hsl(0 0% 100% / .8),
+    inset -1px -1px 2px hsl(152 40% 45% / .18);
+}
+.cta-glass::before{
+  content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+  -webkit-backdrop-filter:blur(10px) saturate(170%) brightness(110%);
+  backdrop-filter:blur(10px) saturate(170%) brightness(110%);
+}
+.cta-glass>*{position:relative;z-index:1}
+.cta-glass:hover{transform:translateY(-1px);background:hsl(152 50% 80% / .9)}
+.cta-glass:active{transform:scale(.985)}
+.cta-glass:focus-visible{outline:3px solid var(--green-deep);outline-offset:3px}
+/* GHOST = plain frosted glass, demoted */
+.btn-ghost{
+  background:hsl(var(--glass-tint) / .7);color:var(--ink);
+  border:1px solid hsl(210 22% 84%);font-weight:600;
+  box-shadow:var(--float), inset 1px 1px 1px hsl(0 0% 100% / .6);
+  position:relative;isolation:isolate;overflow:hidden;
+}
+.btn-ghost::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+  -webkit-backdrop-filter:blur(10px) saturate(140%);backdrop-filter:blur(10px) saturate(140%)}
+.btn-ghost:hover{transform:translateY(-1px);background:hsl(var(--glass-tint) / .82)}
+.btn-ghost:active{transform:translateY(1px)}
+.btn-lg{font-size:1.1rem;padding:1em 1.85em}
+.btn-block{width:100%}
+
+/* ============================================================
+   HEADER — sticky frosted glass (softened blur to avoid scroll jank)
+   ============================================================ */
+header.site{
+  position:sticky;top:0;z-index:60;
+  background:hsl(var(--glass-tint) / .68);
+  -webkit-backdrop-filter:saturate(150%) blur(12px);
+  backdrop-filter:saturate(150%) blur(12px);
+  border-bottom:1px solid hsl(0 0% 100% / .5);
+  box-shadow:0 2px 14px hsl(210 40% 40% / .08);
+}
+.nav{display:flex;align-items:center;gap:18px;height:70px}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:700;font-size:1.16rem}
+.badge-mark{
+  width:42px;height:42px;border-radius:13px;flex:0 0 auto;
+  background:linear-gradient(150deg,hsl(158 44% 70%),hsl(170 42% 56%));
+  color:var(--green-ink);display:grid;place-items:center;
+  font-family:var(--font-display);font-weight:700;font-size:.9rem;letter-spacing:.03em;
+  border:1px solid hsl(0 0% 100% / .7);
+  box-shadow:0 4px 12px hsl(158 40% 40% / .28), inset 1px 1px 1px hsl(0 0% 100% / .85), inset -1px -1px 2px hsl(158 40% 45% / .25);
+}
+.nav-links{display:none;gap:26px;margin-left:14px}
+.nav-links a{color:var(--muted);font-weight:600;font-size:.96rem;padding:6px 2px;position:relative}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;background:var(--green-deep);border-radius:2px;transition:right .25s var(--calm-ease)}
+.nav-links a:hover::after{right:0}
+.nav-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.nav-actions .btn{padding:.58em 1.05em;font-size:.94rem}
+.link-login{display:none;color:var(--muted);font-weight:700;font-family:var(--font-display);padding:.58em .9em;border-radius:var(--radius-pill)}
+.link-login:hover{color:var(--ink);background:hsl(var(--glass-tint) / .8)}
+@media(min-width:900px){.nav-links{display:flex}.link-login{display:inline-flex}}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{position:relative;padding:40px 0 26px}
+.hero-grid{position:relative;z-index:2;display:grid;gap:30px;align-items:center}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:hsl(var(--glass-tint) / .8);border:1px solid hsl(0 0% 100% / .6);
+  color:var(--muted);font-weight:600;font-size:.83rem;
+  padding:.5em 1em;border-radius:var(--radius-pill);margin-bottom:18px;
+  box-shadow:0 4px 12px hsl(210 40% 40% / .1), inset 1px 1px 1px hsl(0 0% 100% / .7);
+}
+.eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--green-deep)}
+
+/* mascot greeting */
+.hero-mascot{display:flex;align-items:flex-start;gap:13px;margin-bottom:22px;max-width:520px}
+.mascot-stage{
+  flex:0 0 auto;width:84px;height:104px;border-radius:22px;
+  display:grid;place-items:center;
+}
+.mascot-svg{width:54px;height:auto}
+.mascot-breathe{transform-origin:50% 70%;animation:mascotBreathe 7s ease-in-out infinite}
+@keyframes mascotBreathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.015)}}
+.speech{
+  background:hsl(var(--glass-tint) / .92);border:1px solid hsl(210 22% 86%);
+  border-radius:18px;padding:13px 16px;font-size:.95rem;color:var(--ink);position:relative;
+  box-shadow:var(--float);
+}
+.speech::before{content:"";position:absolute;left:-7px;top:22px;width:14px;height:14px;background:hsl(var(--glass-tint) / .92);border-left:1px solid hsl(210 22% 86%);border-bottom:1px solid hsl(210 22% 86%);transform:rotate(45deg)}
+.speech b{color:var(--green-deep);font-weight:700}
+
+h1.hero-title{font-size:clamp(2.1rem,6.4vw,3.4rem);font-weight:700;margin-bottom:.46em;letter-spacing:-.015em}
+h1.hero-title .soft{color:var(--green-deep)}
+.hero-sub{font-size:1.1rem;color:var(--muted);max-width:34ch;margin-bottom:24px;line-height:1.6}
+.hero-cta-row{display:flex;flex-wrap:wrap;gap:13px;align-items:center}
+.micro-trust{margin-top:18px;color:var(--muted);font-size:.92rem;display:flex;flex-wrap:wrap;gap:7px 14px;align-items:center}
+.micro-trust b{color:var(--ink);font-weight:700}
+.micro-calm{margin-top:9px;font-size:.9rem;color:var(--green-deep);font-weight:600;display:flex;align-items:center;gap:7px}
+
+/* ---------- sample question (signature glass widget) ---------- */
+.quiz{padding:24px 22px;position:relative;z-index:2}
+.quiz-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.quiz .kicker{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-display);font-weight:700;font-size:.8rem;color:var(--green-deep);background:hsl(158 44% 90%);border:1px solid hsl(158 40% 80%);padding:.4em .85em;border-radius:var(--radius-pill)}
+.quiz-helper{display:flex;align-items:center;gap:8px;background:hsl(205 40% 94%);border:1px solid hsl(205 30% 82%);border-radius:14px;padding:.4em .7em .4em .5em;font-size:.78rem;color:var(--muted);line-height:1.3;max-width:230px}
+.quiz-helper svg{width:24px;flex:0 0 auto}
+.quiz-q{font-family:var(--font-display);font-weight:600;font-size:1.16rem;line-height:1.35;margin-bottom:18px;color:var(--ink)}
+.options{display:grid;gap:10px}
+/* options sit on NEAR-OPAQUE surface for legibility */
+.opt{
+  display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  background:hsl(var(--glass-tint) / .96);color:var(--ink);font-family:var(--font-body);font-weight:600;font-size:1rem;
+  border:1.5px solid hsl(210 20% 84%);border-radius:var(--radius-sm);padding:14px 16px;
+  box-shadow:0 4px 12px hsl(210 40% 40% / .1);
+  transition:transform .15s var(--calm-ease), box-shadow .18s var(--calm-ease), background .25s, border-color .25s, color .25s;
+}
+.opt:hover:not(:disabled){transform:translateY(-2px);box-shadow:var(--float)}
+.opt:active:not(:disabled){transform:translateY(0)}
+.opt:disabled{cursor:default}
+.opt .mark{
+  flex:0 0 auto;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;
+  background:hsl(158 30% 90%);font-family:var(--font-display);font-weight:700;font-size:.9rem;color:var(--muted);
+  border:1px solid hsl(158 28% 80%);transition:.25s;
+}
+.opt.correct{background:hsl(152 46% 90%);border-color:var(--green-deep);color:#0f3b2e}
+.opt.correct .mark{background:var(--green-deep);color:#fff;border-color:#14463b}
+.opt.wrong{background:hsl(16 50% 93%);border-color:var(--warn);color:#7d3a1f}
+.opt.wrong .mark{background:var(--warn);color:#fff;border-color:#8c3f22}
+.opt.reveal-soft{animation:softglow 1.2s var(--calm-ease)}
+@keyframes softglow{
+  0%{box-shadow:0 0 0 0 hsl(152 50% 45% / .5), 0 4px 12px hsl(210 40% 40% / .1)}
+  60%{box-shadow:0 0 0 14px hsl(152 50% 45% / 0), 0 4px 12px hsl(210 40% 40% / .1)}
+  100%{box-shadow:0 4px 12px hsl(210 40% 40% / .1)}
+}
+
+.feedback{
+  margin-top:16px;border-radius:var(--radius-sm);padding:13px 15px;font-size:.95rem;line-height:1.5;
+  display:none;align-items:flex-start;gap:11px;border:1px solid transparent;
+}
+.feedback.show{display:flex;animation:fadeUp .4s var(--calm-ease) both}
+.feedback.ok{background:hsl(152 46% 92%);color:#0f3b2e;border-color:var(--green-deep)}
+.feedback.no{background:hsl(16 50% 93%);color:#7d3a1f;border-color:var(--warn)}
+.feedback .ic{flex:0 0 auto;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;margin-top:1px}
+.feedback.ok .ic{background:var(--green-deep);color:#fff}
+.feedback.no .ic{background:var(--warn);color:#fff}
+.feedback .ic svg{width:15px;height:15px}
+.feedback b{font-weight:700}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.xp{
+  margin-top:13px;display:none;align-items:center;gap:9px;
+  font-family:var(--font-display);font-weight:600;color:var(--green-deep);font-size:.93rem;
+}
+.xp.show{display:flex;animation:fadeUp .45s .1s var(--calm-ease) both}
+.xp .chip{background:var(--green-deep);color:#fff;padding:.25em .7em;border-radius:var(--radius-pill);font-size:.84rem;font-weight:700}
+.xp .mini-mascot{width:24px;height:auto;flex:0 0 auto}
+.quiz-reset{margin-top:14px;display:none;background:none;border:0;color:var(--muted);font-weight:700;font-size:.9rem;text-decoration:underline;text-underline-offset:3px;padding:4px 0;font-family:var(--font-display)}
+.quiz-reset.show{display:inline-flex;align-items:center;gap:6px}
+
+@media(min-width:980px){
+  .hero{padding:60px 0 44px}
+  .hero-grid{grid-template-columns:1.04fr 1fr;gap:52px}
+  .hero-sub{font-size:1.16rem}
+  .quiz{padding:30px 30px}
+}
+
+/* ============================================================
+   TRUST BAR
+   ============================================================ */
+.trust{position:relative;z-index:2;margin-top:4px;padding:8px 0 16px}
+.trust-card{padding:24px 22px;display:grid;gap:22px}
+.official{display:flex;align-items:center;gap:13px;justify-content:center;text-align:center}
+.official .gov{
+  width:48px;height:48px;border-radius:13px;flex:0 0 auto;
+  background:linear-gradient(150deg,hsl(205 50% 64%),hsl(205 52% 52%));display:grid;place-items:center;
+  border:1px solid hsl(0 0% 100% / .6);
+  box-shadow:0 4px 12px hsl(205 45% 40% / .3), inset 1px 1px 1px hsl(0 0% 100% / .7);
+}
+.official b{font-family:var(--font-display);font-weight:700;font-size:1.02rem;color:var(--ink)}
+.official small{display:block;color:var(--muted);font-weight:500;font-size:.84rem}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;text-align:center}
+.stat .n{font-family:var(--font-display);font-weight:700;font-size:1.5rem;color:var(--ink)}
+.stat .l{color:var(--muted);font-size:.82rem;font-weight:500;line-height:1.3}
+.stat .n .star{color:#C98A1E}
+.format-chip{
+  margin:0 auto;display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:center;
+  background:hsl(28 50% 92%);border:1px solid hsl(28 40% 80%);color:#6a4a28;font-weight:600;font-size:.9rem;
+  padding:.6em 1.05em;border-radius:var(--radius-pill);
+}
+.format-chip .pill{background:hsl(var(--glass-tint) / .95);color:var(--ink);padding:.16em .58em;border-radius:var(--radius-pill);font-weight:700;font-size:.84rem;border:1px solid hsl(28 40% 80%)}
+@media(min-width:760px){
+  .trust-card{grid-template-columns:auto 1fr;align-items:center;gap:30px;padding:26px 32px}
+  .official{justify-content:flex-start;text-align:left;border-right:1px solid hsl(210 20% 82%);padding-right:30px}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .trust-extra{grid-column:1/-1;display:flex;justify-content:center;padding-top:2px}
+}
+
+/* ============================================================
+   SECTION SCAFFOLD
+   ============================================================ */
+section{position:relative}
+.section-pad{padding:72px 0}
+.section-head{text-align:center;max-width:660px;margin:0 auto 44px}
+.section-head .tag{display:inline-block;font-family:var(--font-display);font-weight:700;color:var(--green-deep);font-size:.84rem;background:hsl(158 44% 90%);border:1px solid hsl(158 40% 80%);padding:.4em 1em;border-radius:var(--radius-pill);margin-bottom:14px}
+.section-head h2{font-size:clamp(1.7rem,4.4vw,2.45rem);margin-bottom:.4em;letter-spacing:-.01em;color:var(--ink)}
+.section-head p{color:var(--muted);font-size:1.06rem}
+@media(min-width:980px){.section-pad{padding:104px 0}}
+
+/* ---------- how it works ---------- */
+.steps{display:grid;gap:20px}
+.step{padding:30px 26px}
+.step .num{
+  width:50px;height:50px;border-radius:15px;display:grid;place-items:center;
+  font-family:var(--font-display);font-weight:700;font-size:1.35rem;color:#fff;margin-bottom:16px;
+  border:1px solid hsl(0 0% 100% / .5);
+}
+.step:nth-child(1) .num{background:linear-gradient(150deg,hsl(158 42% 56%),hsl(158 44% 46%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5)}
+.step:nth-child(2) .num{background:linear-gradient(150deg,hsl(205 46% 60%),hsl(205 48% 50%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5)}
+.step:nth-child(3) .num{background:linear-gradient(150deg,hsl(28 50% 62%),hsl(28 52% 52%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5)}
+.step h3{font-size:1.24rem;margin-bottom:.45em;color:var(--ink)}
+.step p{color:var(--muted)}
+@media(min-width:860px){.steps{grid-template-columns:repeat(3,1fr)}}
+
+/* ---------- gamification showcase (glass/opaque chrome) ---------- */
+.game-grid{display:grid;gap:18px}
+.game-card{padding:24px 22px}
+.game-card h4{font-family:var(--font-display);font-weight:700;font-size:1.05rem;margin-bottom:4px;color:var(--ink)}
+.game-card .muted{color:var(--muted);font-size:.9rem}
+
+/* streak */
+.streak-top{display:flex;align-items:center;gap:14px}
+.flame{
+  width:56px;height:56px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+  background:radial-gradient(circle at 38% 32%,hsl(34 70% 86%),hsl(20 58% 76%));
+  border:1px solid hsl(0 0% 100% / .6);
+  box-shadow:0 4px 12px hsl(20 45% 55% / .28), inset 1px 1px 1px hsl(0 0% 100% / .7);
+}
+.flame svg{width:26px;height:26px}
+.streak-days{display:flex;gap:6px;margin-top:16px}
+.streak-days span{flex:1;height:9px;border-radius:6px;background:hsl(158 30% 90%);border:1px solid hsl(158 28% 80%)}
+.streak-days span.on{background:linear-gradient(90deg,hsl(34 56% 66%),hsl(20 56% 58%));border-color:hsl(20 48% 52%)}
+
+/* daily goal ring */
+.goal{display:flex;align-items:center;gap:18px}
+.ring{width:84px;height:84px;flex:0 0 auto}
+.ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.ring .track{stroke:hsl(158 30% 88%)}
+.ring .val{stroke:var(--green-deep);transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 1.2s var(--calm-ease)}
+.ring-label{font-family:var(--font-display);font-weight:700;font-size:1rem;fill:var(--ink)}
+
+/* xp / level */
+.level-top{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.lvl-badge{width:52px;height:52px;border-radius:15px;flex:0 0 auto;display:grid;place-items:center;background:linear-gradient(150deg,hsl(158 44% 56%),hsl(170 44% 46%));color:#fff;font-family:var(--font-display);font-weight:700;border:1px solid hsl(0 0% 100% / .5);box-shadow:0 4px 12px hsl(158 40% 40% / .28), inset 1px 1px 1px hsl(0 0% 100% / .6)}
+.lvl-badge small{display:block;font-size:.5rem;font-weight:700;opacity:.9;line-height:1;letter-spacing:.04em}
+.lvl-badge .lv{font-size:1.35rem;line-height:1}
+.xp-bar{height:14px;border-radius:8px;background:hsl(158 30% 90%);border:1px solid hsl(158 28% 80%);overflow:hidden}
+.xp-bar i{display:block;height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,hsl(158 44% 52%),hsl(170 46% 42%));transition:width 1.3s var(--calm-ease)}
+
+/* topic path */
+.path{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.node{
+  display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:.9rem;
+  padding:.5em .95em;border-radius:var(--radius-pill);background:hsl(var(--glass-tint) / .9);border:1px solid hsl(210 20% 84%);color:var(--muted);
+}
+.node.done{background:hsl(158 36% 90%);color:var(--green-deep);border-color:hsl(158 32% 78%)}
+.node.now{background:var(--green-deep);color:#fff;border-color:#14463b;box-shadow:0 4px 12px hsl(158 40% 30% / .3)}
+.node.locked{opacity:.6}
+.path .arrow{color:var(--muted);font-weight:700;opacity:.5}
+
+/* readiness mini meter */
+.meter-wrap{margin-top:10px}
+.meter{height:16px;border-radius:10px;background:hsl(158 30% 90%);border:1px solid hsl(158 28% 80%);overflow:hidden}
+.meter i{display:block;height:100%;width:0;border-radius:10px;background:linear-gradient(90deg,hsl(28 56% 66%),hsl(158 44% 50%));transition:width 1.4s var(--calm-ease)}
+.meter-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px}
+.meter-row b{font-family:var(--font-display);font-weight:700;font-size:1.55rem;color:var(--ink)}
+.meter-row span{color:var(--green-deep);font-weight:600;font-size:.92rem}
+
+/* badges */
+.badges{display:flex;flex-wrap:wrap;gap:10px}
+.bdg{display:inline-flex;align-items:center;gap:8px;background:hsl(var(--glass-tint) / .92);border:1px solid hsl(210 20% 84%);border-radius:var(--radius-pill);padding:.48em .9em;font-weight:600;font-size:.88rem;color:var(--ink)}
+.bdg .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:#fff;border:1px solid hsl(0 0% 100% / .4)}
+.bdg .ic svg{width:15px;height:15px}
+
+@media(min-width:760px){.game-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1040px){.game-grid{grid-template-columns:repeat(3,1fr)}.game-card.span2{grid-column:span 2}}
+
+/* ---------- features bento (reading content = near-opaque) ---------- */
+.bento{display:grid;gap:16px}
+.feat{padding:26px 22px}
+.feat .fic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin-bottom:15px;border:1px solid hsl(210 20% 84%)}
+.feat .fic svg{width:24px;height:24px}
+.feat h3{font-size:1.12rem;margin-bottom:.4em;color:var(--ink)}
+.feat p{color:var(--muted);font-size:.95rem;line-height:1.55}
+.feat .add{display:block;margin-top:.6em;color:var(--green-deep);font-size:.85rem;font-weight:600}
+@media(min-width:680px){.bento{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1040px){.bento{grid-template-columns:repeat(3,1fr)}}
+
+/* ---------- readiness outcome block ---------- */
+.ready-grid{display:grid;gap:30px;align-items:center}
+.ready-card{padding:36px 30px;text-align:center}
+.ready-dial{width:200px;height:122px;margin:0 auto 6px}
+.ready-num{font-family:var(--font-display);font-weight:700;font-size:3.3rem;color:var(--ink);line-height:1}
+.ready-state{color:var(--green-deep);font-weight:700;font-size:1.04rem;margin-top:4px;font-family:var(--font-display)}
+.ready-cap{color:var(--muted);font-size:.86rem;margin-top:6px}
+.ready-text h2{font-size:clamp(1.7rem,4.2vw,2.35rem);margin-bottom:.5em;color:var(--ink)}
+.ready-text p{color:var(--muted);font-size:1.08rem;line-height:1.6}
+.ready-reassure{margin-top:14px;color:var(--green-deep);font-weight:600;font-size:.96rem;display:flex;align-items:center;gap:8px}
+@media(min-width:900px){.ready-grid{grid-template-columns:1fr 1fr;gap:54px}.ready-text{order:-1}}
+
+/* ---------- testimonials ---------- */
+.tcards{display:grid;gap:18px}
+.tcard{padding:28px 24px}
+.tcard .quote{font-size:1.02rem;line-height:1.55;margin:0 0 18px;color:var(--ink)}
+.tcard .who{display:flex;align-items:center;gap:12px}
+.tcard .av{width:44px;height:44px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-weight:700;border:1px solid hsl(0 0% 100% / .5)}
+.tcard .who b{font-family:var(--font-display);font-weight:700;color:var(--ink)}
+.tcard .who small{display:block;color:var(--muted)}
+.stars{color:#C98A1E;font-size:.95rem;margin-bottom:11px;letter-spacing:1px}
+@media(min-width:860px){.tcards{grid-template-columns:repeat(3,1fr)}}
+
+/* ---------- pricing ---------- */
+.price-grid{display:grid;gap:20px;max-width:760px;margin:0 auto}
+.plan{padding:32px 28px;display:flex;flex-direction:column}
+.plan.pro{background:hsl(152 40% 90% / .82);border-color:hsl(152 44% 78%)}
+.plan .pname{font-family:var(--font-display);font-weight:700;font-size:1.28rem;display:flex;align-items:center;gap:10px;margin-bottom:6px;color:var(--ink)}
+.plan .popular{font-family:var(--font-display);font-size:.72rem;font-weight:700;background:var(--green-deep);color:#fff;padding:.28em .7em;border-radius:var(--radius-pill)}
+.plan .pprice{font-family:var(--font-display);font-weight:700;font-size:2.3rem;margin:6px 0 4px;color:var(--ink)}
+.plan .pprice small{font-size:1rem;color:var(--muted);font-weight:500}
+.plan .pfree{font-family:var(--font-display);font-weight:700;font-size:1.4rem;color:var(--muted);margin:6px 0 4px}
+.plan ul{display:grid;gap:11px;margin:18px 0 24px}
+.plan li{display:flex;align-items:flex-start;gap:10px;color:var(--muted);font-size:.96rem;line-height:1.45}
+.plan li .ck{flex:0 0 auto;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:hsl(158 36% 88%);color:var(--green-deep);margin-top:1px;border:1px solid hsl(158 32% 78%)}
+.plan li .ck svg{width:13px;height:13px}
+.plan .btn{margin-top:auto}
+@media(min-width:760px){.price-grid{grid-template-columns:1fr 1fr}}
+
+/* ---------- faq ---------- */
+.faq-list{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.faq{padding:0;overflow:hidden}
+.faq summary{
+  list-style:none;cursor:pointer;padding:20px 22px;display:flex;align-items:center;gap:14px;
+  font-family:var(--font-display);font-weight:600;font-size:1.06rem;color:var(--ink);
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary .q-ic{
+  margin-left:auto;flex:0 0 auto;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;
+  background:hsl(158 36% 88%);border:1px solid hsl(158 32% 78%);transition:transform .3s var(--calm-ease);color:var(--green-deep);
+}
+.faq summary .q-ic svg{width:15px;height:15px}
+.faq[open] summary .q-ic{transform:rotate(45deg)}
+.faq .a{padding:0 22px 22px;color:var(--muted);line-height:1.6}
+
+/* ---------- final cta ---------- */
+.final-card{padding:54px 30px;text-align:center;position:relative;overflow:hidden}
+.final-mascot{width:64px;height:auto;margin:0 auto 16px;position:relative;z-index:2}
+.final-card h2{font-size:clamp(1.9rem,4.8vw,2.7rem);margin-bottom:.35em;position:relative;z-index:2;letter-spacing:-.01em;color:var(--ink)}
+.final-card p{color:var(--muted);font-size:1.12rem;margin-bottom:26px;position:relative;z-index:2}
+.final-card .btn{position:relative;z-index:2}
+.final-note{margin-top:16px;color:var(--muted);font-size:.88rem;position:relative;z-index:2}
+
+/* ---------- footer ---------- */
+footer.site{
+  background:hsl(var(--glass-tint) / .72);
+  -webkit-backdrop-filter:saturate(140%) blur(12px);
+  backdrop-filter:saturate(140%) blur(12px);
+  border-top:1px solid hsl(0 0% 100% / .5);padding:52px 0 32px;margin-top:8px;
+}
+.foot-grid{display:grid;gap:32px}
+.foot-brand{max-width:330px}
+.foot-brand p{color:var(--muted);font-size:.92rem;margin-top:14px;line-height:1.6}
+.foot-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.foot-cols h4{font-family:var(--font-display);font-weight:700;font-size:.94rem;margin-bottom:12px;color:var(--ink)}
+.foot-cols a{display:block;color:var(--muted);font-size:.92rem;padding:5px 0}
+.foot-cols a:hover{color:var(--green-deep)}
+.disclaimer{margin-top:38px;padding-top:24px;border-top:1px solid hsl(210 20% 82%);color:var(--muted);font-size:.85rem;line-height:1.6;display:flex;flex-direction:column;gap:12px}
+.disclaimer .copy{font-weight:700;color:var(--ink)}
+@media(min-width:880px){
+  .foot-grid{grid-template-columns:1.4fr 1.6fr}
+  .disclaimer{flex-direction:row;justify-content:space-between;align-items:flex-start;gap:30px}
+  .disclaimer .copy{white-space:nowrap}
+}
+
+/* reveal-on-scroll — opacity + small translateY, calm ease */
+.reveal{opacity:0;transform:translateY(12px);transition:opacity .4s var(--calm-ease), transform .4s var(--calm-ease)}
+.reveal.in{opacity:1;transform:none}
+
+/* ============================================================
+   ACCESSIBILITY FALLBACKS (the #1 glass risk — hard gates)
+   ============================================================ */
+@media (prefers-reduced-transparency:reduce){
+  .glass,.solid,.btn-ghost,.eyebrow,.speech,.node,.bdg{background:hsl(var(--glass-tint) / .98)}
+  .cta-glass{background:hsl(152 50% 84%)}
+  .glass::before,.cta-glass::before,.btn-ghost::before{backdrop-filter:none;-webkit-backdrop-filter:none}
+  header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none;background:hsl(var(--glass-tint) / .98)}
+  .drift{display:none}
+}
+@media (prefers-contrast:more){
+  .glass,.solid,.cta-glass,.btn-ghost,.eyebrow,.speech,.opt,.node,.bdg,.plan{background:#fff;border-color:#1F2933;color:var(--ink)}
+  .cta-glass{color:#0f2c22;border-color:#14463b}
+  .glass::before,.cta-glass::before,.btn-ghost::before{backdrop-filter:none;-webkit-backdrop-filter:none}
+  header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none;background:#fff;border-color:#1F2933}
+  .nav-links a,.foot-cols a,.muted,.hero-sub,.stat .l,.feat p,.section-head p{color:#1F2933}
+  .drift{display:none}
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .glass{background:hsl(var(--glass-tint) / .96)}
+  .glass::before{display:none}
+  .cta-glass{background:hsl(152 50% 84%)}
+  .cta-glass::before{display:none}
+  .btn-ghost::before{display:none}
+  header.site,footer.site{background:hsl(var(--glass-tint) / .96)}
+}
+
+/* ============================================================
+   REDUCED MOTION — kill drift + slides; keep tiny fades
+   ============================================================ */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
+  .drift,.mascot-breathe{animation:none!important;transform:none!important}
+  .reveal{opacity:1;transform:none;transition:opacity .15s linear}
+  .btn:hover,.lift:hover,.opt:hover{transform:none}
+  .lift{transition:none}
+}
+</style>
+</head>
+<body>
+
+<!-- pastel drifting blobs the glass refracts -->
+<span class="drift b1" aria-hidden="true"></span>
+<span class="drift b2" aria-hidden="true"></span>
+<span class="drift b3" aria-hidden="true"></span>
+
+<!-- LIQUID-GLASS SVG FILTER — organic edge lensing (dropped once, invisible) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="liquid-glass" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="7" stitchTiles="stitch" result="n"/>
+    <feGaussianBlur in="n" stdDeviation="2" result="sn"/>
+    <feDisplacementMap in="SourceGraphic" in2="sn" scale="64" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<!-- ============================ HEADER ============================ -->
+<header class="site">
+  <div class="wrap">
+    <nav class="nav" aria-label="Головна навігація">
+      <a class="brand" href="#top" aria-label="Drivers School — головна">
+        <span class="badge-mark" aria-hidden="true">ПДР</span>
+        <span>Drivers&nbsp;School</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Можливості</a>
+        <a href="#how">Як це працює</a>
+        <a href="#pricing">Тарифи</a>
+        <a href="#faq">Питання</a>
+      </div>
+      <div class="nav-actions">
+        <a class="link-login" href="#top">Увійти</a>
+        <a class="btn cta-glass" href="#hero-cta"><span>Почати безкоштовно</span></a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============================ HERO ============================ -->
+<section class="hero" id="hero" aria-labelledby="hero-title">
+  <div class="wrap">
+    <div class="hero-grid">
+
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="dot" aria-hidden="true"></span>Підготовка до теоретичного іспиту з ПДР</span>
+
+        <div class="hero-mascot">
+          <!-- MASCOT "Світлик" — calm traffic-light, moderate eyes -->
+          <span class="mascot-stage">
+            <svg class="mascot-svg mascot-breathe" viewBox="0 0 120 220" role="img" aria-label="Світлик — твій спокійний помічник">
+              <rect x="20" y="10" width="80" height="200" rx="36" fill="#3B4A63"/>
+              <rect x="26" y="16" width="68" height="30" rx="22" fill="#4A5A76" opacity=".6"/>
+              <circle cx="60" cy="58"  r="22" fill="#E2A6B0" opacity=".5"/>
+              <circle cx="60" cy="110" r="22" fill="#EBD3A0" opacity=".5"/>
+              <circle cx="60" cy="162" r="24" fill="#9CCBA9"/>
+              <ellipse cx="52" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
+              <ellipse cx="68" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
+              <circle cx="53.2" cy="154.5" r="1.1" fill="#fff"/><circle cx="69.2" cy="154.5" r="1.1" fill="#fff"/>
+              <path d="M50 167 Q60 174 70 167" stroke="#2F4A3A" stroke-width="3" fill="none" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <p class="speech">Привіт, я <b>Світлик</b> — допоможу скласти спокійно. Почнемо з одного питання, без зубріння і без стресу.</p>
+        </div>
+
+        <h1 class="hero-title" id="hero-title">Іспит ПДР — <span class="soft">без зубріння і страху</span></h1>
+        <p class="hero-sub">Усі офіційні питання іспиту, реальні дорожні ситуації та розумні тренування, що ведуть тебе від нуля до впевненого «склав».</p>
+
+        <div class="hero-cta-row" id="hero-cta">
+          <a class="btn cta-glass btn-lg" href="#pricing"><span>Почати безкоштовно</span></a>
+          <a class="btn btn-ghost btn-lg" href="#sample">Спробувати питання — без реєстрації</a>
+        </div>
+
+        <p class="micro-trust">Без картки · <b>1691</b> офіційне питання · Українською</p>
+        <p class="micro-calm"><span aria-hidden="true">🫧</span> Без стресу. Без картки. Перше питання — прямо зараз.</p>
+      </div>
+
+      <!-- SAMPLE QUESTION — signature liquid-glass panel (SVG refraction) -->
+      <div class="glass lens quiz" id="sample" aria-labelledby="quiz-q">
+        <div class="quiz-head">
+          <span class="kicker"><span aria-hidden="true">✨</span> Спробуй прямо зараз</span>
+          <span class="quiz-helper">
+            <svg viewBox="0 0 120 220" aria-hidden="true">
+              <rect x="20" y="10" width="80" height="200" rx="36" fill="#3B4A63"/>
+              <circle cx="60" cy="58" r="22" fill="#E2A6B0" opacity=".5"/>
+              <circle cx="60" cy="110" r="22" fill="#EBD3A0" opacity=".5"/>
+              <circle cx="60" cy="162" r="24" fill="#9CCBA9"/>
+              <ellipse cx="52" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
+              <ellipse cx="68" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
+              <path d="M50 167 Q60 174 70 167" stroke="#2F4A3A" stroke-width="3" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span>Тут можна помилятися — це тренування, а не іспит.</span>
+          </span>
+        </div>
+        <p class="quiz-q" id="quiz-q">Як діяти, якщо під час руху ввімкнулося жовте миготливе світло світлофора?</p>
+
+        <div class="options" id="options" role="group" aria-labelledby="quiz-q">
+          <button class="opt" data-correct="false"><span class="mark" aria-hidden="true">А</span><span>Зупинитися та чекати зеленого сигналу</span></button>
+          <button class="opt" data-correct="true"><span class="mark" aria-hidden="true">Б</span><span>Продовжити рух, керуючись правилами проїзду нерегульованих перехресть</span></button>
+          <button class="opt" data-correct="false"><span class="mark" aria-hidden="true">В</span><span>Зупинитися перед перехрестям до вимкнення жовтого</span></button>
+          <button class="opt" data-correct="false"><span class="mark" aria-hidden="true">Г</span><span>Пришвидшитися, щоб проїхати перехрестя першим</span></button>
+        </div>
+
+        <div class="feedback" id="feedback" role="status" aria-live="polite">
+          <span class="ic" id="fb-ic" aria-hidden="true"></span>
+          <span id="fb-text"></span>
+        </div>
+        <div class="xp" id="xp">
+          <span class="chip">+10 XP</span>
+          <svg class="mini-mascot" viewBox="0 0 120 220" aria-hidden="true">
+            <rect x="20" y="10" width="80" height="200" rx="36" fill="#3B4A63"/>
+            <circle cx="60" cy="58" r="22" fill="#E2A6B0" opacity=".5"/>
+            <circle cx="60" cy="110" r="22" fill="#EBD3A0" opacity=".5"/>
+            <circle cx="60" cy="162" r="24" fill="#9CCBA9"/>
+            <ellipse cx="52" cy="155" rx="3.4" ry="5.2" fill="#2F4A3A"/>
+            <ellipse cx="68" cy="155" rx="3.4" ry="5.2" fill="#2F4A3A"/>
+            <path d="M49 166 Q60 175 71 166" stroke="#2F4A3A" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+          </svg>
+          <span>так працює кожне питання в Drivers School</span>
+        </div>
+        <button class="quiz-reset" id="reset" type="button"><span aria-hidden="true">↺</span> Спробувати ще раз</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================ TRUST BAR ============================ -->
+<section class="trust" aria-label="Чому нам можна довіряти">
+  <div class="wrap">
+    <div class="glass trust-card reveal">
+      <div class="official">
+        <span class="gov" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 2 3 6v6c0 5 3.8 8.5 9 10 5.2-1.5 9-5 9-10V6l-9-4Z" fill="#fff" opacity=".95"/><path d="m8.5 12 2.4 2.4L16 9.5" stroke="#255A8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span>
+          <b>Питання з офіційної бази ГСЦ&nbsp;МВС</b>
+          <small>Той самий банк питань, що й на справжньому іспиті</small>
+        </span>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="n">1691</div><div class="l">офіційне питання</div></div>
+        <div class="stat"><div class="n">734</div><div class="l">фото реальних ситуацій</div></div>
+        <div class="stat"><div class="n">8 · 70</div><div class="l">тем · підтем</div></div>
+        <div class="stat"><div class="n"><span class="star">★</span> 4.9</div><div class="l">у відгуках</div></div>
+      </div>
+
+      <div class="trust-extra">
+        <span class="format-chip">
+          <span class="pill">20</span> питань
+          <span class="pill">20</span> хвилин
+          <span class="pill">2</span> помилки — як на справжньому іспиті
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ HOW IT WORKS ============================ -->
+<section class="section-pad" id="how" aria-labelledby="how-h">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Як це працює</span>
+      <h2 id="how-h">Три спокійні кроки до «склав»</h2>
+      <p>Ніякого хаосу — зрозумілий маршрут від першого питання до пробного іспиту.</p>
+    </div>
+    <div class="steps">
+      <div class="solid step lift reveal">
+        <div class="num">1</div>
+        <h3>Вивчай тему</h3>
+        <p>Коротко й зрозуміло: знаки, розмітка, пріоритети — без юридичної води.</p>
+      </div>
+      <div class="solid step lift reveal">
+        <div class="num">2</div>
+        <h3>Тренуйся розумно</h3>
+        <p>Система сама повертає питання, у яких ти помилився, поки ти їх не закріпиш.</p>
+      </div>
+      <div class="solid step lift reveal">
+        <div class="num">3</div>
+        <h3>Складай пробний іспит</h3>
+        <p>Той самий формат, що й офіційний: 20 питань, 20 хвилин, максимум 2 помилки.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ GAMIFICATION ============================ -->
+<section class="section-pad" id="game" aria-labelledby="game-h">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Вчись, як у грі</span>
+      <h2 id="game-h">Вчись, як у грі</h2>
+      <p>Прогрес, який видно — і не хочеться кидати.</p>
+    </div>
+
+    <div class="game-grid">
+      <!-- streak -->
+      <div class="glass game-card lift reveal">
+        <div class="streak-top">
+          <span class="flame" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3c1 3-1 4-1 6a3 3 0 0 0 6 0c0-1-.3-2-.8-2.8C18.6 8 20 11 20 14a8 8 0 1 1-16 0c0-4 3-6 4-9 .7 1.5 2.4 2 4-2Z" fill="#B4532E" opacity=".85" stroke="#8c3f22" stroke-width="1" stroke-linejoin="round"/></svg>
+          </span>
+          <div>
+            <h4>Серія 12 днів</h4>
+            <span class="muted">Не зупиняйся — ще трохи.</span>
+          </div>
+        </div>
+        <div class="streak-days" aria-hidden="true">
+          <span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span>
+        </div>
+      </div>
+
+      <!-- daily goal ring -->
+      <div class="glass game-card lift reveal">
+        <div class="goal">
+          <svg class="ring" viewBox="0 0 100 100" role="img" aria-label="Денна ціль: 3 з 5 уроків">
+            <circle class="track" cx="50" cy="50" r="40"/>
+            <circle class="val" cx="50" cy="50" r="40" data-dash="251" data-pct="60"/>
+            <text class="ring-label" x="50" y="55" text-anchor="middle">3/5</text>
+          </svg>
+          <div>
+            <h4>Денна ціль</h4>
+            <span class="muted">3 / 5 уроків сьогодні</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- xp / level -->
+      <div class="glass game-card lift reveal">
+        <div class="level-top">
+          <span class="lvl-badge" aria-hidden="true"><span><small>РІВЕНЬ</small><span class="lv">7</span></span></span>
+          <div>
+            <h4>Рівень 7</h4>
+            <span class="muted">+15 XP за правильну відповідь</span>
+          </div>
+        </div>
+        <div class="xp-bar" role="img" aria-label="Прогрес рівня 72 відсотки"><i data-w="72"></i></div>
+      </div>
+
+      <!-- topic path -->
+      <div class="glass game-card span2 lift reveal">
+        <h4 style="margin-bottom:14px">Твій маршрут по темах</h4>
+        <div class="path" aria-label="Маршрут навчання по темах">
+          <span class="node done">Знаки <span aria-hidden="true">✓</span></span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span class="node done">Розмітка <span aria-hidden="true">✓</span></span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span class="node now">Перехрестя <span aria-hidden="true">●</span> зараз</span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span class="node locked">Обгін <span aria-hidden="true">🔒</span></span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span class="node locked">Швидкість <span aria-hidden="true">🔒</span></span>
+        </div>
+      </div>
+
+      <!-- readiness mini -->
+      <div class="glass game-card lift reveal">
+        <h4>Готовність до іспиту</h4>
+        <div class="meter-wrap">
+          <div class="meter" role="img" aria-label="Готовність 78 відсотків"><i data-w="78"></i></div>
+          <div class="meter-row"><b>78%</b><span>майже там</span></div>
+        </div>
+      </div>
+
+      <!-- badges -->
+      <div class="glass game-card span2 lift reveal">
+        <h4 style="margin-bottom:14px">Зароблені відзнаки</h4>
+        <div class="badges">
+          <span class="bdg"><span class="ic" style="background:linear-gradient(150deg,hsl(205 46% 60%),hsl(205 48% 50%))" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#fff"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="#255A8C"/></svg></span>Знавець знаків</span>
+          <span class="bdg"><span class="ic" style="background:linear-gradient(150deg,hsl(158 42% 56%),hsl(158 44% 46%))" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>100 питань</span>
+          <span class="bdg"><span class="ic" style="background:linear-gradient(150deg,hsl(28 50% 62%),hsl(28 52% 52%))" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="3" stroke="#fff" stroke-width="2"/><path d="M8 3v4M16 3v4M4 10h16" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>Тиждень без пропусків</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FEATURES ============================ -->
+<section class="section-pad" id="features" aria-labelledby="feat-h">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Можливості</span>
+      <h2 id="feat-h">Усе, щоб підготуватися спокійно</h2>
+      <p>П'ять режимів практики, фото реальних ситуацій і чесна оцінка готовності.</p>
+    </div>
+
+    <div class="bento">
+      <div class="solid feat lift reveal">
+        <div class="fic" style="background:hsl(28 50% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="#6a4a28" stroke-width="2"/><path d="M12 9v4l2.5 2M9 2h6" stroke="#6a4a28" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <h3>Пробний іспит</h3>
+        <p>Повна симуляція офіційного іспиту з таймером і лімітом помилок.</p>
+      </div>
+      <div class="solid feat lift reveal">
+        <div class="fic" style="background:hsl(158 40% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 1-2-2V5Z" stroke="#226157" stroke-width="2" stroke-linejoin="round"/><path d="M20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 0 2-2V5Z" stroke="#226157" stroke-width="2" stroke-linejoin="round"/></svg></div>
+        <h3>Практика за темами</h3>
+        <p>Прокачуй конкретні теми у власному темпі.</p>
+      </div>
+      <div class="solid feat lift reveal">
+        <div class="fic" style="background:hsl(205 45% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 9a8 8 0 0 1 13.5-3.5L20 8M20 4v4h-4" stroke="#255A8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 15a8 8 0 0 1-13.5 3.5L4 16M4 20v-4h4" stroke="#255A8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>Робота над помилками</h3>
+        <p>Інтервальні повторення: складні питання повертаються у правильний момент.</p>
+        <span class="add">Кожна помилка показує, що варто повторити.</span>
+      </div>
+      <div class="solid feat lift reveal">
+        <div class="fic" style="background:hsl(28 50% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="4" stroke="#6a4a28" stroke-width="2"/><circle cx="9" cy="9" r="1.4" fill="#6a4a28"/><circle cx="15" cy="15" r="1.4" fill="#6a4a28"/><circle cx="15" cy="9" r="1.4" fill="#6a4a28"/><circle cx="9" cy="15" r="1.4" fill="#6a4a28"/></svg></div>
+        <h3>Змішана практика</h3>
+        <p>Випадкові питання з фокусом на твоїх слабких темах.</p>
+      </div>
+      <div class="solid feat lift reveal">
+        <div class="fic" style="background:hsl(158 40% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h12a1 1 0 0 1 1 1v15l-7-3.5L5 20V5a1 1 0 0 1 1-1Z" stroke="#226157" stroke-width="2" stroke-linejoin="round"/></svg></div>
+        <h3>Збережені питання</h3>
+        <p>Закладки на питання, до яких хочеш повернутись.</p>
+      </div>
+      <div class="solid feat lift reveal">
+        <div class="fic" style="background:hsl(205 45% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="14" rx="3" stroke="#255A8C" stroke-width="2"/><path d="M8 6 9.5 3.5h5L16 6" stroke="#255A8C" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" stroke="#255A8C" stroke-width="2"/></svg></div>
+        <h3>Фото реальних ситуацій</h3>
+        <p>734 офіційні зображення знаків і дорожніх сцен.</p>
+      </div>
+      <div class="solid feat lift reveal">
+        <div class="fic" style="background:hsl(28 50% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 18 9 12l3.5 3.5L20 7" stroke="#6a4a28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h5v5" stroke="#6a4a28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>Оцінка готовності</h3>
+        <p>Чесний показник, наскільки ти готовий складати.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ READINESS OUTCOME ============================ -->
+<section class="section-pad" id="readiness" aria-labelledby="ready-h">
+  <div class="wrap">
+    <div class="ready-grid">
+      <div class="glass ready-card reveal">
+        <svg class="ready-dial" viewBox="0 0 200 120" role="img" aria-label="Готовність до іспиту 78 відсотків — майже готовий">
+          <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="hsl(158 30% 86%)" stroke-width="16" stroke-linecap="round"/>
+          <path id="readyArc" d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="url(#rg)" stroke-width="16" stroke-linecap="round"
+                stroke-dasharray="251" stroke-dashoffset="251"/>
+          <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#D6A86A"/><stop offset="1" stop-color="#226157"/></linearGradient></defs>
+        </svg>
+        <div class="ready-num">78%</div>
+        <div class="ready-state">майже готовий</div>
+        <div class="ready-cap">Готовність до іспиту</div>
+      </div>
+
+      <div class="ready-text reveal">
+        <h2 id="ready-h">Не вгадуй, чи ти готовий — побач це.</h2>
+        <p>Ми рахуємо твою готовність за останніми результатами й опануванням тем. Сідай за кермо іспиту тоді, коли цифра скаже «готовий».</p>
+        <p class="ready-reassure"><span aria-hidden="true">🫶</span> Тисячі вже склали з першого разу. Ви теж зможете.</p>
+        <div style="margin-top:22px"><a class="btn cta-glass btn-lg" href="#pricing"><span>Почати безкоштовно</span></a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ TESTIMONIALS ============================ -->
+<section class="section-pad" id="reviews" aria-labelledby="rev-h">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Відгуки</span>
+      <h2 id="rev-h">Спокійно склали — і ти зможеш</h2>
+      <p>Реальні історії тих, хто вже за кермом.</p>
+    </div>
+    <div class="tcards">
+      <figure class="solid tcard lift reveal">
+        <div class="stars" aria-label="5 з 5">★★★★★</div>
+        <blockquote class="quote">«Склав з першого разу, хоча знаки давались важко. Робота над помилками — це топ.»</blockquote>
+        <figcaption class="who">
+          <span class="av" style="background:linear-gradient(150deg,hsl(205 46% 60%),hsl(205 48% 50%))" aria-hidden="true">О</span>
+          <span><b>Олександр</b><small>Київ</small></span>
+        </figcaption>
+      </figure>
+      <figure class="solid tcard lift reveal">
+        <div class="stars" aria-label="5 з 5">★★★★★</div>
+        <blockquote class="quote">«Зручно вчити в дорозі, по 15 хвилин. За два тижні була повністю готова.»</blockquote>
+        <figcaption class="who">
+          <span class="av" style="background:linear-gradient(150deg,hsl(158 42% 56%),hsl(158 44% 46%))" aria-hidden="true">М</span>
+          <span><b>Марія</b><small>Львів</small></span>
+        </figcaption>
+      </figure>
+      <figure class="solid tcard lift reveal">
+        <div class="stars" aria-label="5 з 5">★★★★★</div>
+        <blockquote class="quote">«Нарешті зрозумів пріоритети на перехрестях — завдяки поясненням до кожного питання.»</blockquote>
+        <figcaption class="who">
+          <span class="av" style="background:linear-gradient(150deg,hsl(28 50% 62%),hsl(28 52% 52%))" aria-hidden="true">Д</span>
+          <span><b>Дмитро</b><small>Одеса</small></span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ PRICING ============================ -->
+<section class="section-pad" id="pricing" aria-labelledby="price-h">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Тарифи</span>
+      <h2 id="price-h">Почни безкоштовно. Без картки.</h2>
+      <p>Преміум — коли захочеш більше. Жодного тиску.</p>
+    </div>
+    <div class="price-grid">
+      <div class="solid plan reveal">
+        <div class="pname">Безкоштовно</div>
+        <div class="pfree">0 ₴</div>
+        <ul>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Практика за темами</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Демо пробних іспитів</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Базовий прогрес</li>
+        </ul>
+        <a class="btn btn-ghost btn-block" href="#hero-cta">Почати безкоштовно</a>
+      </div>
+
+      <div class="glass plan pro reveal">
+        <div class="pname">Преміум <span class="popular">Популярне</span></div>
+        <div class="pprice">99 ₴ <small>/ міс</small></div>
+        <ul>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Безлімітні пробні іспити</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Робота над помилками</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Оцінка готовності</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Усі 734 фото</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Без реклами</li>
+        </ul>
+        <a class="btn cta-glass btn-block" href="#hero-cta"><span>Спробувати Преміум</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FAQ ============================ -->
+<section class="section-pad" id="faq" aria-labelledby="faq-h">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Питання</span>
+      <h2 id="faq-h">Часті питання</h2>
+      <p>Коротко й чесно — щоб ти почувався спокійно.</p>
+    </div>
+    <div class="faq-list">
+      <details class="solid faq reveal">
+        <summary>Це офіційний іспит?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
+        <div class="a">Ні. Це навчальна платформа для підготовки. Питання — з відкритої бази ГСЦ МВС, але це не офіційна екзаменаційна система.</div>
+      </details>
+      <details class="solid faq reveal">
+        <summary>Чи актуальні питання?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
+        <div class="a">Так, ми оновлюємо базу за змінами в ПДР.</div>
+      </details>
+      <details class="solid faq reveal">
+        <summary>Скільки часу треба на підготовку?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
+        <div class="a">Більшості вистачає 1–3 тижнів по 15–20 хвилин на день.</div>
+      </details>
+      <details class="solid faq reveal">
+        <summary>Чи працює на телефоні?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
+        <div class="a">Так, сайт повністю адаптований під мобільні.</div>
+      </details>
+      <details class="solid faq reveal">
+        <summary>Чи потрібна картка, щоб почати?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
+        <div class="a">Ні. Почати можна безкоштовно й без картки.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FINAL CTA ============================ -->
+<section class="section-pad final" id="final" aria-labelledby="final-h">
+  <div class="wrap">
+    <div class="glass final-card reveal">
+      <svg class="final-mascot mascot-breathe" viewBox="0 0 120 220" role="img" aria-label="Світлик бажає спокійного іспиту">
+        <rect x="20" y="10" width="80" height="200" rx="36" fill="#3B4A63"/>
+        <rect x="26" y="16" width="68" height="30" rx="22" fill="#4A5A76" opacity=".6"/>
+        <circle cx="60" cy="58"  r="22" fill="#E2A6B0" opacity=".5"/>
+        <circle cx="60" cy="110" r="22" fill="#EBD3A0" opacity=".5"/>
+        <circle cx="60" cy="162" r="24" fill="#9CCBA9"/>
+        <ellipse cx="52" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
+        <ellipse cx="68" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
+        <circle cx="53.2" cy="154.5" r="1.1" fill="#fff"/><circle cx="69.2" cy="154.5" r="1.1" fill="#fff"/>
+        <path d="M50 167 Q60 174 70 167" stroke="#2F4A3A" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+      <h2 id="final-h">Твоє «склав» починається сьогодні.</h2>
+      <p>Перше тренування — за 30 секунд.</p>
+      <a class="btn cta-glass btn-lg" href="#hero-cta"><span>Почати безкоштовно</span></a>
+      <p class="final-note">Навчальна платформа для підготовки. Це не офіційна екзаменаційна система.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="#top" aria-label="Drivers School — головна">
+          <span class="badge-mark" aria-hidden="true">ПДР</span>
+          <span>Drivers&nbsp;School</span>
+        </a>
+        <p>Спокійна підготовка до теоретичного іспиту з ПДР. Без зубріння, без страху — крок за кроком до твого «склав».</p>
+      </div>
+      <nav class="foot-cols" aria-label="Навігація у футері">
+        <div>
+          <h4>Продукт</h4>
+          <a href="#features">Можливості</a>
+          <a href="#pricing">Тарифи</a>
+          <a href="#how">Пробний іспит</a>
+        </div>
+        <div>
+          <h4>Підтримка</h4>
+          <a href="#faq">Питання</a>
+          <a href="#top">Контакти</a>
+        </div>
+        <div>
+          <h4>Правове</h4>
+          <a href="#top">Умови</a>
+          <a href="#top">Конфіденційність</a>
+        </div>
+      </nav>
+    </div>
+    <div class="disclaimer">
+      <p>Навчальна платформа для підготовки до теоретичної частини іспиту з ПДР. Це не офіційна екзаменаційна система. Питання — з відкритої бази ГСЦ МВС.</p>
+      <p class="copy">© 2026 Drivers School</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Liquid-glass refraction gate (Chromium renders SVG-on-backdrop) ---------- */
+  try{
+    if(window.chrome && CSS.supports('backdrop-filter','url(#x)')){
+      document.documentElement.classList.add('refraction-ok');
+    }
+  }catch(e){/* no-op: frosted-glass floor stays in effect */}
+
+  /* ---------- Interactive sample question ---------- */
+  var options  = document.getElementById('options');
+  var feedback = document.getElementById('feedback');
+  var fbIc     = document.getElementById('fb-ic');
+  var fbText   = document.getElementById('fb-text');
+  var xp       = document.getElementById('xp');
+  var resetBtn = document.getElementById('reset');
+  var answered = false;
+
+  var ICON_OK = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 13 4 4L19 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var ICON_NO = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>';
+  var CORRECT = '<b>Правильно!</b> Жовте миготливе означає, що перехрестя нерегульоване — далі діють знаки пріоритету.';
+  var WRONG   = '<b>Не зовсім.</b> Жовте миготливе = перехрестя нерегульоване; рухайся за знаками пріоритету. Правильна відповідь підсвічена нижче.';
+
+  function getButtons(){ return Array.prototype.slice.call(options.querySelectorAll('.opt')); }
+  function optText(b){ var s = b.querySelector('span:last-child'); return s ? s.textContent : ''; }
+
+  function answer(clicked){
+    if(answered) return;
+    answered = true;
+    var buttons = getButtons();
+    var isRight = clicked.getAttribute('data-correct') === 'true';
+
+    buttons.forEach(function(b){
+      b.disabled = true;
+      if(b.getAttribute('data-correct') === 'true'){
+        b.classList.add('correct');
+        if(!reduceMotion) b.classList.add('reveal-soft');
+        var m = b.querySelector('.mark');
+        if(m) m.textContent = '✓';
+        b.setAttribute('aria-label', 'Правильна відповідь: ' + optText(b));
+      }
+    });
+    if(!isRight){
+      clicked.classList.add('wrong');
+      var mk = clicked.querySelector('.mark');
+      if(mk) mk.textContent = '✕';
+      clicked.setAttribute('aria-label', 'Неправильна відповідь: ' + optText(clicked));
+    }
+
+    feedback.classList.remove('ok','no');
+    feedback.classList.add('show', isRight ? 'ok' : 'no');
+    fbIc.innerHTML = isRight ? ICON_OK : ICON_NO;
+    fbText.innerHTML = isRight ? CORRECT : WRONG;
+
+    xp.classList.add('show');
+    resetBtn.classList.add('show');
+  }
+
+  function reset(){
+    answered = false;
+    getButtons().forEach(function(b,i){
+      b.disabled = false;
+      b.classList.remove('correct','wrong','reveal-soft');
+      b.removeAttribute('aria-label');
+      var m = b.querySelector('.mark');
+      if(m) m.textContent = ['А','Б','В','Г'][i];
+    });
+    feedback.classList.remove('show','ok','no');
+    fbText.innerHTML = '';
+    fbIc.innerHTML = '';
+    xp.classList.remove('show');
+    resetBtn.classList.remove('show');
+    var first = getButtons()[0];
+    if(first) first.focus();
+  }
+
+  getButtons().forEach(function(b){
+    b.addEventListener('click', function(){ answer(b); });
+  });
+  resetBtn.addEventListener('click', reset);
+
+  /* ---------- Scroll reveal + animated meters ---------- */
+  var revealEls = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+
+  function fillMeters(root){
+    root.querySelectorAll('.xp-bar i, .meter i').forEach(function(el){
+      if(el.dataset.filled) return; el.dataset.filled = '1';
+      el.style.width = (el.getAttribute('data-w') || 0) + '%';
+    });
+    root.querySelectorAll('.ring .val').forEach(function(c){
+      if(c.dataset.filled) return; c.dataset.filled = '1';
+      var dash = parseFloat(c.getAttribute('data-dash')) || 251;
+      var pct  = parseFloat(c.getAttribute('data-pct')) || 0;
+      c.style.strokeDasharray = dash;
+      c.style.strokeDashoffset = dash;
+      requestAnimationFrame(function(){ c.style.strokeDashoffset = dash * (1 - pct/100); });
+    });
+  }
+  function fillReadyArc(){
+    var arc = document.getElementById('readyArc');
+    if(!arc || arc.dataset.filled) return; arc.dataset.filled = '1';
+    requestAnimationFrame(function(){
+      arc.style.transition = reduceMotion ? 'none' : 'stroke-dashoffset 1.5s cubic-bezier(0.16,1,0.3,1)';
+      arc.style.strokeDashoffset = 251 * (1 - 78/100);
+    });
+  }
+
+  if('IntersectionObserver' in window && !reduceMotion){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          e.target.classList.add('in');
+          fillMeters(e.target);
+          if(e.target.querySelector && e.target.querySelector('#readyArc')) fillReadyArc();
+          io.unobserve(e.target);
+        }
+      });
+    }, {rootMargin:'0px 0px -8% 0px', threshold:0.12});
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('in'); });
+    fillMeters(document); fillReadyArc();
+  }
+})();
+</script>
+</body>
+</html>
