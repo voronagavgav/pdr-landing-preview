@@ -407,8 +407,13 @@ header.site{
   display:grid;place-items:center;
 }
 .mascot-svg{width:54px;height:auto}
-.mascot-breathe{transform-origin:50% 70%;animation:mascotBreathe 7s ease-in-out infinite}
-@keyframes mascotBreathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.015)}}
+/* Світлик FLIES: body bobs, ground shadow reacts inversely on the same cycle */
+.mbody{transform-box:fill-box;transform-origin:center;animation:svFloat 4.5s ease-in-out infinite}
+.msh{transform-box:fill-box;transform-origin:center;animation:svShadow 4.5s ease-in-out infinite}
+@keyframes svFloat{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-7px) rotate(1deg)}}
+@keyframes svShadow{0%,100%{transform:scale(1);opacity:.12}50%{transform:scale(.82);opacity:.07}}
+/* cramped mini placements keep face + shadow, hide the waving arm */
+.mini-mascot .marm,.quiz-helper svg .marm{display:none}
 .speech{
   background:hsl(var(--glass-tint) / .92);border:1px solid hsl(210 22% 86%);
   border-radius:18px;padding:13px 16px;font-size:.95rem;color:var(--ink);position:relative;
@@ -786,7 +791,9 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
    ============================================================ */
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
-  .drift,.mascot-breathe{animation:none!important;transform:none!important}
+  .drift{animation:none!important;transform:none!important}
+  .mbody{animation:none!important;transform:none!important}
+  .msh{animation:none!important;transform:none!important;opacity:.12!important}
   .sweep,.breathe-glass,.ripple{animation:none!important}
   .sweep,.ripple{display:none}
   .tilt:hover{transform:none}
@@ -830,64 +837,34 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   </filter>
 </svg>
 
-<!-- ============= REUSABLE MASCOT "Світлик" — plushy, friendly traffic-light toy (defined once, <use>d everywhere) ============= -->
+<!-- ============= REUSABLE MASCOT "Світлик" — original first-version buddy (defined once, <use>d everywhere) ============= -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <linearGradient id="sv-body" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#7BA0A6"/>
-      <stop offset=".5" stop-color="#6A8E95"/>
-      <stop offset="1" stop-color="#557680"/>
+    <!-- softened slate body gradient (page-harmonised: warmer/softer than near-black) -->
+    <linearGradient id="mbody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#475a63"/>
+      <stop offset="1" stop-color="#33424a"/>
     </linearGradient>
-    <radialGradient id="sv-green" cx=".38" cy=".34" r=".75">
-      <stop offset="0" stop-color="#BFE8C7"/>
-      <stop offset=".55" stop-color="#9FD8AC"/>
-      <stop offset="1" stop-color="#7FC290"/>
-    </radialGradient>
-    <radialGradient id="sv-red" cx=".4" cy=".36" r=".8">
-      <stop offset="0" stop-color="#F2BFC4"/>
-      <stop offset="1" stop-color="#E2A6B0"/>
-    </radialGradient>
-    <radialGradient id="sv-amber" cx=".4" cy=".36" r=".8">
-      <stop offset="0" stop-color="#F4E2B4"/>
-      <stop offset="1" stop-color="#EBD3A0"/>
-    </radialGradient>
-    <filter id="sv-shadow" x="-40%" y="-30%" width="180%" height="170%" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#3a525a" flood-opacity=".32"/>
+    <!-- soft float glow consistent with the page's soft shadows -->
+    <filter id="mglow" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="4" stdDeviation="4.5" flood-color="#3a525a" flood-opacity=".28"/>
     </filter>
-    <symbol id="svitlyk" viewBox="0 0 120 220">
-      <g filter="url(#sv-shadow)">
-        <!-- soft plush feet -->
-        <ellipse cx="44" cy="210" rx="15" ry="9" fill="#4E6E77"/>
-        <ellipse cx="76" cy="210" rx="15" ry="9" fill="#4E6E77"/>
-        <!-- tiny stub arm -->
-        <ellipse cx="14" cy="118" rx="10" ry="15" fill="#5E828A" transform="rotate(-16 14 118)"/>
-        <!-- plush squircle body -->
-        <rect x="16" y="8" width="88" height="200" rx="42" fill="url(#sv-body)"/>
-        <!-- top-left inner sheen -->
-        <ellipse cx="46" cy="38" rx="30" ry="20" fill="#A9CACE" opacity=".55"/>
-        <rect x="22" y="14" width="60" height="34" rx="26" fill="#A9CACE" opacity=".28"/>
-        <!-- RED (dim) -->
-        <circle cx="60" cy="56" r="21" fill="url(#sv-red)" opacity=".55"/>
-        <circle cx="53" cy="49" r="5" fill="#fff" opacity=".4"/>
-        <!-- AMBER (dim) -->
-        <circle cx="60" cy="108" r="21" fill="url(#sv-amber)" opacity=".55"/>
-        <circle cx="53" cy="101" r="5" fill="#fff" opacity=".4"/>
-        <!-- GREEN (active) carries the face -->
-        <circle cx="60" cy="162" r="25" fill="url(#sv-green)"/>
-        <circle cx="51" cy="153" r="6" fill="#fff" opacity=".5"/>
-        <!-- gentle eyebrows -->
-        <path d="M45 149 Q51 145.5 57 148.5" stroke="#2F4A3A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>
-        <path d="M63 148.5 Q69 145.5 75 149" stroke="#2F4A3A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>
-        <!-- rosy cheeks -->
-        <ellipse cx="46" cy="166" rx="6" ry="4" fill="#F4A9B4" opacity=".4"/>
-        <ellipse cx="74" cy="166" rx="6" ry="4" fill="#F4A9B4" opacity=".4"/>
-        <!-- friendly eyes -->
-        <ellipse cx="51" cy="158" rx="4.4" ry="5.6" fill="#27402F"/>
-        <ellipse cx="69" cy="158" rx="4.4" ry="5.6" fill="#27402F"/>
-        <circle cx="52.6" cy="156" r="1.6" fill="#fff"/>
-        <circle cx="70.6" cy="156" r="1.6" fill="#fff"/>
-        <!-- warm smile -->
-        <path d="M49 169 Q60 178 71 169" stroke="#27402F" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    <symbol id="svitlyk" viewBox="0 0 100 100">
+      <!-- ground shadow (stays grounded) -->
+      <ellipse class="msh" cx="50" cy="93" rx="24" ry="5" fill="#2B2F36" opacity=".12"/>
+      <!-- floating body group -->
+      <g class="mbody" filter="url(#mglow)">
+        <rect x="28" y="10" width="44" height="80" rx="22" fill="url(#mbody)"/>
+        <rect x="31" y="13" width="38" height="30" rx="16" fill="#fff" opacity=".05"/>
+        <!-- soft top-left specular highlight (glass-era polish, kept subtle) -->
+        <ellipse cx="40" cy="20" rx="9" ry="5" fill="#fff" opacity=".14"/>
+        <circle cx="50" cy="29" r="11" fill="#FFB89A"/>           <!-- red/coral -->
+        <circle cx="50" cy="51" r="11" fill="#FFE08A"/>           <!-- amber -->
+        <circle cx="50" cy="73" r="11" fill="#9AD9B8"/>           <!-- green (go) — page soft-green token -->
+        <circle cx="46.3" cy="71.5" r="1.7" fill="#1f5b45"/>      <!-- eyes -->
+        <circle cx="53.7" cy="71.5" r="1.7" fill="#1f5b45"/>
+        <path d="M45 75.5 q5 4 10 0" stroke="#1f5b45" stroke-width="1.8" fill="none" stroke-linecap="round"/> <!-- smile -->
+        <rect class="marm" x="68" y="44" width="14" height="6" rx="3" fill="url(#mbody)" transform="rotate(-22 68 47)"/>    <!-- waving arm -->
       </g>
     </symbol>
   </defs>
@@ -927,9 +904,9 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         <span class="eyebrow"><span class="dot" aria-hidden="true"></span>Підготовка до теоретичного іспиту з ПДР</span>
 
         <div class="hero-mascot">
-          <!-- MASCOT "Світлик" — plushy friendly traffic-light toy (shared #svitlyk symbol) -->
+          <!-- MASCOT "Світлик" — original first-version buddy (shared #svitlyk symbol) -->
           <span class="mascot-stage">
-            <svg class="mascot-svg mascot-breathe" viewBox="0 0 120 220" role="img" aria-label="Світлик — твій спокійний помічник">
+            <svg class="mascot-svg" viewBox="0 0 100 100" role="img" aria-label="Світлик — твій спокійний помічник">
               <use href="#svitlyk"/>
             </svg>
           </span>
@@ -955,7 +932,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         <div class="quiz-head">
           <span class="kicker"><span aria-hidden="true">✨</span> Спробуй прямо зараз</span>
           <span class="quiz-helper">
-            <svg viewBox="0 0 120 220" aria-hidden="true"><use href="#svitlyk"/></svg>
+            <svg class="mini-mascot" viewBox="0 0 100 100" aria-hidden="true"><use href="#svitlyk"/></svg>
             <span>Тут можна помилятися — це тренування, а не іспит.</span>
           </span>
         </div>
@@ -980,7 +957,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         </div>
         <div class="xp" id="xp">
           <span class="chip">+10 XP</span>
-          <svg class="mini-mascot" viewBox="0 0 120 220" aria-hidden="true"><use href="#svitlyk"/></svg>
+          <svg class="mini-mascot" viewBox="0 0 100 100" aria-hidden="true"><use href="#svitlyk"/></svg>
           <span>так працює кожне питання в Drivers School</span>
         </div>
         <button class="quiz-reset" id="reset" type="button"><span aria-hidden="true">↺</span> Спробувати ще раз</button>
@@ -1341,7 +1318,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   <div class="wrap">
     <div class="glass final-card breathe-glass reveal" data-anim style="--bd:.6s">
       <span class="bloom" aria-hidden="true"></span>
-      <svg class="final-mascot mascot-breathe" viewBox="0 0 120 220" role="img" aria-label="Світлик — твій спокійний помічник"><use href="#svitlyk"/></svg>
+      <svg class="final-mascot" viewBox="0 0 100 100" role="img" aria-label="Світлик — твій спокійний помічник"><use href="#svitlyk"/></svg>
       <h2 id="final-h">Твоє «склав» починається сьогодні.</h2>
       <p>Перше тренування — за 30 секунд.</p>
       <a class="btn cta-glass btn-lg" href="#hero-cta"><span>Почати безкоштовно</span></a>
