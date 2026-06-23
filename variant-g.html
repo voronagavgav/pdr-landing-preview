@@ -830,6 +830,69 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   </filter>
 </svg>
 
+<!-- ============= REUSABLE MASCOT "Світлик" — plushy, friendly traffic-light toy (defined once, <use>d everywhere) ============= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="sv-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7BA0A6"/>
+      <stop offset=".5" stop-color="#6A8E95"/>
+      <stop offset="1" stop-color="#557680"/>
+    </linearGradient>
+    <radialGradient id="sv-green" cx=".38" cy=".34" r=".75">
+      <stop offset="0" stop-color="#BFE8C7"/>
+      <stop offset=".55" stop-color="#9FD8AC"/>
+      <stop offset="1" stop-color="#7FC290"/>
+    </radialGradient>
+    <radialGradient id="sv-red" cx=".4" cy=".36" r=".8">
+      <stop offset="0" stop-color="#F2BFC4"/>
+      <stop offset="1" stop-color="#E2A6B0"/>
+    </radialGradient>
+    <radialGradient id="sv-amber" cx=".4" cy=".36" r=".8">
+      <stop offset="0" stop-color="#F4E2B4"/>
+      <stop offset="1" stop-color="#EBD3A0"/>
+    </radialGradient>
+    <filter id="sv-shadow" x="-40%" y="-30%" width="180%" height="170%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#3a525a" flood-opacity=".32"/>
+    </filter>
+    <symbol id="svitlyk" viewBox="0 0 120 220">
+      <g filter="url(#sv-shadow)">
+        <!-- soft plush feet -->
+        <ellipse cx="44" cy="210" rx="15" ry="9" fill="#4E6E77"/>
+        <ellipse cx="76" cy="210" rx="15" ry="9" fill="#4E6E77"/>
+        <!-- tiny stub arm -->
+        <ellipse cx="14" cy="118" rx="10" ry="15" fill="#5E828A" transform="rotate(-16 14 118)"/>
+        <!-- plush squircle body -->
+        <rect x="16" y="8" width="88" height="200" rx="42" fill="url(#sv-body)"/>
+        <!-- top-left inner sheen -->
+        <ellipse cx="46" cy="38" rx="30" ry="20" fill="#A9CACE" opacity=".55"/>
+        <rect x="22" y="14" width="60" height="34" rx="26" fill="#A9CACE" opacity=".28"/>
+        <!-- RED (dim) -->
+        <circle cx="60" cy="56" r="21" fill="url(#sv-red)" opacity=".55"/>
+        <circle cx="53" cy="49" r="5" fill="#fff" opacity=".4"/>
+        <!-- AMBER (dim) -->
+        <circle cx="60" cy="108" r="21" fill="url(#sv-amber)" opacity=".55"/>
+        <circle cx="53" cy="101" r="5" fill="#fff" opacity=".4"/>
+        <!-- GREEN (active) carries the face -->
+        <circle cx="60" cy="162" r="25" fill="url(#sv-green)"/>
+        <circle cx="51" cy="153" r="6" fill="#fff" opacity=".5"/>
+        <!-- gentle eyebrows -->
+        <path d="M45 149 Q51 145.5 57 148.5" stroke="#2F4A3A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>
+        <path d="M63 148.5 Q69 145.5 75 149" stroke="#2F4A3A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>
+        <!-- rosy cheeks -->
+        <ellipse cx="46" cy="166" rx="6" ry="4" fill="#F4A9B4" opacity=".4"/>
+        <ellipse cx="74" cy="166" rx="6" ry="4" fill="#F4A9B4" opacity=".4"/>
+        <!-- friendly eyes -->
+        <ellipse cx="51" cy="158" rx="4.4" ry="5.6" fill="#27402F"/>
+        <ellipse cx="69" cy="158" rx="4.4" ry="5.6" fill="#27402F"/>
+        <circle cx="52.6" cy="156" r="1.6" fill="#fff"/>
+        <circle cx="70.6" cy="156" r="1.6" fill="#fff"/>
+        <!-- warm smile -->
+        <path d="M49 169 Q60 178 71 169" stroke="#27402F" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
 <!-- ============================ HEADER ============================ -->
 <header class="site">
   <div class="wrap">
@@ -864,18 +927,10 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         <span class="eyebrow"><span class="dot" aria-hidden="true"></span>Підготовка до теоретичного іспиту з ПДР</span>
 
         <div class="hero-mascot">
-          <!-- MASCOT "Світлик" — calm traffic-light, moderate eyes -->
+          <!-- MASCOT "Світлик" — plushy friendly traffic-light toy (shared #svitlyk symbol) -->
           <span class="mascot-stage">
             <svg class="mascot-svg mascot-breathe" viewBox="0 0 120 220" role="img" aria-label="Світлик — твій спокійний помічник">
-              <rect x="20" y="10" width="80" height="200" rx="36" fill="#3B4A63"/>
-              <rect x="26" y="16" width="68" height="30" rx="22" fill="#4A5A76" opacity=".6"/>
-              <circle cx="60" cy="58"  r="22" fill="#E2A6B0" opacity=".5"/>
-              <circle cx="60" cy="110" r="22" fill="#EBD3A0" opacity=".5"/>
-              <circle cx="60" cy="162" r="24" fill="#9CCBA9"/>
-              <ellipse cx="52" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
-              <ellipse cx="68" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
-              <circle cx="53.2" cy="154.5" r="1.1" fill="#fff"/><circle cx="69.2" cy="154.5" r="1.1" fill="#fff"/>
-              <path d="M50 167 Q60 174 70 167" stroke="#2F4A3A" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <use href="#svitlyk"/>
             </svg>
           </span>
           <p class="speech">Привіт, я <b>Світлик</b> — допоможу скласти спокійно. Почнемо з одного питання, без зубріння і без стресу.</p>
@@ -900,15 +955,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         <div class="quiz-head">
           <span class="kicker"><span aria-hidden="true">✨</span> Спробуй прямо зараз</span>
           <span class="quiz-helper">
-            <svg viewBox="0 0 120 220" aria-hidden="true">
-              <rect x="20" y="10" width="80" height="200" rx="36" fill="#3B4A63"/>
-              <circle cx="60" cy="58" r="22" fill="#E2A6B0" opacity=".5"/>
-              <circle cx="60" cy="110" r="22" fill="#EBD3A0" opacity=".5"/>
-              <circle cx="60" cy="162" r="24" fill="#9CCBA9"/>
-              <ellipse cx="52" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
-              <ellipse cx="68" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
-              <path d="M50 167 Q60 174 70 167" stroke="#2F4A3A" stroke-width="3" fill="none" stroke-linecap="round"/>
-            </svg>
+            <svg viewBox="0 0 120 220" aria-hidden="true"><use href="#svitlyk"/></svg>
             <span>Тут можна помилятися — це тренування, а не іспит.</span>
           </span>
         </div>
@@ -933,15 +980,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         </div>
         <div class="xp" id="xp">
           <span class="chip">+10 XP</span>
-          <svg class="mini-mascot" viewBox="0 0 120 220" aria-hidden="true">
-            <rect x="20" y="10" width="80" height="200" rx="36" fill="#3B4A63"/>
-            <circle cx="60" cy="58" r="22" fill="#E2A6B0" opacity=".5"/>
-            <circle cx="60" cy="110" r="22" fill="#EBD3A0" opacity=".5"/>
-            <circle cx="60" cy="162" r="24" fill="#9CCBA9"/>
-            <ellipse cx="52" cy="155" rx="3.4" ry="5.2" fill="#2F4A3A"/>
-            <ellipse cx="68" cy="155" rx="3.4" ry="5.2" fill="#2F4A3A"/>
-            <path d="M49 166 Q60 175 71 166" stroke="#2F4A3A" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-          </svg>
+          <svg class="mini-mascot" viewBox="0 0 120 220" aria-hidden="true"><use href="#svitlyk"/></svg>
           <span>так працює кожне питання в Drivers School</span>
         </div>
         <button class="quiz-reset" id="reset" type="button"><span aria-hidden="true">↺</span> Спробувати ще раз</button>
@@ -1302,17 +1341,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   <div class="wrap">
     <div class="glass final-card breathe-glass reveal" data-anim style="--bd:.6s">
       <span class="bloom" aria-hidden="true"></span>
-      <svg class="final-mascot mascot-breathe" viewBox="0 0 120 220" role="img" aria-label="Світлик бажає спокійного іспиту">
-        <rect x="20" y="10" width="80" height="200" rx="36" fill="#3B4A63"/>
-        <rect x="26" y="16" width="68" height="30" rx="22" fill="#4A5A76" opacity=".6"/>
-        <circle cx="60" cy="58"  r="22" fill="#E2A6B0" opacity=".5"/>
-        <circle cx="60" cy="110" r="22" fill="#EBD3A0" opacity=".5"/>
-        <circle cx="60" cy="162" r="24" fill="#9CCBA9"/>
-        <ellipse cx="52" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
-        <ellipse cx="68" cy="156" rx="3.4" ry="4.6" fill="#2F4A3A"/>
-        <circle cx="53.2" cy="154.5" r="1.1" fill="#fff"/><circle cx="69.2" cy="154.5" r="1.1" fill="#fff"/>
-        <path d="M50 167 Q60 174 70 167" stroke="#2F4A3A" stroke-width="3" fill="none" stroke-linecap="round"/>
-      </svg>
+      <svg class="final-mascot mascot-breathe" viewBox="0 0 120 220" role="img" aria-label="Світлик — твій спокійний помічник"><use href="#svitlyk"/></svg>
       <h2 id="final-h">Твоє «склав» починається сьогодні.</h2>
       <p>Перше тренування — за 30 секунд.</p>
       <a class="btn cta-glass btn-lg" href="#hero-cta"><span>Почати безкоштовно</span></a>
