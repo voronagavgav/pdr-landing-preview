@@ -1,0 +1,1095 @@
+<!-- @dsCard group="Лендінг" -->
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drivers School — Night Drive</title>
+<meta name="description" content="Підготовка до теоретичного іспиту з ПДР. Усі офіційні питання, реальні дорожні ситуації та розумні тренування.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Onest:wght@500;600;700;800&display=swap&subset=cyrillic,cyrillic-ext,latin" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0E14;
+    --surface:#121A24;
+    --text:#E6EDF5;
+    --muted:#93A1B5;
+    --teal:#22D3EE;
+    --violet:#8B5CF6;
+    --head:#FACC15;
+    --go:#34D399;
+    --bad:#F87171;
+    --glass:rgba(255,255,255,.06);
+    --glass-border:rgba(255,255,255,.12);
+    --glass-strong:rgba(255,255,255,.09);
+    --maxw:1180px;
+    --r:18px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+
+  /* Grain + base glow layer over the near-black bg to avoid banding */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background:
+      radial-gradient(900px 600px at 78% -8%, rgba(139,92,246,.16), transparent 60%),
+      radial-gradient(800px 520px at 12% 4%, rgba(34,211,238,.12), transparent 60%);
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    opacity:.05;
+    mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  h1,h2,h3,h4{font-family:"Onest","Inter",system-ui,sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.08;margin:0}
+  .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+  a{color:inherit;text-decoration:none}
+  ul{margin:0;padding:0;list-style:none}
+  button{font-family:inherit;cursor:pointer}
+  img,svg{display:block}
+
+  :focus-visible{
+    outline:2px solid var(--teal);
+    outline-offset:3px;
+    border-radius:8px;
+  }
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px;position:relative;z-index:2}
+  section{position:relative;z-index:2}
+  .eyebrow{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--teal);
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .eyebrow::before{content:"";width:22px;height:1px;background:linear-gradient(90deg,var(--teal),transparent)}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    font-weight:600;font-size:15px;
+    padding:13px 22px;border-radius:13px;border:1px solid transparent;
+    transition:transform .25s var(--ease), box-shadow .35s var(--ease), background .25s;
+    white-space:nowrap;
+  }
+  .btn-primary{
+    color:#04121A;
+    background:linear-gradient(135deg,var(--teal),#5eeafa);
+    box-shadow:0 6px 26px rgba(34,211,238,.28), inset 0 1px 0 rgba(255,255,255,.5);
+    font-weight:700;
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(34,211,238,.5), 0 0 0 1px rgba(34,211,238,.4)}
+  .btn-ghost{
+    color:var(--text);
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    backdrop-filter:blur(8px);
+  }
+  .btn-ghost:hover{background:var(--glass-strong);border-color:rgba(34,211,238,.4)}
+  .btn-lg{padding:16px 30px;font-size:16px}
+  .btn-block{width:100%}
+
+  /* ---------- logo / badge ---------- */
+  .brand{display:inline-flex;align-items:center;gap:11px}
+  .badge{
+    width:38px;height:38px;border-radius:11px;
+    display:grid;place-items:center;
+    background:linear-gradient(150deg,var(--teal),var(--violet));
+    box-shadow:0 4px 16px rgba(34,211,238,.32), inset 0 1px 0 rgba(255,255,255,.4);
+    font-family:"Onest",sans-serif;font-weight:800;font-size:14px;letter-spacing:.02em;
+    color:#06121A;
+  }
+  .brand b{font-family:"Onest",sans-serif;font-weight:700;font-size:17px;letter-spacing:-.01em}
+  .brand .sub{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-family:"JetBrains Mono",monospace;line-height:1;margin-top:2px}
+
+  /* ---------- nav ---------- */
+  .nav{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:blur(16px) saturate(140%);
+    background:rgba(10,14,20,.55);
+    border-bottom:1px solid rgba(255,255,255,.07);
+  }
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .nav-links{display:none;gap:30px;align-items:center}
+  .nav-links a{font-size:14px;color:var(--muted);transition:color .2s;position:relative}
+  .nav-links a:hover{color:var(--text)}
+  .nav-links a::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;background:var(--teal);transform:scaleX(0);transform-origin:left;transition:transform .25s var(--ease);border-radius:2px}
+  .nav-links a:hover::after{transform:scaleX(1)}
+  .nav-cta{display:flex;align-items:center;gap:10px}
+  .nav-cta .btn-ghost{display:none}
+  @media(min-width:860px){
+    .nav-links{display:flex}
+    .nav-cta .btn-ghost{display:inline-flex}
+  }
+
+  /* ---------- hero ---------- */
+  .hero{padding:54px 0 30px;overflow:hidden}
+  /* night-highway road behind hero */
+  .road{
+    position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+    -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%);
+    mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%);
+  }
+  .road svg{position:absolute;left:50%;top:-4%;width:130%;height:108%;transform:translateX(-50%)}
+  /* aurora blobs */
+  .aurora{position:absolute;inset:-15% -10% 0;z-index:0;pointer-events:none;filter:blur(70px);opacity:.85}
+  .blob{position:absolute;border-radius:50%}
+  .b1{width:520px;height:520px;left:-6%;top:-8%;background:radial-gradient(circle,rgba(34,211,238,.45),transparent 65%);animation:drift1 22s var(--ease) infinite alternate}
+  .b2{width:560px;height:560px;right:-8%;top:-2%;background:radial-gradient(circle,rgba(139,92,246,.45),transparent 65%);animation:drift2 26s var(--ease) infinite alternate}
+  .b3{width:380px;height:380px;left:42%;top:30%;background:radial-gradient(circle,rgba(34,211,238,.22),transparent 65%);animation:drift1 30s var(--ease) infinite alternate-reverse}
+  @keyframes drift1{from{transform:translate(0,0) scale(1)}to{transform:translate(60px,40px) scale(1.12)}}
+  @keyframes drift2{from{transform:translate(0,0) scale(1.05)}to{transform:translate(-50px,30px) scale(.92)}}
+
+  .hero-grid{display:grid;gap:38px;align-items:center;grid-template-columns:1fr}
+  @media(min-width:980px){.hero-grid{grid-template-columns:1.05fr .95fr;gap:48px}}
+
+  .hero h1{font-size:clamp(34px,7vw,58px);font-weight:800;margin:18px 0 0}
+  .hero h1 .glow{
+    background:linear-gradient(120deg,var(--teal),var(--violet));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 40px rgba(34,211,238,.25);
+  }
+  .hero .sub{font-size:clamp(16px,2.3vw,19px);color:var(--muted);margin:20px 0 0;max-width:34ch}
+  .hero-cta{display:flex;flex-wrap:wrap;gap:13px;margin-top:28px}
+  .microtrust{margin-top:16px;font-size:13px;color:var(--muted);font-family:"JetBrains Mono",monospace;letter-spacing:.01em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .microtrust .dot{width:4px;height:4px;border-radius:50%;background:var(--teal);opacity:.7}
+
+  /* ---------- sample question card ---------- */
+  .card-glass{
+    background:var(--glass);
+    backdrop-filter:blur(14px) saturate(130%);
+    border:1px solid var(--glass-border);
+    border-radius:var(--r);
+    box-shadow:0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .quiz{padding:22px}
+  .quiz .kicker{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--head);display:flex;align-items:center;gap:8px}
+  .quiz .kicker .live{width:7px;height:7px;border-radius:50%;background:var(--head);box-shadow:0 0 10px var(--head);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .quiz .q{font-family:"Onest",sans-serif;font-weight:600;font-size:18px;line-height:1.32;margin:14px 0 16px}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    padding:13px 15px;border-radius:13px;
+    background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.1);
+    color:var(--text);font-size:14.5px;line-height:1.35;
+    transition:border-color .2s, background .2s, transform .15s;
+  }
+  .opt:hover:not(:disabled){border-color:rgba(34,211,238,.5);background:rgba(34,211,238,.06)}
+  .opt:active:not(:disabled){transform:scale(.99)}
+  .opt:disabled{cursor:default}
+  .opt .mark{
+    flex:0 0 24px;width:24px;height:24px;border-radius:7px;
+    display:grid;place-items:center;
+    border:1.5px solid rgba(255,255,255,.25);
+    font-size:12px;font-weight:700;font-family:"JetBrains Mono",monospace;color:var(--muted);
+    transition:all .25s var(--ease);
+  }
+  .opt.correct{border-color:var(--go);background:rgba(52,211,153,.13)}
+  .opt.correct .mark{background:var(--go);border-color:var(--go);color:#04140D}
+  .opt.wrong{border-color:var(--bad);background:rgba(248,113,113,.12)}
+  .opt.wrong .mark{background:var(--bad);border-color:var(--bad);color:#1a0606}
+  .feedback{
+    margin-top:14px;font-size:14px;line-height:1.45;border-radius:12px;padding:0 14px;
+    max-height:0;opacity:0;overflow:hidden;
+    transition:max-height .4s var(--ease), opacity .35s, padding .4s var(--ease);
+  }
+  .feedback.show{max-height:200px;opacity:1;padding:13px 14px}
+  .feedback.good{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.35);color:#bff3df}
+  .feedback.bad{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.32);color:#fbd0d0}
+  .xp{
+    display:flex;align-items:center;gap:9px;margin-top:14px;font-family:"JetBrains Mono",monospace;
+    font-size:12.5px;color:var(--muted);
+    opacity:0;transform:translateY(8px);
+    transition:opacity .4s, transform .4s var(--ease);
+  }
+  .xp.show{opacity:1;transform:none}
+  .xp .pill{
+    color:var(--teal);font-weight:700;
+    background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.4);
+    padding:3px 9px;border-radius:999px;
+  }
+  .xp.show .pill{animation:pop .55s var(--ease)}
+  @keyframes pop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+
+  /* ---------- section headers ---------- */
+  .sec{padding:64px 0}
+  .sec-head{max-width:620px;margin-bottom:38px}
+  .sec-head h2{font-size:clamp(26px,4.4vw,40px);margin-top:14px}
+  .sec-head p{color:var(--muted);font-size:16.5px;margin:14px 0 0}
+  .center{margin-left:auto;margin-right:auto;text-align:center}
+
+  /* ---------- trust bar ---------- */
+  .trust{
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:20px;
+    background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012));
+    padding:24px;
+    display:grid;gap:22px;
+  }
+  .trust .src{display:flex;align-items:center;gap:11px;font-weight:600;font-size:14.5px}
+  .trust .src .shield{flex:0 0 auto}
+  .trust .src small{display:block;color:var(--muted);font-weight:400;font-size:12px;font-family:"JetBrains Mono",monospace}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+  @media(min-width:760px){.stats{grid-template-columns:repeat(4,1fr)}}
+  .stat .n{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:clamp(22px,3vw,28px);color:var(--text);line-height:1.1}
+  .stat .n .u{color:var(--teal)}
+  .stat .l{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .examchip{
+    display:inline-flex;align-items:center;gap:12px;flex-wrap:wrap;
+    font-family:"JetBrains Mono",monospace;font-size:13px;
+    padding:11px 16px;border-radius:13px;
+    background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.28);color:#fbe9a8;
+  }
+  .examchip b{color:var(--head);font-size:16px}
+  .examchip .sep{opacity:.4}
+
+  /* ---------- steps ---------- */
+  .steps{display:grid;gap:18px;grid-template-columns:1fr}
+  @media(min-width:760px){.steps{grid-template-columns:repeat(3,1fr)}}
+  .step{
+    padding:26px 22px;border-radius:18px;position:relative;
+    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));
+    border:1px solid rgba(255,255,255,.08);
+  }
+  .step .num{
+    font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;
+    width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+    background:linear-gradient(150deg,rgba(34,211,238,.18),rgba(139,92,246,.18));
+    border:1px solid rgba(34,211,238,.32);color:var(--teal);margin-bottom:16px;
+  }
+  .step h3{font-size:19px;margin-bottom:8px}
+  .step p{color:var(--muted);font-size:14.5px;margin:0}
+
+  /* ---------- gamification showcase ---------- */
+  .game-canvas{position:relative}
+  .game-aurora{position:absolute;inset:-8% -4%;z-index:0;filter:blur(80px);opacity:.5;pointer-events:none}
+  .game-grid{display:grid;gap:16px;grid-template-columns:1fr;position:relative;z-index:2}
+  @media(min-width:680px){.game-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:1020px){
+    .game-grid{grid-template-columns:repeat(6,1fr);grid-auto-rows:minmax(0,auto)}
+    .g-streak{grid-column:span 2}
+    .g-goal{grid-column:span 2}
+    .g-xp{grid-column:span 2}
+    .g-path{grid-column:span 4}
+    .g-ready{grid-column:span 2}
+    .g-badges{grid-column:span 6}
+  }
+  .gcard{
+    background:var(--glass);
+    backdrop-filter:blur(14px) saturate(130%);
+    border:1px solid var(--glass-border);
+    border-radius:18px;
+    padding:20px;
+    box-shadow:0 18px 44px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.07);
+    display:flex;flex-direction:column;gap:12px;
+  }
+  .gcard .lab{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  /* streak */
+  .flame{font-size:34px;line-height:1;filter:drop-shadow(0 0 14px rgba(250,204,21,.6))}
+  .g-streak .big{font-family:"Onest",sans-serif;font-weight:800;font-size:26px;display:flex;align-items:center;gap:12px}
+  .g-streak .big span{color:var(--head)}
+  .g-streak p{color:var(--muted);font-size:13.5px;margin:0}
+  .daybar{display:flex;gap:6px;margin-top:4px}
+  .daybar i{flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,.1)}
+  .daybar i.on{background:linear-gradient(90deg,var(--head),#fde68a);box-shadow:0 0 8px rgba(250,204,21,.5)}
+  /* daily goal ring */
+  .ring-wrap{display:flex;align-items:center;gap:16px}
+  .ring{flex:0 0 auto}
+  .g-goal .big{font-family:"Onest",sans-serif;font-weight:700;font-size:21px}
+  .g-goal .big b{font-family:"JetBrains Mono",monospace;color:var(--teal)}
+  .g-goal p{color:var(--muted);font-size:13px;margin:2px 0 0}
+  /* xp / level */
+  .g-xp .lvlrow{display:flex;align-items:baseline;gap:10px}
+  .g-xp .lvl{font-family:"Onest",sans-serif;font-weight:800;font-size:26px}
+  .g-xp .lvl b{color:var(--violet)}
+  .xpbar{height:9px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden}
+  .xpbar i{display:block;height:100%;width:64%;border-radius:6px;background:linear-gradient(90deg,var(--violet),var(--teal));box-shadow:0 0 12px rgba(139,92,246,.5)}
+  .g-xp .gain{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--teal)}
+  /* topic path */
+  .path{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .node{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;font-size:13px;font-weight:500;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04)}
+  .node.done{color:var(--go);border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.1)}
+  .node.now{color:#06121A;background:linear-gradient(135deg,var(--teal),#5eeafa);border-color:transparent;font-weight:700;box-shadow:0 0 18px rgba(34,211,238,.45)}
+  .node.lock{color:var(--muted);opacity:.7}
+  .pconn{width:14px;height:2px;background:rgba(255,255,255,.18);border-radius:2px}
+  /* readiness mini */
+  .g-ready .mini-meter{height:9px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:6px}
+  .g-ready .mini-meter i{display:block;height:100%;width:78%;background:linear-gradient(90deg,var(--teal),var(--violet));box-shadow:0 0 12px rgba(34,211,238,.5);border-radius:6px}
+  .g-ready .pct{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:30px;color:var(--text)}
+  .g-ready .pct s{color:var(--muted);text-decoration:none;font-size:14px}
+  /* badges */
+  .badges{display:flex;gap:12px;flex-wrap:wrap}
+  .bdg{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;border-radius:13px;font-size:13.5px;font-weight:500;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04)}
+  .bdg .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(150deg,var(--violet),var(--teal));color:#06121A}
+
+  /* ---------- features bento ---------- */
+  .bento{display:grid;gap:16px;grid-template-columns:1fr}
+  @media(min-width:680px){.bento{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:1000px){.bento{grid-template-columns:repeat(3,1fr)}}
+  .fcard{
+    padding:22px;border-radius:18px;
+    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));
+    border:1px solid rgba(255,255,255,.08);
+    transition:border-color .25s, transform .25s var(--ease), background .25s;
+  }
+  .fcard:hover{border-color:rgba(34,211,238,.35);transform:translateY(-3px);background:linear-gradient(180deg,rgba(34,211,238,.06),rgba(255,255,255,.012))}
+  .fcard .ico{
+    width:46px;height:46px;border-radius:13px;display:grid;place-items:center;margin-bottom:15px;
+    background:linear-gradient(150deg,rgba(34,211,238,.16),rgba(139,92,246,.16));
+    border:1px solid rgba(255,255,255,.1);color:var(--teal);
+  }
+  .fcard h3{font-size:18px;margin-bottom:7px}
+  .fcard p{color:var(--muted);font-size:14px;margin:0}
+  .fcard.wide{grid-column:1/-1}
+  @media(min-width:1000px){.fcard.feat{grid-column:span 2}}
+
+  /* ---------- readiness outcome ---------- */
+  .ready-block{
+    display:grid;gap:36px;align-items:center;grid-template-columns:1fr;
+    border:1px solid rgba(255,255,255,.08);border-radius:24px;
+    background:
+      radial-gradient(600px 300px at 80% 20%, rgba(139,92,246,.12), transparent 70%),
+      radial-gradient(500px 280px at 10% 90%, rgba(34,211,238,.1), transparent 70%),
+      linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
+    padding:38px 28px;
+  }
+  @media(min-width:920px){.ready-block{grid-template-columns:1.1fr .9fr;padding:48px 44px}}
+  .gauge-stage{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .gauge-readout{font-family:"JetBrains Mono",monospace;text-align:center;margin-top:-18px}
+  .gauge-readout .num{font-size:46px;font-weight:700;line-height:1;letter-spacing:-.02em;
+    background:linear-gradient(120deg,var(--teal),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .gauge-readout .lab{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+  .gauge-readout .band{margin-top:8px;display:inline-block;font-size:13px;color:var(--go);border:1px solid rgba(52,211,153,.4);background:rgba(52,211,153,.1);padding:4px 12px;border-radius:999px}
+  .ready-block h2{font-size:clamp(24px,3.6vw,34px)}
+  .ready-block p{color:var(--muted);font-size:16px;margin:16px 0 0}
+
+  /* ---------- testimonials ---------- */
+  .tgrid{display:grid;gap:16px;grid-template-columns:1fr}
+  @media(min-width:760px){.tgrid{grid-template-columns:repeat(3,1fr)}}
+  .tcard{
+    padding:24px;border-radius:18px;
+    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));
+    border:1px solid rgba(255,255,255,.08);
+    display:flex;flex-direction:column;gap:16px;
+  }
+  .tcard .stars{color:var(--head);font-size:14px;letter-spacing:2px}
+  .tcard blockquote{margin:0;font-size:15.5px;line-height:1.5}
+  .tcard .who{display:flex;align-items:center;gap:11px;margin-top:auto}
+  .tcard .av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-family:"Onest",sans-serif;font-weight:700;color:#06121A;font-size:15px}
+  .tcard .who b{font-size:14px;display:block}
+  .tcard .who small{color:var(--muted);font-size:12px;font-family:"JetBrains Mono",monospace}
+
+  /* ---------- pricing ---------- */
+  .pgrid{display:grid;gap:18px;grid-template-columns:1fr;max-width:840px;margin:0 auto}
+  @media(min-width:740px){.pgrid{grid-template-columns:repeat(2,1fr)}}
+  .plan{
+    padding:30px 26px;border-radius:22px;position:relative;
+    background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012));
+    border:1px solid rgba(255,255,255,.1);
+    display:flex;flex-direction:column;gap:18px;
+  }
+  .plan.pro{
+    border-color:rgba(34,211,238,.45);
+    background:
+      radial-gradient(420px 220px at 80% -10%, rgba(34,211,238,.14), transparent 70%),
+      linear-gradient(180deg,rgba(139,92,246,.08),rgba(255,255,255,.012));
+    box-shadow:0 24px 60px rgba(34,211,238,.12);
+  }
+  .plan .tier{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .plan .price{font-family:"Onest",sans-serif;font-weight:800;font-size:38px;display:flex;align-items:baseline;gap:6px}
+  .plan .price s{font-size:15px;color:var(--muted);text-decoration:none;font-family:"JetBrains Mono",monospace}
+  .plan ul{display:flex;flex-direction:column;gap:11px}
+  .plan li{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;color:#cdd7e6}
+  .plan li svg{flex:0 0 auto;margin-top:3px}
+  .popular{
+    position:absolute;top:-12px;right:22px;
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+    color:#06121A;background:linear-gradient(135deg,var(--head),#fde68a);
+    padding:6px 13px;border-radius:999px;box-shadow:0 6px 18px rgba(250,204,21,.35);
+  }
+
+  /* ---------- faq ---------- */
+  .faq{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+  details{
+    border:1px solid rgba(255,255,255,.1);border-radius:14px;
+    background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
+    overflow:hidden;
+  }
+  details[open]{border-color:rgba(34,211,238,.3)}
+  summary{
+    list-style:none;cursor:pointer;padding:18px 20px;
+    font-family:"Onest",sans-serif;font-weight:600;font-size:16px;
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+  }
+  summary::-webkit-details-marker{display:none}
+  summary .chev{flex:0 0 auto;transition:transform .3s var(--ease);color:var(--teal)}
+  details[open] summary .chev{transform:rotate(45deg)}
+  details .ans{padding:0 20px 18px;color:var(--muted);font-size:14.5px;line-height:1.55}
+
+  /* ---------- final cta ---------- */
+  .final{
+    text-align:center;border-radius:26px;padding:56px 26px;position:relative;overflow:hidden;
+    border:1px solid rgba(34,211,238,.22);
+    background:
+      radial-gradient(600px 320px at 50% -20%, rgba(34,211,238,.2), transparent 70%),
+      radial-gradient(500px 300px at 80% 120%, rgba(139,92,246,.18), transparent 70%),
+      linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
+  }
+  .final h2{font-size:clamp(28px,5vw,44px)}
+  .final p{color:var(--muted);font-size:17px;margin:16px 0 28px}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid rgba(255,255,255,.08);padding:50px 0 36px;margin-top:64px}
+  .foot-grid{display:grid;gap:32px;grid-template-columns:1fr;align-items:start}
+  @media(min-width:760px){.foot-grid{grid-template-columns:1.6fr 1fr 1fr 1fr}}
+  .foot-grid h4{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:14px}
+  .foot-grid li{margin-bottom:10px}
+  .foot-grid a{color:#bcc8d8;font-size:14px;transition:color .2s}
+  .foot-grid a:hover{color:var(--teal)}
+  .foot-about p{color:var(--muted);font-size:13.5px;max-width:38ch;margin:14px 0 0}
+  .disclaimer{margin-top:34px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);font-size:12.5px;color:var(--muted);line-height:1.6}
+  .copy{margin-top:14px;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted)}
+
+  /* ---------- scroll reveal ---------- */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s var(--ease), transform .7s var(--ease)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+    .reveal{opacity:1;transform:none}
+    .b1,.b2,.b3{animation:none !important}
+    .quiz .kicker .live{animation:none !important;opacity:1}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#" aria-label="Drivers School — на головну">
+      <span class="badge" aria-hidden="true">ПДР</span>
+      <span><b>Drivers School</b><span class="sub">Підготовка до іспиту</span></span>
+    </a>
+    <nav class="nav-links" aria-label="Головна навігація">
+      <a href="#features">Можливості</a>
+      <a href="#how">Як це працює</a>
+      <a href="#pricing">Тарифи</a>
+      <a href="#faq">Питання</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="#">Увійти</a>
+      <a class="btn btn-primary" href="#">Почати безкоштовно</a>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <!-- night highway -->
+  <div class="road" aria-hidden="true">
+    <svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMin slice">
+      <defs>
+        <linearGradient id="lane" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#FACC15" stop-opacity="0"/>
+          <stop offset="55" stop-color="#FACC15" stop-opacity="0"/>
+          <stop offset="1" stop-color="#FACC15" stop-opacity="1"/>
+        </linearGradient>
+        <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#22D3EE" stop-opacity="0"/>
+          <stop offset="1" stop-color="#22D3EE" stop-opacity=".55"/>
+        </linearGradient>
+      </defs>
+      <!-- vanishing-point edge lines -->
+      <polygon points="500,150 270,700 360,700" fill="url(#edge)" opacity=".5"/>
+      <polygon points="500,150 730,700 640,700" fill="url(#edge)" opacity=".5"/>
+      <!-- dashed centre lane -->
+      <line x1="500" y1="170" x2="500" y2="700" stroke="url(#lane)" stroke-width="6" stroke-dasharray="2 26" stroke-linecap="round"/>
+      <line x1="500" y1="170" x2="500" y2="700" stroke="url(#lane)" stroke-width="14" stroke-dasharray="2 26" stroke-linecap="round" opacity=".25" style="filter:blur(4px)"/>
+    </svg>
+  </div>
+  <div class="aurora" aria-hidden="true">
+    <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+  </div>
+
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow">Підготовка до теоретичного іспиту з ПДР</span>
+        <h1>Склади теорію <span class="glow">з першого разу</span></h1>
+        <p class="sub">Усі офіційні питання іспиту, реальні дорожні ситуації та розумні тренування, що ведуть тебе від нуля до впевненого «склав».</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="#">Почати безкоштовно</a>
+          <a class="btn btn-ghost btn-lg" href="#sample">Спробувати питання</a>
+        </div>
+        <p class="microtrust">Без картки<span class="dot"></span>1691 офіційне питання<span class="dot"></span>Українською</p>
+      </div>
+
+      <!-- interactive sample question -->
+      <div class="card-glass quiz" id="sample" aria-labelledby="quiz-q">
+        <div class="kicker"><span class="live" aria-hidden="true"></span>Спробуй прямо зараз</div>
+        <p class="q" id="quiz-q">Як діяти, якщо під час руху ввімкнулося жовте миготливе світло світлофора?</p>
+        <div class="opts" role="group" aria-labelledby="quiz-q" id="opts">
+          <button type="button" class="opt" data-correct="false"><span class="mark" aria-hidden="true">А</span><span>Зупинитися та чекати зеленого сигналу</span></button>
+          <button type="button" class="opt" data-correct="true"><span class="mark" aria-hidden="true">Б</span><span>Продовжити рух, керуючись правилами проїзду нерегульованих перехресть</span></button>
+          <button type="button" class="opt" data-correct="false"><span class="mark" aria-hidden="true">В</span><span>Зупинитися перед перехрестям до вимкнення жовтого</span></button>
+          <button type="button" class="opt" data-correct="false"><span class="mark" aria-hidden="true">Г</span><span>Пришвидшитися, щоб проїхати перехрестя першим</span></button>
+        </div>
+        <div class="feedback" id="fb" role="status" aria-live="polite"></div>
+        <div class="xp" id="xp"><span class="pill">+10 XP</span><span>так працює кожне питання в Drivers School</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TRUST BAR ===================== -->
+<section class="sec" style="padding-top:8px">
+  <div class="wrap reveal">
+    <div class="trust">
+      <div class="src">
+        <svg class="shield" width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3Z" fill="rgba(34,211,238,.14)" stroke="#22D3EE" stroke-width="1.3"/>
+          <path d="m8.5 12 2.4 2.4L15.8 9.5" stroke="#34D399" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Питання з офіційної бази ГСЦ МВС<small>Head Service Centre · MVS of Ukraine</small></span>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n">1691<span class="u"> </span></div><div class="l">офіційне питання</div></div>
+        <div class="stat"><div class="n">734</div><div class="l">фото реальних ситуацій</div></div>
+        <div class="stat"><div class="n">8<span class="u">·</span>70</div><div class="l">тем · підтем</div></div>
+        <div class="stat"><div class="n">4.9<span class="u">★</span></div><div class="l">у відгуках</div></div>
+      </div>
+      <div>
+        <span class="examchip"><b>20</b>питань<span class="sep">·</span><b>20</b>хвилин<span class="sep">·</span><b>2</b>помилки<span class="sep">—</span>як на справжньому іспиті</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HOW IT WORKS ===================== -->
+<section class="sec" id="how">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Три кроки</span>
+      <h2>Як це працює</h2>
+      <p>Зрозумілий шлях від першого знака до пробного іспиту — без зубріння.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="num">01</div>
+        <h3>Вивчай тему</h3>
+        <p>Коротко й зрозуміло: знаки, розмітка, пріоритети — без юридичної води.</p>
+      </div>
+      <div class="step reveal" style="transition-delay:.08s">
+        <div class="num">02</div>
+        <h3>Тренуйся розумно</h3>
+        <p>Система сама повертає питання, у яких ти помилився, поки ти їх не закріпиш.</p>
+      </div>
+      <div class="step reveal" style="transition-delay:.16s">
+        <div class="num">03</div>
+        <h3>Складай пробний іспит</h3>
+        <p>Той самий формат, що й офіційний: 20 питань, 20 хвилин, максимум 2 помилки.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== GAMIFICATION SHOWCASE ===================== -->
+<section class="sec" id="game">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Прогрес, який видно</span>
+      <h2>Вчись, як у грі</h2>
+      <p>Прогрес, який видно — і не хочеться кидати.</p>
+    </div>
+    <div class="game-canvas">
+      <div class="game-aurora" aria-hidden="true"><span class="blob b1" style="left:0;top:0"></span><span class="blob b2" style="right:0;bottom:0"></span></div>
+      <div class="game-grid">
+
+        <!-- streak -->
+        <div class="gcard g-streak reveal">
+          <span class="lab">Серія</span>
+          <div class="big"><span class="flame" aria-hidden="true">🔥</span><span>Серія 12 днів</span></div>
+          <p>Не зупиняйся — ще трохи.</p>
+          <div class="daybar" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+        </div>
+
+        <!-- daily goal ring -->
+        <div class="gcard g-goal reveal" style="transition-delay:.06s">
+          <span class="lab">Денна ціль</span>
+          <div class="ring-wrap">
+            <svg class="ring" width="78" height="78" viewBox="0 0 78 78" role="img" aria-label="Денна ціль: 3 з 5 уроків">
+              <circle cx="39" cy="39" r="31" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="8"/>
+              <circle cx="39" cy="39" r="31" fill="none" stroke="#22D3EE" stroke-width="8" stroke-linecap="round"
+                stroke-dasharray="194.8" stroke-dashoffset="78" transform="rotate(-90 39 39)" style="filter:drop-shadow(0 0 6px rgba(34,211,238,.6))"/>
+              <text x="39" y="44" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="17" font-weight="700" fill="#E6EDF5">3/5</text>
+            </svg>
+            <div>
+              <div class="big">Денна ціль</div>
+              <p><b>3 / 5</b> уроків сьогодні</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- xp / level -->
+        <div class="gcard g-xp reveal" style="transition-delay:.12s">
+          <span class="lab">Рівень</span>
+          <div class="lvlrow"><span class="lvl">Рівень <b>7</b></span></div>
+          <div class="xpbar" aria-hidden="true"><i></i></div>
+          <span class="gain">+15 XP за правильну відповідь</span>
+        </div>
+
+        <!-- topic path -->
+        <div class="gcard g-path reveal">
+          <span class="lab">Маршрут тем</span>
+          <div class="path">
+            <span class="node done">Знаки ✓</span><span class="pconn" aria-hidden="true"></span>
+            <span class="node done">Розмітка ✓</span><span class="pconn" aria-hidden="true"></span>
+            <span class="node now">Перехрестя ● зараз</span><span class="pconn" aria-hidden="true"></span>
+            <span class="node lock">Обгін 🔒</span><span class="pconn" aria-hidden="true"></span>
+            <span class="node lock">Швидкість 🔒</span>
+          </div>
+        </div>
+
+        <!-- readiness mini -->
+        <div class="gcard g-ready reveal" style="transition-delay:.06s">
+          <span class="lab">Готовність до іспиту</span>
+          <div class="pct">78<s>%</s></div>
+          <div class="mini-meter" aria-hidden="true"><i></i></div>
+          <p style="color:var(--muted);font-size:13px;margin:0">майже там</p>
+        </div>
+
+        <!-- badges -->
+        <div class="gcard g-badges reveal" style="transition-delay:.12s">
+          <span class="lab">Нагороди</span>
+          <div class="badges">
+            <span class="bdg"><span class="ic" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3 4 6v5c0 4.5 3 7.5 8 9 5-1.5 8-4.5 8-9V6l-8-3Z" fill="currentColor"/></svg>
+            </span>Знавець знаків</span>
+            <span class="bdg"><span class="ic" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#06121A" stroke-width="2"/><path d="M12 7v5l3 2" stroke="#06121A" stroke-width="2" stroke-linecap="round"/></svg>
+            </span>100 питань</span>
+            <span class="bdg"><span class="ic" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#06121A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>Тиждень без пропусків</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FEATURES / MODES ===================== -->
+<section class="sec" id="features">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Можливості</span>
+      <h2>Усе, щоб підготуватись по-справжньому</h2>
+      <p>П'ять режимів практики, фото реальних ситуацій та чесна оцінка готовності.</p>
+    </div>
+    <div class="bento">
+      <article class="fcard feat reveal">
+        <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+        <h3>Пробний іспит</h3>
+        <p>Повна симуляція офіційного іспиту з таймером і лімітом помилок.</p>
+      </article>
+      <article class="fcard reveal" style="transition-delay:.05s">
+        <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 18V8m5 10V5m5 13v-7m5 7V9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <h3>Практика за темами</h3>
+        <p>Прокачуй конкретні теми у власному темпі.</p>
+      </article>
+      <article class="fcard reveal" style="transition-delay:.1s">
+        <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 1 1 2.3 5.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 18v-4h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>Робота над помилками</h3>
+        <p>Інтервальні повторення: складні питання повертаються у правильний момент.</p>
+      </article>
+      <article class="fcard reveal" style="transition-delay:.05s">
+        <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 4 4 7l2 3M18 4l2 3-2 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 7h7c4 0 4 10 9 10M20 17h-2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <h3>Змішана практика</h3>
+        <p>Випадкові питання з фокусом на твоїх слабких темах.</p>
+      </article>
+      <article class="fcard reveal" style="transition-delay:.1s">
+        <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 3h12v18l-6-4-6 4V3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div>
+        <h3>Збережені питання</h3>
+        <p>Закладки на питання, до яких хочеш повернутись.</p>
+      </article>
+      <article class="fcard feat reveal">
+        <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="10" r="2" stroke="currentColor" stroke-width="1.5"/><path d="m4 18 5-4 3 2.5L16 12l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>Фото реальних ситуацій</h3>
+        <p>734 офіційні зображення знаків і дорожніх сцен — впізнавай їх ще до іспиту.</p>
+      </article>
+      <article class="fcard wide reveal" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+        <div class="ico" aria-hidden="true" style="margin:0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 13a9 9 0 0 1 18 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M12 13 16 9" stroke="#FACC15" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="13" r="1.6" fill="currentColor"/></svg></div>
+        <div style="flex:1;min-width:200px"><h3 style="margin-bottom:4px">Оцінка готовності</h3><p>Чесний показник, наскільки ти готовий складати — без вгадування.</p></div>
+        <a class="btn btn-ghost" href="#readiness">Подивитись як</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== READINESS / OUTCOME — SIGNATURE GAUGE ===================== -->
+<section class="sec" id="readiness">
+  <div class="wrap reveal">
+    <div class="ready-block">
+      <div class="gauge-stage">
+        <svg id="gauge" width="340" height="210" viewBox="0 0 340 210" role="img"
+             aria-label="Спідометр готовності до іспиту: 78 відсотків, майже готовий">
+          <defs>
+            <linearGradient id="arc" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#22D3EE"/>
+              <stop offset="1" stop-color="#8B5CF6"/>
+            </linearGradient>
+            <filter id="blur" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="6"/>
+            </filter>
+            <radialGradient id="hub" cx="50%" cy="50%" r="50%">
+              <stop offset="0" stop-color="#5eeafa"/>
+              <stop offset="1" stop-color="#22D3EE"/>
+            </radialGradient>
+          </defs>
+
+          <!-- track -->
+          <path d="M40 180 A130 130 0 0 1 300 180" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="16" stroke-linecap="round"/>
+          <!-- glow under arc -->
+          <path id="arcGlow" d="M40 180 A130 130 0 0 1 300 180" fill="none" stroke="url(#arc)" stroke-width="16" stroke-linecap="round" filter="url(#blur)" opacity=".55"/>
+          <!-- progress arc -->
+          <path id="arcFill" d="M40 180 A130 130 0 0 1 300 180" fill="none" stroke="url(#arc)" stroke-width="16" stroke-linecap="round"/>
+
+          <!-- ticks -->
+          <g id="ticks" stroke="rgba(255,255,255,.35)" stroke-width="2"></g>
+          <!-- tick numerals -->
+          <g id="ticklabels" font-family="JetBrains Mono,monospace" font-size="11" fill="#93A1B5"></g>
+
+          <!-- needle -->
+          <g id="needle" transform="rotate(-90 170 180)">
+            <line x1="170" y1="180" x2="170" y2="72" stroke="#FACC15" stroke-width="4" stroke-linecap="round" style="filter:drop-shadow(0 0 6px rgba(250,204,21,.8))"/>
+            <circle cx="170" cy="60" r="5" fill="#FACC15" style="filter:drop-shadow(0 0 8px rgba(250,204,21,.9))"/>
+          </g>
+          <circle cx="170" cy="180" r="14" fill="url(#hub)" style="filter:drop-shadow(0 0 10px rgba(34,211,238,.7))"/>
+          <circle cx="170" cy="180" r="5" fill="#06121A"/>
+        </svg>
+        <div class="gauge-readout">
+          <div class="num"><span id="gaugeNum">0</span>%</div>
+          <div class="lab">Готовність до іспиту</div>
+          <div class="band">майже готовий</div>
+        </div>
+      </div>
+      <div>
+        <span class="eyebrow">Оцінка готовності</span>
+        <h2 style="margin-top:14px">Не вгадуй, чи ти готовий — побач це.</h2>
+        <p>Ми рахуємо твою готовність за останніми результатами й опануванням тем. Сідай за кермо іспиту тоді, коли цифра скаже «готовий».</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#">Почати безкоштовно</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TESTIMONIALS ===================== -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head center reveal" style="margin-left:auto;margin-right:auto">
+      <span class="eyebrow" style="margin:0 auto">Відгуки</span>
+      <h2>Учні, які вже склали</h2>
+    </div>
+    <div class="tgrid">
+      <figure class="tcard reveal">
+        <div class="stars" aria-label="5 з 5 зірок">★★★★★</div>
+        <blockquote>«Склав з першого разу, хоча знаки давались важко. Робота над помилками — це топ.»</blockquote>
+        <figcaption class="who"><span class="av" style="background:linear-gradient(135deg,#22D3EE,#8B5CF6)">О</span><span><b>Олександр</b><small>Київ</small></span></figcaption>
+      </figure>
+      <figure class="tcard reveal" style="transition-delay:.07s">
+        <div class="stars" aria-label="5 з 5 зірок">★★★★★</div>
+        <blockquote>«Зручно вчити в дорозі, по 15 хвилин. За два тижні була повністю готова.»</blockquote>
+        <figcaption class="who"><span class="av" style="background:linear-gradient(135deg,#8B5CF6,#FACC15)">М</span><span><b>Марія</b><small>Львів</small></span></figcaption>
+      </figure>
+      <figure class="tcard reveal" style="transition-delay:.14s">
+        <div class="stars" aria-label="5 з 5 зірок">★★★★★</div>
+        <blockquote>«Нарешті зрозумів пріоритети на перехрестях — завдяки поясненням до кожного питання.»</blockquote>
+        <figcaption class="who"><span class="av" style="background:linear-gradient(135deg,#34D399,#22D3EE)">Д</span><span><b>Дмитро</b><small>Одеса</small></span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PRICING ===================== -->
+<section class="sec" id="pricing">
+  <div class="wrap">
+    <div class="sec-head center reveal" style="margin-left:auto;margin-right:auto">
+      <span class="eyebrow" style="margin:0 auto">Тарифи</span>
+      <h2>Почни безкоштовно. Прокачайся, коли захочеш.</h2>
+    </div>
+    <div class="pgrid">
+      <div class="plan reveal">
+        <div class="tier">Безкоштовно</div>
+        <div class="price">0 ₴<s>/ міс</s></div>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#34D399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Практика за темами</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#34D399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Демо пробних іспитів</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#34D399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Базовий прогрес</li>
+        </ul>
+        <a class="btn btn-ghost btn-block" href="#" style="margin-top:auto">Почати безкоштовно</a>
+      </div>
+      <div class="plan pro reveal" style="transition-delay:.08s">
+        <span class="popular">Популярне</span>
+        <div class="tier">Преміум</div>
+        <div class="price">99 ₴<s>/ міс</s></div>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#22D3EE" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Безлімітні пробні іспити</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#22D3EE" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Робота над помилками</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#22D3EE" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Оцінка готовності</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#22D3EE" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Усі 734 фото</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#22D3EE" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Без реклами</li>
+        </ul>
+        <a class="btn btn-primary btn-block" href="#" style="margin-top:auto">Спробувати Преміум</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FAQ ===================== -->
+<section class="sec" id="faq">
+  <div class="wrap">
+    <div class="sec-head center reveal" style="margin-left:auto;margin-right:auto">
+      <span class="eyebrow" style="margin:0 auto">Питання</span>
+      <h2>Часті питання</h2>
+    </div>
+    <div class="faq reveal">
+      <details>
+        <summary>Це офіційний іспит?<span class="chev" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></summary>
+        <div class="ans">Ні. Це навчальна платформа для підготовки. Питання — з відкритої бази ГСЦ МВС, але це не офіційна екзаменаційна система.</div>
+      </details>
+      <details>
+        <summary>Чи актуальні питання?<span class="chev" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></summary>
+        <div class="ans">Так, ми оновлюємо базу за змінами в ПДР.</div>
+      </details>
+      <details>
+        <summary>Скільки часу треба на підготовку?<span class="chev" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></summary>
+        <div class="ans">Більшості вистачає 1–3 тижнів по 15–20 хвилин на день.</div>
+      </details>
+      <details>
+        <summary>Чи працює на телефоні?<span class="chev" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></summary>
+        <div class="ans">Так, сайт повністю адаптований під мобільні.</div>
+      </details>
+      <details>
+        <summary>Чи потрібна картка, щоб почати?<span class="chev" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></summary>
+        <div class="ans">Ні. Почати можна безкоштовно й без картки.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FINAL CTA ===================== -->
+<section class="sec">
+  <div class="wrap reveal">
+    <div class="final">
+      <h2>Твоє «склав» починається сьогодні.</h2>
+      <p>Перше тренування — за 30 секунд.</p>
+      <a class="btn btn-primary btn-lg" href="#">Почати безкоштовно</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-about">
+        <a class="brand" href="#" aria-label="Drivers School">
+          <span class="badge" aria-hidden="true">ПДР</span>
+          <span><b>Drivers School</b><span class="sub">Підготовка до іспиту</span></span>
+        </a>
+        <p>Навчальна платформа для підготовки до теоретичного іспиту з ПДР. Анонімна статистика, без сторонніх трекерів.</p>
+      </div>
+      <div>
+        <h4>Продукт</h4>
+        <ul>
+          <li><a href="#features">Можливості</a></li>
+          <li><a href="#pricing">Тарифи</a></li>
+          <li><a href="#">Пробний іспит</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Підтримка</h4>
+        <ul>
+          <li><a href="#faq">Питання</a></li>
+          <li><a href="#">Контакти</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Правове</h4>
+        <ul>
+          <li><a href="#">Умови</a></li>
+          <li><a href="#">Конфіденційність</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="disclaimer">Навчальна платформа для підготовки до теоретичної частини іспиту з ПДР. Це не офіційна екзаменаційна система. Питання — з відкритої бази ГСЦ МВС.</p>
+    <p class="copy">© 2026 Drivers School</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- interactive sample question ---------- */
+  var opts = Array.prototype.slice.call(document.querySelectorAll("#opts .opt"));
+  var fb = document.getElementById("fb");
+  var xp = document.getElementById("xp");
+  var answered = false;
+  var GOOD = "✓ Правильно! Жовте миготливе означає, що перехрестя нерегульоване — далі діють знаки пріоритету.";
+  var BAD  = "Не зовсім. Жовте миготливе = перехрестя нерегульоване; рухайся за знаками пріоритету.";
+
+  function answer(btn){
+    if(answered) return;
+    answered = true;
+    var correct = btn.getAttribute("data-correct") === "true";
+    opts.forEach(function(o){
+      o.disabled = true;
+      var isRight = o.getAttribute("data-correct") === "true";
+      if(isRight){ o.classList.add("correct"); o.querySelector(".mark").textContent = "✓"; }
+    });
+    if(!correct){
+      btn.classList.remove("correct");
+      btn.classList.add("wrong");
+      btn.querySelector(".mark").textContent = "✕";
+    }
+    fb.textContent = correct ? GOOD : BAD;
+    fb.classList.add("show", correct ? "good" : "bad");
+    // animate XP in
+    window.setTimeout(function(){ xp.classList.add("show"); }, reduce ? 0 : 220);
+  }
+
+  opts.forEach(function(o){
+    o.addEventListener("click", function(){ answer(o); });
+  });
+
+  /* ---------- scroll reveal ---------- */
+  var reveals = Array.prototype.slice.call(document.querySelectorAll(".reveal"));
+  if(reduce || !("IntersectionObserver" in window)){
+    reveals.forEach(function(el){ el.classList.add("in"); });
+  } else {
+    var ro = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add("in"); ro.unobserve(e.target); }
+      });
+    }, {threshold:.16, rootMargin:"0px 0px -8% 0px"});
+    reveals.forEach(function(el){ ro.observe(el); });
+  }
+
+  /* ---------- speedometer readiness gauge ---------- */
+  var TARGET = 78;
+  // semicircle from 180deg (left) to 0deg (right): needle rotates -90 (down-up at 0) ... we map
+  // gauge value 0..100 to needle rotation -90deg (left) .. +90deg (right).
+  var arcFill = document.getElementById("arcFill");
+  var arcGlow = document.getElementById("arcGlow");
+  var needle  = document.getElementById("needle");
+  var numEl   = document.getElementById("gaugeNum");
+
+  // arc length of the semicircle path (r=130, half circle) = pi*r
+  var ARC_LEN = Math.PI * 130; // ~408.4
+  arcFill.style.strokeDasharray = ARC_LEN;
+  arcGlow.style.strokeDasharray = ARC_LEN;
+  arcFill.style.strokeDashoffset = ARC_LEN;
+  arcGlow.style.strokeDashoffset = ARC_LEN;
+
+  // build ticks (0..100 step 10) around the semicircle, cx=170 cy=180 r=130
+  (function buildTicks(){
+    var g = document.getElementById("ticks");
+    var gl = document.getElementById("ticklabels");
+    var cx=170, cy=180, r=130;
+    var SVGNS="http://www.w3.org/2000/svg";
+    for(var v=0; v<=100; v+=10){
+      var ang = Math.PI - (v/100)*Math.PI; // 180deg -> 0deg
+      var x1 = cx + Math.cos(ang)*(r-12);
+      var y1 = cy - Math.sin(ang)*(r-12);
+      var x2 = cx + Math.cos(ang)*(r-2);
+      var y2 = cy - Math.sin(ang)*(r-2);
+      var ln = document.createElementNS(SVGNS,"line");
+      ln.setAttribute("x1",x1.toFixed(1)); ln.setAttribute("y1",y1.toFixed(1));
+      ln.setAttribute("x2",x2.toFixed(1)); ln.setAttribute("y2",y2.toFixed(1));
+      if(v%20===0){ ln.setAttribute("stroke","rgba(230,237,245,.7)"); ln.setAttribute("stroke-width","2.4"); }
+      g.appendChild(ln);
+      if(v%20===0){
+        var tx = cx + Math.cos(ang)*(r-26);
+        var ty = cy - Math.sin(ang)*(r-26) + 4;
+        var t = document.createElementNS(SVGNS,"text");
+        t.setAttribute("x",tx.toFixed(1)); t.setAttribute("y",ty.toFixed(1));
+        t.setAttribute("text-anchor","middle");
+        t.textContent = v;
+        gl.appendChild(t);
+      }
+    }
+  })();
+
+  function render(v){
+    var frac = v/100;
+    numEl.textContent = Math.round(v);
+    var off = ARC_LEN * (1 - frac);
+    arcFill.style.strokeDashoffset = off;
+    arcGlow.style.strokeDashoffset = off;
+    var rot = -90 + frac*180; // -90 (left) .. +90 (right)
+    needle.setAttribute("transform","rotate("+rot.toFixed(2)+" 170 180)");
+  }
+
+  var swept = false;
+  function sweep(){
+    if(swept) return; swept = true;
+    if(reduce){ render(TARGET); return; }
+    var start = null, dur = 1500;
+    function ease(t){ return 1 - Math.pow(1-t, 3); }
+    function frame(ts){
+      if(start===null) start = ts;
+      var p = Math.min((ts-start)/dur, 1);
+      render(TARGET * ease(p));
+      if(p<1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  render(0);
+  var gauge = document.getElementById("gauge");
+  if(reduce || !("IntersectionObserver" in window)){
+    render(TARGET);
+  } else {
+    var go = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ sweep(); go.unobserve(e.target); } });
+    }, {threshold:.45});
+    go.observe(gauge);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1131 @@
+<!-- @dsCard group="Лендінг" -->
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drivers School — Дорожні знаки</title>
+<meta name="description" content="Підготовка до теоретичного іспиту з ПДР. Усі офіційні питання, реальні дорожні ситуації та розумні тренування.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15181E;
+    --ink-70:#4a4f5a;
+    --white:#FFFFFF;
+    --paper:#F6F7F9;
+    --line:#E3E6EC;
+    --blue:#1E5BBF;
+    --blue-dark:#17489A;
+    --red:#D81E2C;
+    --yellow:#F4B400;
+    --go:#16A34A;
+    --radius:16px;
+    --steel:#9aa3af;
+    --steel-d:#6b7480;
+    --steel-l:#cfd5dd;
+    --sign-shadow:0 6px 0 rgba(21,24,30,.18);
+    --sign-shadow-press:0 2px 0 rgba(21,24,30,.18);
+    --maxw:1160px;
+    --font-display:"Golos Text","Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --font-body:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:var(--font-body);
+    color:var(--ink);
+    background:var(--white);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    font-size:17px;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,h4{font-family:var(--font-display);line-height:1.04;letter-spacing:-.02em;margin:0;font-weight:800}
+  p{margin:0}
+  a{color:inherit;text-decoration:none}
+  ul{margin:0;padding:0;list-style:none}
+  button{font-family:inherit}
+  img,svg{display:block}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  .section{padding:84px 0}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:9px;
+    font-weight:800;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--blue);
+  }
+  .sec-head{max-width:680px;margin:0 auto 46px;text-align:center}
+  .sec-head h2{font-size:clamp(2rem,4.6vw,3.1rem);font-weight:900}
+  .sec-head p{margin-top:14px;color:var(--ink-70);font-size:1.12rem}
+
+  /* ---------- Focus / accessibility ---------- */
+  a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
+    outline:3px solid var(--blue);
+    outline-offset:3px;
+    border-radius:8px;
+  }
+  .skip{position:absolute;left:-9999px;top:0;background:var(--blue);color:#fff;padding:12px 18px;border-radius:0 0 12px 0;z-index:200;font-weight:700}
+  .skip:focus{left:0}
+
+  /* ---------- Traffic-light motif ---------- */
+  .trio{display:inline-flex;gap:7px;align-items:center}
+  .trio i{width:11px;height:11px;border-radius:50%;display:block}
+  .trio .r{background:var(--red)}
+  .trio .a{background:var(--yellow)}
+  .trio .g{background:var(--go)}
+  .trio.run i{animation:cyc 3s steps(1) infinite;opacity:.28}
+  .trio.run .r{animation-delay:0s}
+  .trio.run .a{animation-delay:1s}
+  .trio.run .g{animation-delay:2s}
+  @keyframes cyc{0%,33%{opacity:1}34%,100%{opacity:.28}}
+
+  /* ---------- Buttons: ROAD-SIGN UI SYSTEM ---------- */
+  /* Primary = blue mandatory "info sign": rounded square, inset white keyline */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    font-family:var(--font-display);font-weight:800;font-size:1.02rem;
+    border:none;cursor:pointer;text-align:center;
+    padding:16px 26px;border-radius:14px;
+    transition:transform .12s cubic-bezier(.2,.7,.3,1), box-shadow .12s, background .15s;
+    position:relative;
+  }
+  .btn-primary{
+    background:var(--blue);color:#fff;
+    box-shadow:inset 0 0 0 3px rgba(255,255,255,.92), inset 0 0 0 5px var(--blue), var(--sign-shadow);
+  }
+  .btn-primary:hover{background:var(--blue-dark);transform:translateY(-2px);box-shadow:inset 0 0 0 3px rgba(255,255,255,.92), inset 0 0 0 5px var(--blue-dark), 0 9px 0 rgba(21,24,30,.2)}
+  .btn-primary:active{transform:translateY(3px);box-shadow:inset 0 0 0 3px rgba(255,255,255,.92), inset 0 0 0 5px var(--blue-dark), var(--sign-shadow-press)}
+  .btn-ghost{
+    background:var(--white);color:var(--ink);
+    box-shadow:inset 0 0 0 2px var(--ink);
+  }
+  .btn-ghost:hover{background:var(--paper);transform:translateY(-2px)}
+  .btn-ghost:active{transform:translateY(1px)}
+  .btn-lg{padding:19px 34px;font-size:1.12rem}
+  .btn-block{width:100%}
+
+  /* ---------- Header ---------- */
+  header.nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:2px solid var(--ink)}
+  .nav-in{display:flex;align-items:center;gap:24px;height:70px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:900;font-size:1.18rem;letter-spacing:-.02em}
+  .badge-pdr{
+    width:42px;height:42px;border-radius:11px;background:var(--blue);
+    display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-weight:900;font-size:.86rem;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.9), inset 0 0 0 4px var(--blue);
+    letter-spacing:.01em;flex:none;
+  }
+  .nav-links{display:flex;gap:26px;margin-left:18px}
+  .nav-links a{font-weight:700;font-size:.98rem;color:var(--ink-70);transition:color .15s}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-cta{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .link-login{font-weight:800;font-family:var(--font-display);padding:10px 8px}
+  .menu-btn{display:none;margin-left:auto;background:none;border:2px solid var(--ink);border-radius:10px;width:46px;height:46px;cursor:pointer;align-items:center;justify-content:center}
+  .menu-btn svg{width:22px;height:22px}
+  .mnav{display:none;border-top:2px solid var(--line);background:var(--white)}
+  .mnav a{display:block;padding:15px 22px;font-family:var(--font-display);font-weight:800;font-size:1.05rem;border-bottom:1px solid var(--line)}
+  .mnav a:last-child{border-bottom:none}
+  .mnav .m-login{color:var(--blue)}
+
+  /* ---------- HERO ---------- */
+  .hero{position:relative;padding:60px 0 70px;overflow:hidden}
+  /* yellow lane line down the side */
+  .lane{position:absolute;inset:0;pointer-events:none;z-index:0}
+  .lane::before{
+    content:"";position:absolute;top:0;bottom:0;left:50%;width:14px;transform:translateX(-50%);
+    background:repeating-linear-gradient(to bottom, var(--yellow) 0 34px, transparent 34px 64px);
+    opacity:.16;border-radius:8px;
+  }
+  .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center}
+  .hero-eyebrow .trio{margin-right:4px}
+  .hero h1{font-size:clamp(2.5rem,6.2vw,4.5rem);font-weight:900;margin:18px 0 0;letter-spacing:-.03em}
+  .hero h1 .hl{color:var(--blue);position:relative;white-space:nowrap}
+  .hero h1 .hl::after{content:"";position:absolute;left:-2px;right:-2px;bottom:.06em;height:.16em;background:var(--yellow);z-index:-1;border-radius:3px}
+  .hero .sub{margin-top:22px;font-size:1.2rem;color:var(--ink-70);max-width:34ch}
+  .hero-cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+  .microtrust{margin-top:18px;display:flex;align-items:center;gap:9px;font-weight:600;font-size:.95rem;color:var(--ink-70);flex-wrap:wrap}
+  .microtrust .dot{width:5px;height:5px;border-radius:50%;background:var(--line)}
+  .microtrust b{color:var(--ink);font-weight:800}
+
+  /* ---------- Hero: mounted sign feature beside the quiz ---------- */
+  .quiz-stage{position:relative}
+  /* a real STOP sign mounted on a post, peeking confidently behind the quiz card */
+  .hero-sign{
+    position:absolute;top:-30px;right:-14px;width:120px;z-index:0;
+    display:flex;flex-direction:column;align-items:center;pointer-events:none;
+    filter:drop-shadow(0 10px 14px rgba(21,24,30,.22));
+    animation:swayin .9s cubic-bezier(.2,.7,.3,1) both;
+  }
+  @keyframes swayin{from{opacity:0;transform:translateY(-14px) rotate(-4deg)}to{opacity:1;transform:none}}
+  .hero-sign .sign-art{width:96px;height:96px;filter:none}
+  .hero-sign .post-bar{width:9px;height:74px;margin-top:-3px;
+    background:linear-gradient(90deg,var(--steel-d),var(--steel-l) 40%,var(--steel) 60%,var(--steel-d));
+    border-radius:3px;box-shadow:0 2px 0 rgba(21,24,30,.2)}
+
+  /* ---------- Quiz card (sign-board panel) ---------- */
+  .quiz{
+    background:var(--white);border:3px solid var(--ink);border-radius:22px;
+    box-shadow:0 14px 0 rgba(21,24,30,.1), 0 24px 50px -20px rgba(21,24,30,.4);
+    padding:22px;position:relative;
+  }
+  .quiz-top{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+  .quiz-kicker{
+    font-family:var(--font-display);font-weight:800;font-size:.74rem;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--go);display:inline-flex;align-items:center;gap:8px;
+  }
+  .quiz-sign{flex:none;width:64px;height:64px;margin-left:auto}
+  .quiz-q{font-family:var(--font-display);font-weight:800;font-size:1.18rem;line-height:1.22;margin-bottom:16px;letter-spacing:-.01em}
+  .opts{display:grid;gap:10px}
+  .opt{
+    display:flex;align-items:center;gap:13px;width:100%;text-align:left;cursor:pointer;
+    background:var(--white);border:2px solid var(--line);border-radius:13px;
+    padding:14px 15px;font-weight:600;font-size:.98rem;color:var(--ink);
+    transition:transform .1s, border-color .15s, background .15s, box-shadow .12s;
+  }
+  .opt:hover:not(:disabled){border-color:var(--blue);transform:translateY(-1px)}
+  .opt:active:not(:disabled){transform:translateY(1px)}
+  .opt .mk{
+    flex:none;width:30px;height:30px;border-radius:9px;border:2px solid var(--line);
+    display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:.92rem;color:var(--ink-70);
+    transition:.15s;
+  }
+  .opt[data-state="correct"]{border-color:var(--go);background:rgba(22,163,74,.09);color:#0c5c2c}
+  .opt[data-state="correct"] .mk{background:var(--go);border-color:var(--go);color:#fff}
+  .opt[data-state="wrong"]{border-color:var(--red);background:rgba(216,30,44,.07);color:#9a131e}
+  .opt[data-state="wrong"] .mk{background:var(--red);border-color:var(--red);color:#fff}
+  .opt:disabled{cursor:default}
+  .opt.dim{opacity:.5}
+  .quiz-fb{
+    margin-top:14px;border-radius:13px;padding:13px 15px;font-weight:600;font-size:.95rem;line-height:1.4;
+    display:none;
+  }
+  .quiz-fb.show{display:block;animation:fbin .3s ease both}
+  .quiz-fb.ok{background:rgba(22,163,74,.1);color:#0c5c2c;border:2px solid rgba(22,163,74,.35)}
+  .quiz-fb.no{background:rgba(216,30,44,.08);color:#9a131e;border:2px solid rgba(216,30,44,.3)}
+  @keyframes fbin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .xp{
+    margin-top:13px;display:none;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;font-size:.96rem;color:var(--ink-70);
+  }
+  .xp.show{display:flex}
+  .xp .pill{background:var(--yellow);color:var(--ink);padding:5px 12px;border-radius:999px;font-size:.92rem;box-shadow:0 3px 0 rgba(21,24,30,.18)}
+  .xp.show .pill{animation:pop .5s cubic-bezier(.2,1.5,.4,1) both}
+  @keyframes pop{0%{transform:scale(.4) translateY(8px);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+
+  /* ---------- Trust bar ---------- */
+  .trust{background:var(--ink);color:#fff;padding:30px 0}
+  .trust-in{display:grid;grid-template-columns:auto 1fr auto;gap:26px;align-items:center}
+  .src-badge{
+    display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,.07);
+    border:2px solid rgba(255,255,255,.16);border-radius:14px;padding:12px 16px;font-weight:700;font-size:.95rem;
+  }
+  .src-badge .shield{flex:none;width:34px;height:34px}
+  .stats{display:flex;flex-wrap:wrap;gap:8px 30px;justify-content:center}
+  .stat{display:flex;flex-direction:column;align-items:center;min-width:96px}
+  .stat b{font-family:var(--font-display);font-weight:900;font-size:1.5rem;line-height:1}
+  .stat span{font-size:.78rem;color:rgba(255,255,255,.6);margin-top:4px;text-align:center}
+  .stat b .star{color:var(--yellow)}
+  /* yellow diamond chip (головна дорога) */
+  .chip-prio{display:flex;align-items:center;gap:12px;justify-self:end}
+  .diamond{
+    flex:none;width:56px;height:56px;background:var(--yellow);transform:rotate(45deg);border-radius:9px;
+    border:3px solid var(--ink);display:grid;place-items:center;box-shadow:0 4px 0 rgba(0,0,0,.3);
+    outline:2px solid #fff;outline-offset:-6px;
+  }
+  .diamond span{transform:rotate(-45deg);font-family:var(--font-display);font-weight:900;font-size:.66rem;color:var(--ink);text-align:center;line-height:.95}
+  .chip-prio p{font-weight:700;font-size:.92rem;max-width:22ch;color:rgba(255,255,255,.85)}
+  .chip-prio p b{color:#fff}
+
+  /* ---------- How it works ---------- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .step{
+    background:var(--white);border:2px solid var(--ink);border-radius:18px;padding:26px 24px;position:relative;
+    box-shadow:6px 6px 0 rgba(21,24,30,.08);transition:transform .15s, box-shadow .15s;
+  }
+  .step:hover{transform:translate(-2px,-2px);box-shadow:9px 9px 0 rgba(30,91,191,.18)}
+  .step-no{
+    width:46px;height:46px;border-radius:12px;background:var(--blue);color:#fff;font-family:var(--font-display);font-weight:900;font-size:1.3rem;
+    display:grid;place-items:center;margin-bottom:16px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.85), inset 0 0 0 4px var(--blue);
+  }
+  .step:nth-child(2) .step-no{background:var(--yellow);color:var(--ink);box-shadow:inset 0 0 0 2px rgba(255,255,255,.85), inset 0 0 0 4px var(--yellow)}
+  .step:nth-child(3) .step-no{background:var(--go);box-shadow:inset 0 0 0 2px rgba(255,255,255,.85), inset 0 0 0 4px var(--go)}
+  .step h3{font-size:1.3rem;font-weight:800}
+  .step p{margin-top:8px;color:var(--ink-70);font-size:1rem}
+
+  /* ---------- Gamification ---------- */
+  .game{background:var(--paper);border-top:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+  .game-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+  .card{background:var(--white);border:2px solid var(--ink);border-radius:18px;padding:20px;box-shadow:5px 5px 0 rgba(21,24,30,.07)}
+  .card h4{font-family:var(--font-display);font-weight:800;font-size:1.05rem;display:flex;align-items:center;gap:8px}
+  .card .lbl{font-weight:700;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-70)}
+  .g-streak{grid-column:span 4}
+  .g-goal{grid-column:span 4}
+  .g-xp{grid-column:span 4}
+  .g-path{grid-column:span 7}
+  .g-ready{grid-column:span 5}
+
+  .flame{font-size:2.4rem;line-height:1;filter:drop-shadow(0 3px 4px rgba(244,180,0,.4))}
+  .streak-row{display:flex;align-items:center;gap:14px;margin-top:6px}
+  .streak-row b{font-family:var(--font-display);font-size:2rem;font-weight:900;line-height:1}
+  .streak-days{display:flex;gap:5px;margin-top:14px}
+  .streak-days i{flex:1;height:9px;border-radius:3px;background:var(--yellow)}
+  .streak-days i.off{background:var(--line)}
+  .card .note{color:var(--ink-70);font-size:.9rem;margin-top:10px;font-weight:600}
+
+  .ring-wrap{display:flex;align-items:center;gap:18px;margin-top:8px}
+  .ring{flex:none;width:96px;height:96px;position:relative}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .ring-c{
+    position:absolute;inset:0;display:grid;place-items:center;font-family:var(--font-display);font-weight:900;font-size:1.25rem;
+  }
+  .goal-txt b{font-family:var(--font-display);font-size:1.5rem;font-weight:900}
+
+  .lvl-top{display:flex;align-items:center;gap:14px;margin-top:6px}
+  .lvl-badge{
+    flex:none;width:58px;height:58px;border-radius:14px;background:var(--blue);color:#fff;display:grid;place-items:center;
+    font-family:var(--font-display);font-weight:900;text-align:center;line-height:.95;font-size:.7rem;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.85), inset 0 0 0 4px var(--blue);
+  }
+  .lvl-badge b{font-size:1.5rem;display:block}
+  .xp-bar{height:11px;border-radius:6px;background:var(--line);margin-top:14px;overflow:hidden;border:1px solid var(--line)}
+  .xp-bar i{display:block;height:100%;width:64%;background:linear-gradient(90deg,var(--blue),#3f7de0);border-radius:6px}
+
+  .path{display:flex;align-items:center;gap:6px;margin-top:14px;flex-wrap:wrap}
+  .node{display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;min-width:60px}
+  .node .bub{
+    width:50px;height:50px;border-radius:14px;display:grid;place-items:center;font-size:1.3rem;
+    border:2px solid var(--ink);background:var(--white);transition:transform .15s;
+  }
+  .node.done .bub{background:var(--go);border-color:var(--go);color:#fff}
+  .node.now .bub{background:var(--yellow);border-color:var(--ink);box-shadow:0 0 0 4px rgba(244,180,0,.3);animation:bob 2.2s ease-in-out infinite}
+  .node.lock .bub{background:var(--paper);color:var(--ink-70)}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .node span{font-size:.78rem;font-weight:700;text-align:center;color:var(--ink-70)}
+  .node.now span{color:var(--ink)}
+  .conn{height:3px;flex:none;width:14px;background:var(--line);border-radius:3px;margin-top:-22px}
+
+  .ready-meter{margin-top:14px}
+  .ready-track{height:18px;border-radius:10px;background:var(--line);overflow:hidden;position:relative;border:2px solid var(--ink)}
+  .ready-track i{display:block;height:100%;width:78%;background:linear-gradient(90deg,var(--red),var(--yellow) 55%,var(--go));border-radius:8px 0 0 8px}
+  .ready-scale{display:flex;justify-content:space-between;font-size:.72rem;font-weight:700;color:var(--ink-70);margin-top:8px}
+  .ready-num{display:flex;align-items:baseline;gap:10px;margin-top:4px}
+  .ready-num b{font-family:var(--font-display);font-size:2.4rem;font-weight:900;line-height:1}
+  .ready-num span{font-weight:800;color:var(--go)}
+
+  .badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .bdg{display:flex;align-items:center;gap:8px;background:var(--paper);border:2px solid var(--line);border-radius:999px;padding:7px 14px;font-weight:700;font-size:.84rem}
+  .bdg .ic{width:22px;height:22px;flex:none}
+
+  /* ---------- Features = ДОШКА ЗНАКІВ (BENTO + signpost mounts) ---------- */
+  .board{
+    background:var(--paper);border:3px solid var(--ink);border-radius:26px;padding:30px 26px;
+    background-image:radial-gradient(rgba(21,24,30,.055) 1.4px,transparent 1.4px);background-size:24px 24px;
+    box-shadow:0 14px 0 rgba(21,24,30,.07);position:relative;
+  }
+  .board-head{display:flex;align-items:center;gap:12px;margin-bottom:26px;justify-content:center;flex-wrap:wrap;text-align:center}
+  .board-head .post{width:8px;height:34px;background:linear-gradient(90deg,var(--steel-d),var(--steel),var(--steel-l));border-radius:4px}
+
+  /* BENTO grid: 6 columns, varied spans → intentional composition */
+  .signs{display:grid;grid-template-columns:repeat(6,1fr);gap:18px;grid-auto-flow:dense}
+
+  /* The sign tile = a mounted sign. The post is drawn as a ::before pseudo-element. */
+  .sign-tile{
+    --post-h:30px;
+    position:relative;
+    background:var(--white);border:2px solid var(--ink);border-radius:20px;
+    padding:24px 20px var(--post-h);
+    display:flex;flex-direction:column;align-items:center;text-align:center;gap:13px;cursor:default;
+    box-shadow:var(--sign-shadow);
+    transition:transform .13s cubic-bezier(.22,.9,.3,1.2), box-shadow .13s ease;
+    z-index:1;
+    margin-bottom:18px; /* room so post visually sits below the tile */
+  }
+  /* steel mounting post + base plate behind/under the sign */
+  .sign-tile::before{
+    content:"";position:absolute;left:50%;bottom:calc(-1 * var(--post-h) + 4px);
+    width:11px;height:calc(var(--post-h) + 14px);transform:translateX(-50%);
+    background:linear-gradient(90deg,var(--steel-d) 0%,var(--steel-l) 38%,var(--steel) 62%,var(--steel-d) 100%);
+    border-radius:3px;z-index:-1;
+    box-shadow:0 2px 0 rgba(21,24,30,.18);
+  }
+  /* base plate at the foot of the post */
+  .sign-tile::after{
+    content:"";position:absolute;left:50%;bottom:calc(-1 * var(--post-h) + 2px);
+    width:30px;height:7px;transform:translateX(-50%);
+    background:var(--steel-d);border-radius:3px;z-index:-2;opacity:.55;
+    filter:blur(.3px);
+  }
+  /* two fixing bolts where the sign meets the post */
+  .sign-tile .bolts{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:14px;z-index:2;pointer-events:none}
+  .sign-tile .bolts i{width:6px;height:6px;border-radius:50%;background:var(--steel-d);box-shadow:inset 0 1px 0 var(--steel-l),0 1px 1px rgba(0,0,0,.25)}
+
+  .sign-tile:hover{transform:translateY(-5px);box-shadow:0 11px 0 rgba(21,24,30,.2)}
+  .sign-tile:active{transform:translateY(2px);box-shadow:var(--sign-shadow-press);transition-duration:.05s}
+
+  .sign-art{width:84px;height:84px;flex:none;filter:drop-shadow(0 2px 3px rgba(21,24,30,.14))}
+  .sign-tile h3{font-size:1.05rem;font-weight:800;line-height:1.12}
+  .sign-tile p{font-size:.89rem;color:var(--ink-70);font-weight:500;line-height:1.4}
+  .sign-tile .tag{font-family:var(--font-display);font-weight:800;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);opacity:.85}
+
+  /* BENTO spans — important modes carry more weight */
+  .t-exam{grid-column:span 3}        /* Пробний іспит — hero tile, wide */
+  .t-ready{grid-column:span 3}       /* Оцінка готовності — hero tile, wide */
+  .t-topics{grid-column:span 2}
+  .t-mistakes{grid-column:span 2}
+  .t-mixed{grid-column:span 2}
+  .t-saved{grid-column:span 2}
+  .t-photos{grid-column:span 2}
+  .t-priority{grid-column:span 2}
+
+  /* The two hero tiles are wide → lay them out horizontally with bigger art */
+  .sign-tile.wide{flex-direction:row;text-align:left;align-items:center;gap:22px;padding:26px 28px var(--post-h)}
+  .sign-tile.wide .sign-art{width:104px;height:104px}
+  .sign-tile.wide .wide-txt{display:flex;flex-direction:column;gap:6px}
+  .sign-tile.wide h3{font-size:1.32rem}
+  .sign-tile.wide p{font-size:.96rem}
+  .sign-tile.wide .bolts{left:auto;right:34px;bottom:9px;transform:none}
+  .sign-tile.wide::before{left:auto;right:40px}
+  .sign-tile.wide::after{left:auto;right:34px}
+
+  /* ---------- Readiness outcome ---------- */
+  .outcome{background:var(--blue);color:#fff;border-radius:26px;padding:46px;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;
+    box-shadow:0 14px 0 var(--blue-dark);position:relative;overflow:hidden}
+  .outcome::after{content:"";position:absolute;right:-60px;top:-60px;width:240px;height:240px;border:18px solid rgba(255,255,255,.08);border-radius:50%}
+  .outcome h2{color:#fff;font-size:clamp(1.8rem,4vw,2.7rem);font-weight:900;position:relative}
+  .outcome p{margin-top:16px;color:rgba(255,255,255,.9);font-size:1.1rem;position:relative;max-width:46ch}
+  .gauge{background:var(--white);border-radius:20px;padding:26px;color:var(--ink);text-align:center;position:relative}
+  .gauge .lbl{font-weight:800;font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-70)}
+  .gauge-svg{width:200px;height:118px;margin:6px auto 0}
+  .gauge .big{font-family:var(--font-display);font-weight:900;font-size:3rem;line-height:1;margin-top:-46px}
+  .gauge .band{margin-top:6px;font-weight:800;color:var(--go);font-size:1.05rem}
+
+  /* ---------- Testimonials ---------- */
+  .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .quote{background:var(--white);border:2px solid var(--ink);border-radius:18px;padding:26px;box-shadow:5px 5px 0 rgba(21,24,30,.07);display:flex;flex-direction:column}
+  .quote .stars{color:var(--yellow);font-size:1.05rem;letter-spacing:2px;margin-bottom:12px}
+  .quote p{font-size:1.05rem;font-weight:600;line-height:1.45;flex:1}
+  .quote .who{display:flex;align-items:center;gap:11px;margin-top:18px}
+  .avatar{width:42px;height:42px;border-radius:12px;background:var(--blue);color:#fff;display:grid;place-items:center;font-family:var(--font-display);font-weight:900;flex:none}
+  .quote:nth-child(2) .avatar{background:var(--go)}
+  .quote:nth-child(3) .avatar{background:var(--yellow);color:var(--ink)}
+  .quote .who b{font-family:var(--font-display);font-weight:800;display:block;font-size:.98rem}
+  .quote .who span{font-size:.85rem;color:var(--ink-70);font-weight:600}
+
+  /* ---------- Pricing ---------- */
+  .plans{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:840px;margin:0 auto}
+  .plan{background:var(--white);border:2px solid var(--ink);border-radius:22px;padding:32px;position:relative;display:flex;flex-direction:column;box-shadow:6px 6px 0 rgba(21,24,30,.08)}
+  .plan.pro{border:3px solid var(--blue);box-shadow:6px 6px 0 rgba(30,91,191,.22)}
+  .plan .pop{position:absolute;top:-15px;right:24px;background:var(--yellow);color:var(--ink);font-family:var(--font-display);font-weight:900;font-size:.78rem;padding:7px 15px;border-radius:999px;border:2px solid var(--ink);text-transform:uppercase;letter-spacing:.04em}
+  .plan h3{font-size:1.4rem;font-weight:900}
+  .plan .price{font-family:var(--font-display);font-weight:900;font-size:2.6rem;margin:10px 0 4px;line-height:1}
+  .plan .price small{font-size:1rem;color:var(--ink-70);font-weight:700}
+  .plan .price.free{color:var(--go)}
+  .plan ul{margin:20px 0 26px;display:grid;gap:12px}
+  .plan li{display:flex;align-items:flex-start;gap:11px;font-weight:600;font-size:1rem}
+  .plan li .tick{flex:none;width:22px;height:22px;margin-top:1px}
+  .plan .btn{margin-top:auto}
+
+  /* ---------- FAQ ---------- */
+  .faq{max-width:780px;margin:0 auto;display:grid;gap:12px}
+  .qa{background:var(--white);border:2px solid var(--ink);border-radius:16px;overflow:hidden}
+  .qa summary{list-style:none;cursor:pointer;padding:20px 22px;font-family:var(--font-display);font-weight:800;font-size:1.08rem;display:flex;align-items:center;gap:14px}
+  .qa summary::-webkit-details-marker{display:none}
+  .qa summary .pm{flex:none;margin-left:auto;width:30px;height:30px;border-radius:9px;border:2px solid var(--ink);display:grid;place-items:center;font-size:1.3rem;font-weight:700;transition:.2s;line-height:1}
+  .qa[open] summary .pm{background:var(--blue);color:#fff;border-color:var(--blue);transform:rotate(45deg)}
+  .qa .ans{padding:0 22px 22px;color:var(--ink-70);font-weight:500;line-height:1.55}
+  .qa .qmk{flex:none;width:30px;height:30px;border-radius:9px;background:var(--paper);border:2px solid var(--line);display:grid;place-items:center;font-weight:900;color:var(--blue);font-size:.95rem}
+
+  /* ---------- Final CTA ---------- */
+  .final{text-align:center}
+  .final-card{background:var(--ink);color:#fff;border-radius:28px;padding:60px 30px;position:relative;overflow:hidden}
+  .final-card .trio{position:relative;margin-bottom:20px}
+  .final-card h2{color:#fff;font-size:clamp(2rem,5vw,3.4rem);font-weight:900}
+  .final-card p{color:rgba(255,255,255,.78);font-size:1.2rem;margin-top:14px}
+  .final-card .btn{margin-top:30px}
+  .final-lane{position:absolute;left:0;right:0;bottom:0;height:14px;background:repeating-linear-gradient(90deg,var(--yellow) 0 30px,transparent 30px 54px);opacity:.7}
+
+  /* ---------- Footer ---------- */
+  footer{background:var(--white);border-top:2px solid var(--ink);padding:54px 0 30px}
+  .foot-grid{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:34px}
+  .foot-brand p{color:var(--ink-70);font-size:.95rem;margin-top:14px;font-weight:500;max-width:34ch}
+  .foot-col h4{font-family:var(--font-display);font-weight:800;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-70);margin-bottom:14px}
+  .foot-col a{display:block;font-weight:700;font-size:.96rem;padding:5px 0;color:var(--ink);transition:color .15s}
+  .foot-col a:hover{color:var(--blue)}
+  .foot-bot{border-top:2px solid var(--line);margin-top:40px;padding-top:24px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+  .disclaimer{font-size:.84rem;color:var(--ink-70);font-weight:500;max-width:62ch;line-height:1.5}
+  .copy{font-weight:800;font-family:var(--font-display);font-size:.9rem;white-space:nowrap}
+
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease, transform .6s cubic-bezier(.2,.7,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:980px){
+    .hero-grid{grid-template-columns:1fr;gap:36px}
+    .hero .sub{max-width:none}
+    .trust-in{grid-template-columns:1fr;gap:18px;justify-items:center;text-align:center}
+    .chip-prio{justify-self:center}
+    .steps{grid-template-columns:1fr}
+    .g-streak,.g-goal,.g-xp{grid-column:span 6}
+    .g-path,.g-ready{grid-column:span 12}
+    /* bento → 4 cols on tablet: wide tiles span 4, others span 2 */
+    .signs{grid-template-columns:repeat(4,1fr)}
+    .t-exam,.t-ready{grid-column:span 4}
+    .t-topics,.t-mistakes,.t-mixed,.t-saved,.t-photos,.t-priority{grid-column:span 2}
+    .hero-sign{display:none}
+    .outcome{grid-template-columns:1fr;padding:34px}
+    .quotes{grid-template-columns:1fr}
+    .foot-grid{grid-template-columns:1fr 1fr;gap:28px}
+    .foot-brand{grid-column:span 2}
+  }
+  @media (max-width:680px){
+    body{font-size:16px}
+    .section{padding:58px 0}
+    .nav-links{display:none}
+    .nav-cta .link-login{display:none}
+    .menu-btn{display:flex}
+    .mnav.open{display:block}
+    .nav-cta{margin-left:0}
+    .nav-in{gap:12px}
+    .hero{padding:38px 0 50px}
+    .hero-cta .btn{flex:1}
+    .g-streak,.g-goal,.g-xp,.g-path,.g-ready{grid-column:span 12}
+    .signs{grid-template-columns:repeat(2,1fr)}
+    .plans{grid-template-columns:1fr}
+    .foot-grid{grid-template-columns:1fr}
+    .foot-brand{grid-column:span 1}
+    .stats{gap:14px 22px}
+    .board{padding:20px 16px}
+    /* bento → 2 cols on phone; wide tiles span both, stack their content */
+    .signs{grid-template-columns:repeat(2,1fr);gap:16px}
+    .t-exam,.t-ready{grid-column:span 2}
+    .t-topics,.t-mistakes,.t-mixed,.t-saved,.t-photos,.t-priority{grid-column:span 1}
+    .sign-art{width:70px;height:70px}
+    .sign-tile.wide .sign-art{width:84px;height:84px}
+    .sign-tile.wide h3{font-size:1.18rem}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+    .reveal{opacity:1;transform:none}
+    .node.now .bub{animation:none}
+    .trio.run i{animation:none;opacity:1}
+    .hero-sign{animation:none}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Перейти до вмісту</a>
+
+<!-- ===== HEADER ===== -->
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#" aria-label="Drivers School — головна">
+      <span class="badge-pdr" aria-hidden="true">ПДР</span>
+      <span>Drivers School</span>
+    </a>
+    <nav class="nav-links" aria-label="Головна навігація">
+      <a href="#features">Можливості</a>
+      <a href="#how">Як це працює</a>
+      <a href="#pricing">Тарифи</a>
+      <a href="#faq">Питання</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="link-login" href="#">Увійти</a>
+      <a class="btn btn-primary" href="#start">Почати безкоштовно</a>
+    </div>
+    <button class="menu-btn" id="menuBtn" aria-label="Відкрити меню" aria-expanded="false" aria-controls="mnav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </div>
+  <!-- mobile dropdown -->
+  <nav class="mnav" id="mnav" aria-label="Мобільна навігація" hidden>
+    <a href="#features">Можливості</a>
+    <a href="#how">Як це працює</a>
+    <a href="#pricing">Тарифи</a>
+    <a href="#faq">Питання</a>
+    <a href="#" class="m-login">Увійти</a>
+  </nav>
+</header>
+
+<main id="main">
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="start">
+  <div class="lane" aria-hidden="true"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow hero-eyebrow"><span class="trio run" aria-hidden="true"><i class="r"></i><i class="a"></i><i class="g"></i></span> Підготовка до теоретичного іспиту з ПДР</span>
+      <h1>Вивчи ПДР так, <span class="hl">ніби це гра</span></h1>
+      <p class="sub">Усі офіційні питання іспиту, реальні дорожні ситуації та розумні тренування, що ведуть тебе від нуля до впевненого «склав».</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary btn-lg" href="#start">Почати безкоштовно</a>
+        <a class="btn btn-ghost btn-lg" href="#quiz">Спробувати питання</a>
+      </div>
+      <p class="microtrust">
+        <b>Без картки</b><span class="dot" aria-hidden="true"></span><b>1691</b> офіційне питання<span class="dot" aria-hidden="true"></span>Українською
+      </p>
+    </div>
+
+    <!-- Interactive sample question -->
+    <div class="quiz-stage">
+    <!-- Real СТОП sign mounted on a post, feature device in the hero -->
+    <div class="hero-sign" aria-hidden="true">
+      <svg class="sign-art" viewBox="0 0 100 100" role="img" aria-label="Дорожній знак СТОП">
+        <polygon points="29.3,3 70.7,3 97,29.3 97,70.7 70.7,97 29.3,97 3,70.7 3,29.3" fill="#D81E2C" stroke="#15181E" stroke-width="3"/>
+        <polygon points="31,9 69,9 91,31 91,69 69,91 31,91 9,69 9,31" fill="none" stroke="#fff" stroke-width="4"/>
+        <text x="50" y="60" text-anchor="middle" font-family="Golos Text, Manrope, sans-serif" font-weight="900" font-size="25" fill="#fff" letter-spacing="1.5">СТОП</text>
+      </svg>
+      <span class="post-bar"></span>
+    </div>
+    <div class="quiz" id="quiz">
+      <div class="quiz-top">
+        <span class="quiz-kicker"><span class="trio" aria-hidden="true"><i class="r"></i><i class="a"></i><i class="g"></i></span>Спробуй прямо зараз</span>
+        <!-- traffic light showing flashing amber -->
+        <svg class="quiz-sign" viewBox="0 0 64 64" role="img" aria-label="Світлофор з жовтим миготливим сигналом">
+          <rect x="18" y="3" width="28" height="58" rx="9" fill="#15181E"/>
+          <rect x="20.5" y="5.5" width="23" height="53" rx="7" fill="none" stroke="#3a3f49" stroke-width="1.5"/>
+          <circle cx="32" cy="17" r="6.5" fill="#D81E2C" opacity=".28"/>
+          <circle cx="32" cy="32" r="6.5" fill="#F4B400"/>
+          <circle cx="32" cy="32" r="10.5" fill="none" stroke="#F4B400" stroke-width="2.5" opacity=".45"/>
+          <circle cx="32" cy="47" r="6.5" fill="#16A34A" opacity=".28"/>
+        </svg>
+      </div>
+      <p class="quiz-q">Як діяти, якщо під час руху ввімкнулося жовте миготливе світло світлофора?</p>
+      <div class="opts" role="group" aria-label="Варіанти відповіді">
+        <button class="opt" type="button" data-correct="false"><span class="mk" aria-hidden="true">А</span><span>Зупинитися та чекати зеленого сигналу</span></button>
+        <button class="opt" type="button" data-correct="true"><span class="mk" aria-hidden="true">Б</span><span>Продовжити рух, керуючись правилами проїзду нерегульованих перехресть</span></button>
+        <button class="opt" type="button" data-correct="false"><span class="mk" aria-hidden="true">В</span><span>Зупинитися перед перехрестям до вимкнення жовтого</span></button>
+        <button class="opt" type="button" data-correct="false"><span class="mk" aria-hidden="true">Г</span><span>Пришвидшитися, щоб проїхати перехрестя першим</span></button>
+      </div>
+      <div class="quiz-fb" id="qfb" role="status" aria-live="polite"></div>
+      <div class="xp" id="qxp"><span class="pill">+10 XP</span><span>так працює кожне питання в Drivers School</span></div>
+    </div>
+    </div><!-- /quiz-stage -->
+  </div>
+</section>
+
+<!-- ===== TRUST BAR ===== -->
+<section class="trust" aria-label="Довіра та цифри">
+  <div class="wrap trust-in">
+    <div class="src-badge">
+      <svg class="shield" viewBox="0 0 34 34" role="img" aria-label="Офіційне джерело">
+        <path d="M17 2 30 7v9c0 9-6 14-13 16-7-2-13-7-13-16V7z" fill="none" stroke="#fff" stroke-width="2.2"/>
+        <path d="m11 17 4 4 8-9" fill="none" stroke="#F4B400" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Питання з офіційної бази<br>ГСЦ МВС</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>1691</b><span>офіційне питання</span></div>
+      <div class="stat"><b>734</b><span>фото реальних ситуацій</span></div>
+      <div class="stat"><b>8&nbsp;·&nbsp;70</b><span>тем · підтем</span></div>
+      <div class="stat"><b>4.9<span class="star">★</span></b><span>у відгуках</span></div>
+    </div>
+    <div class="chip-prio">
+      <div class="diamond" aria-hidden="true"><span>20·20·2</span></div>
+      <p><b>20 питань · 20 хвилин · 2 помилки</b> — як на справжньому іспиті</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Як це працює</span>
+      <h2>Три кроки до «склав»</h2>
+      <p>Простий маршрут — як знаки, що ведуть тебе дорогою.</p>
+    </div>
+    <div class="steps">
+      <article class="step reveal">
+        <div class="step-no" aria-hidden="true">1</div>
+        <h3>Вивчай тему</h3>
+        <p>Коротко й зрозуміло: знаки, розмітка, пріоритети — без юридичної води.</p>
+      </article>
+      <article class="step reveal">
+        <div class="step-no" aria-hidden="true">2</div>
+        <h3>Тренуйся розумно</h3>
+        <p>Система сама повертає питання, у яких ти помилився, поки ти їх не закріпиш.</p>
+      </article>
+      <article class="step reveal">
+        <div class="step-no" aria-hidden="true">3</div>
+        <h3>Складай пробний іспит</h3>
+        <p>Той самий формат, що й офіційний: 20 питань, 20 хвилин, максимум 2 помилки.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== GAMIFICATION ===== -->
+<section class="section game" id="game">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Прогрес</span>
+      <h2>Вчись, як у грі</h2>
+      <p>Прогрес, який видно — і не хочеться кидати.</p>
+    </div>
+    <div class="game-grid">
+      <!-- Streak -->
+      <div class="card g-streak reveal">
+        <span class="lbl">Серія</span>
+        <div class="streak-row">
+          <span class="flame" aria-hidden="true">🔥</span>
+          <b>12 днів</b>
+        </div>
+        <div class="streak-days" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i class="off"></i>
+        </div>
+        <p class="note">Не зупиняйся — ще трохи.</p>
+      </div>
+      <!-- Daily goal ring -->
+      <div class="card g-goal reveal">
+        <span class="lbl">Денна ціль</span>
+        <div class="ring-wrap">
+          <div class="ring" role="img" aria-label="Денна ціль: 3 з 5 уроків виконано">
+            <svg viewBox="0 0 100 100" width="96" height="96" aria-hidden="true">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#E3E6EC" stroke-width="12"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#16A34A" stroke-width="12" stroke-linecap="round"
+                      stroke-dasharray="263.9" stroke-dashoffset="105.5"/>
+            </svg>
+            <span class="ring-c">3/5</span>
+          </div>
+          <div class="goal-txt">
+            <b>3 / 5</b>
+            <p class="note">уроків сьогодні</p>
+          </div>
+        </div>
+      </div>
+      <!-- XP / level -->
+      <div class="card g-xp reveal">
+        <span class="lbl">Рівень</span>
+        <div class="lvl-top">
+          <div class="lvl-badge" aria-hidden="true"><b>7</b>рівень</div>
+          <div>
+            <p style="font-family:var(--font-display);font-weight:800;font-size:1.05rem">Рівень 7</p>
+            <p class="note" style="margin-top:2px">+15 XP за правильну відповідь</p>
+          </div>
+        </div>
+        <div class="xp-bar" aria-label="640 з 1000 XP до рівня 8"><i></i></div>
+      </div>
+      <!-- Topic path -->
+      <div class="card g-path reveal">
+        <span class="lbl">Твій маршрут тем</span>
+        <div class="path" role="img" aria-label="Маршрут тем: Знаки виконано, Розмітка виконано, Перехрестя зараз, Обгін заблоковано, Швидкість заблоковано">
+          <div class="node done"><span class="bub" aria-hidden="true">✓</span><span>Знаки</span></div>
+          <span class="conn" aria-hidden="true"></span>
+          <div class="node done"><span class="bub" aria-hidden="true">✓</span><span>Розмітка</span></div>
+          <span class="conn" aria-hidden="true"></span>
+          <div class="node now"><span class="bub" aria-hidden="true">●</span><span>Перехрестя</span></div>
+          <span class="conn" aria-hidden="true"></span>
+          <div class="node lock"><span class="bub" aria-hidden="true">🔒</span><span>Обгін</span></div>
+          <span class="conn" aria-hidden="true"></span>
+          <div class="node lock"><span class="bub" aria-hidden="true">🔒</span><span>Швидкість</span></div>
+        </div>
+      </div>
+      <!-- Readiness -->
+      <div class="card g-ready reveal">
+        <span class="lbl">Готовність до іспиту</span>
+        <div class="ready-meter">
+          <div class="ready-track" role="img" aria-label="Готовність 78 відсотків"><i></i></div>
+          <div class="ready-scale" aria-hidden="true"><span>не готовий</span><span>майже</span><span>готовий</span></div>
+          <div class="ready-num"><b>78%</b><span>— майже там</span></div>
+        </div>
+        <div class="badges">
+          <span class="bdg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#1E5BBF"/><path d="m8 12 3 3 5-6" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Знавець знаків</span>
+          <span class="bdg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="9" font-weight="900" font-family="sans-serif" fill="#15181E">100</text></svg>100 питань</span>
+          <span class="bdg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#16A34A"/><path d="M12 6v6l4 2" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Тиждень без пропусків</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES = ДОШКА ЗНАКІВ ===== -->
+<section class="section" id="features">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Можливості</span>
+      <h2>Дошка знаків — обери, що тренувати</h2>
+      <p>Сім реальних режимів практики. Натисни — і вперед.</p>
+    </div>
+    <div class="board reveal">
+      <div class="board-head">
+        <span class="post" aria-hidden="true"></span>
+        <h3 style="font-size:1.2rem">Кожен знак — це режим у Drivers School</h3>
+        <span class="post" aria-hidden="true"></span>
+      </div>
+      <div class="signs">
+
+        <!-- ===== HERO TILE 1: Пробний іспит — обмеження швидкості 60 (wide) ===== -->
+        <article class="sign-tile wide t-exam">
+          <svg class="sign-art" viewBox="0 0 100 100" role="img" aria-label="Знак обмеження максимальної швидкості 60">
+            <circle cx="50" cy="50" r="46" fill="#15181E"/>
+            <circle cx="50" cy="50" r="44" fill="#fff"/>
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#D81E2C" stroke-width="11"/>
+            <text x="50" y="66" text-anchor="middle" font-family="Golos Text, Manrope, sans-serif" font-weight="900" font-size="42" fill="#15181E" letter-spacing="-1">60</text>
+          </svg>
+          <div class="wide-txt">
+            <span class="tag">Головний режим</span>
+            <h3>Пробний іспит</h3>
+            <p>Повна симуляція офіційного іспиту: 20 питань, 20 хвилин, ліміт помилок і таймер — як на справжньому.</p>
+          </div>
+          <span class="bolts" aria-hidden="true"><i></i><i></i></span>
+        </article>
+
+        <!-- ===== HERO TILE 2: Оцінка готовності — головна дорога (wide) ===== -->
+        <article class="sign-tile wide t-ready">
+          <svg class="sign-art" viewBox="0 0 100 100" role="img" aria-label="Знак головна дорога">
+            <g transform="rotate(45 50 50)">
+              <rect x="14" y="14" width="72" height="72" rx="9" fill="#15181E"/>
+              <rect x="16" y="16" width="68" height="68" rx="8" fill="#fff"/>
+              <rect x="24" y="24" width="52" height="52" rx="4" fill="#F4B400"/>
+            </g>
+          </svg>
+          <div class="wide-txt">
+            <span class="tag">Твій пріоритет</span>
+            <h3>Оцінка готовності</h3>
+            <p>Чесний показник 0–100, наскільки ти готовий складати. Сідай за кермо іспиту, коли цифра скаже «готовий».</p>
+          </div>
+          <span class="bolts" aria-hidden="true"><i></i><i></i></span>
+        </article>
+
+        <!-- Практика за темами — пішохідний перехід (blue square) -->
+        <article class="sign-tile t-topics">
+          <svg class="sign-art" viewBox="0 0 100 100" role="img" aria-label="Знак пішохідний перехід">
+            <rect x="6" y="6" width="88" height="88" rx="11" fill="#15181E"/>
+            <rect x="9" y="9" width="82" height="82" rx="9" fill="#1E5BBF"/>
+            <path d="M50 17 84 79 16 79Z" fill="#fff"/>
+            <!-- pedestrian -->
+            <circle cx="50" cy="42" r="5" fill="#15181E"/>
+            <path d="M50 48c-4.6 0-7.2 2.8-8.4 7.5l-2.4 9.5 3.6 1 2.3-8.2v15.4h3.5v-9h2.8v9h3.5V64.8l2.3 8.2 3.6-1-2.4-9.5C57.2 50.8 54.6 48 50 48Z" fill="#15181E"/>
+            <!-- crosswalk stripes -->
+            <g fill="#15181E"><rect x="36" y="73" width="3.4" height="5.5"/><rect x="44" y="73" width="3.4" height="5.5"/><rect x="52" y="73" width="3.4" height="5.5"/><rect x="60" y="73" width="3.4" height="5.5"/></g>
+          </svg>
+          <h3>Практика за темами</h3>
+          <p>Прокачуй конкретні теми у власному темпі.</p>
+          <span class="bolts" aria-hidden="true"><i></i><i></i></span>
+        </article>
+
+        <!-- Робота над помилками — попереджувальний (red triangle, !) -->
+        <article class="sign-tile t-mistakes">
+          <svg class="sign-art" viewBox="0 0 100 100" role="img" aria-label="Попереджувальний знак з оклику">
+            <path d="M50 6 96 88H4Z" fill="#15181E"/>
+            <path d="M50 13 89.5 84H10.5Z" fill="#fff"/>
+            <path d="M50 22 84 80H16Z" fill="none" stroke="#D81E2C" stroke-width="6" stroke-linejoin="round"/>
+            <rect x="46.5" y="40" width="7" height="22" rx="3.5" fill="#15181E"/>
+            <circle cx="50" cy="71" r="4" fill="#15181E"/>
+          </svg>
+          <h3>Робота над помилками</h3>
+          <p>Інтервальні повторення: складні питання повертаються у правильний момент.</p>
+          <span class="bolts" aria-hidden="true"><i></i><i></i></span>
+        </article>
+
+        <!-- Змішана практика — круговий рух (blue circle, 3 arrows) -->
+        <article class="sign-tile t-mixed">
+          <svg class="sign-art" viewBox="0 0 100 100" role="img" aria-label="Знак круговий рух">
+            <circle cx="50" cy="50" r="46" fill="#15181E"/>
+            <circle cx="50" cy="50" r="44" fill="#1E5BBF"/>
+            <g fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round">
+              <path d="M50 26.5a23.5 23.5 0 0 1 20.4 35.3"/>
+              <path d="M64.7 67.8a23.5 23.5 0 0 1 -39.4-9.6"/>
+              <path d="M29.9 38.7a23.5 23.5 0 0 1 22.4-12"/>
+            </g>
+            <g fill="#fff">
+              <path d="M64 56 75 60 71.5 70.5Z"/>
+              <path d="M27 70 22 59 33.5 60.5Z"/>
+              <path d="M58 22 49 29 47 18Z"/>
+            </g>
+          </svg>
+          <h3>Змішана практика</h3>
+          <p>Випадкові питання з фокусом на твоїх слабких темах.</p>
+          <span class="bolts" aria-hidden="true"><i></i><i></i></span>
+        </article>
+
+        <!-- Збережені питання — інформаційний (blue square + bookmark) -->
+        <article class="sign-tile t-saved">
+          <svg class="sign-art" viewBox="0 0 100 100" role="img" aria-label="Інформаційний знак — збережене питання">
+            <rect x="6" y="6" width="88" height="88" rx="11" fill="#15181E"/>
+            <rect x="9" y="9" width="82" height="82" rx="9" fill="#1E5BBF"/>
+            <path d="M37 24h26a3 3 0 0 1 3 3v50l-16-12-16 12V27a3 3 0 0 1 3-3Z" fill="#fff"/>
+          </svg>
+          <h3>Збережені питання</h3>
+          <p>Закладки на питання, до яких хочеш повернутись.</p>
+          <span class="bolts" aria-hidden="true"><i></i><i></i></span>
+        </article>
+
+        <!-- Фото реальних ситуацій — в'їзд заборонено «цеглина» (red circle, white bar) -->
+        <article class="sign-tile t-photos">
+          <svg class="sign-art" viewBox="0 0 100 100" role="img" aria-label="Знак в'їзд заборонено">
+            <circle cx="50" cy="50" r="46" fill="#15181E"/>
+            <circle cx="50" cy="50" r="44" fill="#D81E2C"/>
+            <rect x="22" y="42" width="56" height="16" rx="3" fill="#fff"/>
+          </svg>
+          <h3>Фото реальних ситуацій</h3>
+          <p>734 офіційні зображення знаків і дорожніх сцен.</p>
+          <span class="bolts" aria-hidden="true"><i></i><i></i></span>
+        </article>
+
+        <!-- Дай дорогу — give way (inverted white triangle, red border) -->
+        <article class="sign-tile t-priority">
+          <svg class="sign-art" viewBox="0 0 100 100" role="img" aria-label="Знак дати дорогу">
+            <path d="M5 13 95 13 50 92Z" fill="#15181E"/>
+            <path d="M12 17 88 17 50 84Z" fill="#fff"/>
+            <path d="M22 23 78 23 50 72Z" fill="none" stroke="#D81E2C" stroke-width="7" stroke-linejoin="round"/>
+          </svg>
+          <h3>Дай дорогу — і вчись</h3>
+          <p>Розбираємо проїзд перехресть і знаки пріоритету крок за кроком.</p>
+          <span class="bolts" aria-hidden="true"><i></i><i></i></span>
+        </article>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== READINESS OUTCOME ===== -->
+<section class="section" id="readiness">
+  <div class="wrap">
+    <div class="outcome reveal">
+      <div>
+        <h2>Не вгадуй, чи ти готовий — побач це.</h2>
+        <p>Ми рахуємо твою готовність за останніми результатами й опануванням тем. Сідай за кермо іспиту тоді, коли цифра скаже «готовий».</p>
+      </div>
+      <div class="gauge">
+        <span class="lbl">Готовність до іспиту</span>
+        <svg class="gauge-svg" viewBox="0 0 200 118" role="img" aria-label="Готовність 78 відсотків — майже готовий">
+          <path d="M16 104a84 84 0 0 1 168 0" fill="none" stroke="#E3E6EC" stroke-width="16" stroke-linecap="round"/>
+          <path d="M16 104a84 84 0 0 1 168 0" fill="none" stroke="url(#gg)" stroke-width="16" stroke-linecap="round"
+                stroke-dasharray="263.9" stroke-dashoffset="58"/>
+          <defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#D81E2C"/><stop offset=".55" stop-color="#F4B400"/><stop offset="1" stop-color="#16A34A"/>
+          </linearGradient></defs>
+          <!-- needle -->
+          <g transform="rotate(50 100 104)"><line x1="100" y1="104" x2="100" y2="36" stroke="#15181E" stroke-width="4" stroke-linecap="round"/></g>
+          <circle cx="100" cy="104" r="7" fill="#15181E"/>
+        </svg>
+        <div class="big">78%</div>
+        <div class="band">майже готовий</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section class="section" id="reviews">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Відгуки</span>
+      <h2>Склали — і ти зможеш</h2>
+    </div>
+    <div class="quotes">
+      <figure class="quote reveal">
+        <div class="stars" aria-label="5 з 5">★★★★★</div>
+        <blockquote><p>«Склав з першого разу, хоча знаки давались важко. Робота над помилками — це топ.»</p></blockquote>
+        <figcaption class="who"><span class="avatar" aria-hidden="true">О</span><span><b>Олександр</b><span>Київ</span></span></figcaption>
+      </figure>
+      <figure class="quote reveal">
+        <div class="stars" aria-label="5 з 5">★★★★★</div>
+        <blockquote><p>«Зручно вчити в дорозі, по 15 хвилин. За два тижні була повністю готова.»</p></blockquote>
+        <figcaption class="who"><span class="avatar" aria-hidden="true">М</span><span><b>Марія</b><span>Львів</span></span></figcaption>
+      </figure>
+      <figure class="quote reveal">
+        <div class="stars" aria-label="5 з 5">★★★★★</div>
+        <blockquote><p>«Нарешті зрозумів пріоритети на перехрестях — завдяки поясненням до кожного питання.»</p></blockquote>
+        <figcaption class="who"><span class="avatar" aria-hidden="true">Д</span><span><b>Дмитро</b><span>Одеса</span></span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section class="section game" id="pricing">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Тарифи</span>
+      <h2>Почни безкоштовно. Преміум — коли захочеш більше.</h2>
+    </div>
+    <div class="plans">
+      <div class="plan reveal">
+        <h3>Безкоштовно</h3>
+        <div class="price free">0&nbsp;₴</div>
+        <p class="note" style="font-weight:600">Усе, щоб упевнено стартувати.</p>
+        <ul>
+          <li><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#16A34A"/><path d="m7 12 3.5 3.5L17 8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Практика за темами</li>
+          <li><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#16A34A"/><path d="m7 12 3.5 3.5L17 8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Демо пробних іспитів</li>
+          <li><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#16A34A"/><path d="m7 12 3.5 3.5L17 8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Базовий прогрес</li>
+        </ul>
+        <a class="btn btn-ghost btn-block" href="#start">Почати безкоштовно</a>
+      </div>
+      <div class="plan pro reveal">
+        <span class="pop">Популярне</span>
+        <h3>Преміум</h3>
+        <div class="price">99&nbsp;₴ <small>/ міс</small></div>
+        <p class="note" style="font-weight:600">Повний доступ до всього банку й аналітики.</p>
+        <ul>
+          <li><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1E5BBF"/><path d="m7 12 3.5 3.5L17 8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Безлімітні пробні іспити</li>
+          <li><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1E5BBF"/><path d="m7 12 3.5 3.5L17 8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Робота над помилками</li>
+          <li><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1E5BBF"/><path d="m7 12 3.5 3.5L17 8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Оцінка готовності</li>
+          <li><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1E5BBF"/><path d="m7 12 3.5 3.5L17 8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Усі 734 фото</li>
+          <li><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1E5BBF"/><path d="m7 12 3.5 3.5L17 8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Без реклами</li>
+        </ul>
+        <a class="btn btn-primary btn-block" href="#start">Спробувати Преміум</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Питання</span>
+      <h2>Часті питання</h2>
+    </div>
+    <div class="faq">
+      <details class="qa reveal" open>
+        <summary><span class="qmk" aria-hidden="true">?</span>Це офіційний іспит?<span class="pm" aria-hidden="true">+</span></summary>
+        <div class="ans">Ні. Це навчальна платформа для підготовки. Питання — з відкритої бази ГСЦ МВС, але це не офіційна екзаменаційна система.</div>
+      </details>
+      <details class="qa reveal">
+        <summary><span class="qmk" aria-hidden="true">?</span>Чи актуальні питання?<span class="pm" aria-hidden="true">+</span></summary>
+        <div class="ans">Так, ми оновлюємо базу за змінами в ПДР.</div>
+      </details>
+      <details class="qa reveal">
+        <summary><span class="qmk" aria-hidden="true">?</span>Скільки часу треба на підготовку?<span class="pm" aria-hidden="true">+</span></summary>
+        <div class="ans">Більшості вистачає 1–3 тижнів по 15–20 хвилин на день.</div>
+      </details>
+      <details class="qa reveal">
+        <summary><span class="qmk" aria-hidden="true">?</span>Чи працює на телефоні?<span class="pm" aria-hidden="true">+</span></summary>
+        <div class="ans">Так, сайт повністю адаптований під мобільні.</div>
+      </details>
+      <details class="qa reveal">
+        <summary><span class="qmk" aria-hidden="true">?</span>Чи потрібна картка, щоб почати?<span class="pm" aria-hidden="true">+</span></summary>
+        <div class="ans">Ні. Почати можна безкоштовно й без картки.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINAL CTA ===== -->
+<section class="section final">
+  <div class="wrap">
+    <div class="final-card reveal">
+      <span class="trio run" aria-hidden="true" style="display:inline-flex"><i class="r"></i><i class="a"></i><i class="g"></i></span>
+      <h2>Твоє «склав» починається сьогодні.</h2>
+      <p>Перше тренування — за 30 секунд.</p>
+      <a class="btn btn-primary btn-lg" href="#start">Почати безкоштовно</a>
+      <span class="final-lane" aria-hidden="true"></span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="#" aria-label="Drivers School">
+          <span class="badge-pdr" aria-hidden="true">ПДР</span>
+          <span>Drivers School</span>
+        </a>
+        <p>Навчальна платформа для підготовки. Це не офіційна екзаменаційна система.</p>
+      </div>
+      <nav class="foot-col" aria-label="Продукт">
+        <h4>Продукт</h4>
+        <a href="#features">Можливості</a>
+        <a href="#pricing">Тарифи</a>
+        <a href="#how">Пробний іспит</a>
+      </nav>
+      <nav class="foot-col" aria-label="Підтримка">
+        <h4>Підтримка</h4>
+        <a href="#faq">Питання</a>
+        <a href="#">Контакти</a>
+      </nav>
+      <nav class="foot-col" aria-label="Правове">
+        <h4>Правове</h4>
+        <a href="#">Умови</a>
+        <a href="#">Конфіденційність</a>
+      </nav>
+    </div>
+    <div class="foot-bot">
+      <p class="disclaimer">Навчальна платформа для підготовки до теоретичної частини іспиту з ПДР. Це не офіційна екзаменаційна система. Питання — з відкритої бази ГСЦ МВС.</p>
+      <p class="copy">© 2026 Drivers School</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Interactive sample question ---------- */
+  var quiz = document.getElementById('quiz');
+  var opts = quiz.querySelectorAll('.opt');
+  var fb = document.getElementById('qfb');
+  var xp = document.getElementById('qxp');
+  var answered = false;
+
+  var OK_MSG = '✓ Правильно! Жовте миготливе означає, що перехрестя нерегульоване — далі діють знаки пріоритету.';
+  var NO_MSG = 'Не зовсім. Жовте миготливе = перехрестя нерегульоване; рухайся за знаками пріоритету.';
+
+  opts.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(answered) return;
+      answered = true;
+      var correct = btn.getAttribute('data-correct') === 'true';
+
+      opts.forEach(function(o){
+        var isRight = o.getAttribute('data-correct') === 'true';
+        o.disabled = true;
+        if(isRight){
+          o.setAttribute('data-state','correct');           // always reveal the correct one
+        } else if(o === btn){
+          o.setAttribute('data-state','wrong');             // mark the picked wrong one
+        } else {
+          o.classList.add('dim');
+        }
+      });
+
+      fb.textContent = correct ? OK_MSG : NO_MSG;
+      fb.className = 'quiz-fb show ' + (correct ? 'ok' : 'no');
+      xp.classList.add('show');
+    });
+  });
+
+  /* ---------- Mobile menu toggle ---------- */
+  var menuBtn = document.getElementById('menuBtn');
+  var mnav = document.getElementById('mnav');
+  if(menuBtn && mnav){
+    menuBtn.addEventListener('click', function(){
+      var open = mnav.classList.toggle('open');
+      mnav.hidden = !open;
+      menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mnav.addEventListener('click', function(e){
+      if(e.target.tagName === 'A'){
+        mnav.classList.remove('open'); mnav.hidden = true;
+        menuBtn.setAttribute('aria-expanded','false');
+      }
+    });
+  }
+
+  /* ---------- Scroll reveal (IntersectionObserver) ---------- */
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var reveals = document.querySelectorAll('.reveal');
+  if(reduce || !('IntersectionObserver' in window)){
+    reveals.forEach(function(el){ el.classList.add('in'); });
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, {threshold:0.12, rootMargin:'0px 0px -40px 0px'});
+    reveals.forEach(function(el){ io.observe(el); });
+  }
+})();
+</script>
+</body>
+</html>

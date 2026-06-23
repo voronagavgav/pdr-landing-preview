@@ -1,0 +1,1120 @@
+<!-- @dsCard group="Лендінг" -->
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Drivers School — підготовка до теоретичного іспиту з ПДР. Усі офіційні питання ГСЦ МВС, реальні дорожні ситуації та розумні тренування.">
+<title>Drivers School — Confident Sunrise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;800&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2430;
+    --ink-soft:#41505F;
+    --cream:#FFF7ED;
+    --white:#FFFFFF;
+    --amber:#F59E0B;
+    --amber-dark:#C6790A;
+    --coral:#FF6B4A;
+    --coral-dark:#E04E2C;
+    --go:#1F9D55;
+    --go-soft:#E5F6EC;
+    --blue:#1E5BBF;
+    --line:#F1E2CE;
+    --line-soft:#F6EBDA;
+    --shadow-sm:0 2px 6px rgba(27,36,48,.06);
+    --shadow:0 14px 34px -16px rgba(27,36,48,.30);
+    --shadow-lg:0 34px 70px -30px rgba(214,108,46,.40);
+    --sunrise:linear-gradient(120deg,var(--amber),var(--coral));
+    --radius:22px;
+    --radius-lg:28px;
+    --maxw:1180px;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0;
+    font-family:"Manrope",ui-sans-serif,system-ui,"Segoe UI",Roboto,Arial,sans-serif;
+    color:var(--ink);
+    background:var(--cream);
+    line-height:1.55;
+    font-size:17px;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+  h1,h2,h3{font-family:"Unbounded",ui-sans-serif,system-ui,sans-serif;line-height:1.08;margin:0;letter-spacing:-.01em;font-weight:800}
+  p{margin:0}
+  a{color:inherit;text-decoration:none}
+  ul{margin:0;padding:0;list-style:none}
+  img,svg{display:block}
+  .wrap{width:100%;max-width:var(--maxw);margin-inline:auto;padding-inline:22px}
+  section{position:relative}
+
+  /* ---- focus ---- */
+  :focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:6px}
+  .btn:focus-visible,.opt:focus-visible{outline-offset:4px}
+
+  /* ---- buttons (tactile, pressed) ---- */
+  .btn{
+    --edge:var(--amber-dark);
+    display:inline-flex;align-items:center;justify-content:center;gap:.5em;
+    font-family:"Manrope",sans-serif;font-weight:700;font-size:1rem;
+    padding:.95em 1.45em;border:0;cursor:pointer;border-radius:16px;
+    color:var(--ink);background:var(--amber);
+    box-shadow:0 5px 0 0 var(--edge), var(--shadow-sm);
+    transform:translateY(0);transition:transform .08s ease,box-shadow .08s ease,filter .15s ease;
+    white-space:nowrap;
+  }
+  .btn:hover{filter:brightness(1.03)}
+  .btn:active{transform:translateY(4px);box-shadow:0 1px 0 0 var(--edge)}
+  .btn--primary{background:var(--amber);color:#3B2606}
+  .btn--cta{background:var(--sunrise);color:#fff;--edge:var(--coral-dark)}
+  .btn--cta:hover{filter:brightness(1.04)}
+  .btn--ghost{background:var(--white);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line),var(--shadow-sm)}
+  .btn--ghost:active{transform:translateY(2px)}
+  .btn--lg{font-size:1.08rem;padding:1.05em 1.7em}
+  .btn--block{width:100%}
+  @media (prefers-reduced-motion:reduce){
+    .btn,.btn:active{transition:none;transform:none}
+  }
+
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:.5em;
+    font-weight:700;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--coral-dark);background:#FFEDE6;border:1px solid #FFD9CC;
+    padding:.4em .85em;border-radius:999px;
+  }
+  .sec-title{font-size:clamp(1.7rem,4.4vw,2.7rem)}
+  .sec-head{max-width:640px;margin-bottom:38px}
+  .sec-head .eyebrow{margin-bottom:16px}
+  .sec-head p{color:var(--ink-soft);margin-top:14px;font-size:1.08rem}
+
+  /* ============ HEADER ============ */
+  header.site{position:sticky;top:0;z-index:60;backdrop-filter:saturate(1.4) blur(10px);
+    background:rgba(255,247,237,.82);border-bottom:1px solid transparent;transition:border-color .3s,box-shadow .3s}
+  header.site.scrolled{border-bottom-color:var(--line);box-shadow:0 6px 20px -16px rgba(27,36,48,.4)}
+  .navbar{display:flex;align-items:center;justify-content:space-between;gap:14px;height:70px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-family:"Unbounded",sans-serif;font-size:1.02rem;letter-spacing:-.02em}
+  .badge-pdr{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+    background:var(--sunrise);color:#fff;font-family:"Unbounded",sans-serif;font-weight:800;
+    font-size:.74rem;letter-spacing:.02em;box-shadow:0 6px 14px -6px var(--coral),inset 0 1px 0 rgba(255,255,255,.4);flex:none}
+  .nav-links{display:none;gap:6px;align-items:center}
+  .nav-links a{font-weight:500;color:var(--ink-soft);padding:.5em .8em;border-radius:10px;font-size:.95rem;transition:color .15s,background .15s}
+  .nav-links a:hover{color:var(--ink);background:#FFEFDC}
+  .nav-actions{display:flex;align-items:center;gap:10px}
+  .nav-actions .btn--ghost{display:none}
+  @media(min-width:900px){
+    .nav-links{display:flex}
+    .nav-actions .btn--ghost{display:inline-flex}
+  }
+
+  /* ============ HERO ============ */
+  .hero{padding:46px 0 30px;position:relative;isolation:isolate}
+  .hero-bg{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+  .sun{position:absolute;top:-220px;left:50%;transform:translateX(-50%);width:900px;height:900px;border-radius:50%;
+    background:radial-gradient(circle at 50% 50%,rgba(245,158,11,.30),rgba(255,107,74,.12) 42%,transparent 64%);
+    filter:blur(4px);animation:sunrise 14s ease-in-out infinite alternate}
+  @keyframes sunrise{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(26px)}}
+  .hero-grid{display:grid;gap:34px;align-items:start}
+  @media(min-width:980px){.hero-grid{grid-template-columns:1.04fr .96fr;gap:48px;align-items:center}}
+  h1.hero-title{font-size:clamp(2.3rem,6.6vw,4rem);max-width:14ch}
+  .hero-title .glow{background:var(--sunrise);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-sub{color:var(--ink-soft);font-size:clamp(1.05rem,2.4vw,1.2rem);margin-top:20px;max-width:46ch}
+  .hero-cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+  .micro-trust{display:flex;flex-wrap:wrap;align-items:center;gap:7px 14px;margin-top:20px;color:var(--ink-soft);font-size:.9rem;font-weight:500}
+  .micro-trust .dot{width:5px;height:5px;border-radius:50%;background:var(--amber)}
+
+  /* sample question card */
+  .quiz-card{background:var(--white);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--shadow-lg);
+    border:1px solid var(--line-soft);position:relative}
+  .quiz-card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;
+    background:var(--sunrise);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;opacity:.5;pointer-events:none}
+  .quiz-kicker{display:inline-flex;align-items:center;gap:.45em;font-weight:700;font-size:.78rem;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--amber-dark)}
+  .quiz-kicker .pulse{width:9px;height:9px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 0 rgba(255,107,74,.6);animation:pulse 2.2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,107,74,.55)}70%{box-shadow:0 0 0 9px rgba(255,107,74,0)}100%{box-shadow:0 0 0 0 rgba(255,107,74,0)}}
+  .quiz-q{font-weight:700;font-size:1.08rem;margin:13px 0 16px;line-height:1.4}
+  .quiz-scene{display:flex;align-items:center;gap:12px;background:#FFF6EC;border:1px solid var(--line);
+    border-radius:14px;padding:10px 12px;margin-bottom:14px}
+  .quiz-scene .label{font-size:.82rem;color:var(--ink-soft);font-weight:500}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{display:flex;align-items:center;gap:12px;text-align:left;width:100%;cursor:pointer;
+    font-family:inherit;font-size:.97rem;font-weight:500;color:var(--ink);
+    background:#FBFBFC;border:1.5px solid var(--line);border-radius:14px;padding:13px 14px;
+    transition:border-color .15s,background .15s,transform .08s}
+  .opt:hover:not(:disabled){border-color:var(--amber);background:#FFFaf2}
+  .opt:active:not(:disabled){transform:scale(.99)}
+  .opt:disabled{cursor:default}
+  .opt .mark{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+    background:#fff;border:1.5px solid var(--line);font-weight:700;font-size:.85rem;color:var(--ink-soft);transition:.2s}
+  .opt.correct{border-color:var(--go);background:var(--go-soft)}
+  .opt.correct .mark{background:var(--go);border-color:var(--go);color:#fff}
+  .opt.wrong{border-color:var(--coral);background:#FFF0EC}
+  .opt.wrong .mark{background:var(--coral);border-color:var(--coral);color:#fff}
+  .opt.reveal{border-color:var(--go);background:var(--go-soft)}
+  .opt.reveal .mark{background:var(--go);border-color:var(--go);color:#fff}
+  .answered.celebrate{animation:soft-pulse .6s ease}
+  @keyframes soft-pulse{0%{box-shadow:var(--shadow-lg)}40%{box-shadow:0 0 0 6px rgba(31,157,85,.18),var(--shadow-lg)}100%{box-shadow:var(--shadow-lg)}}
+  .feedback{margin-top:14px;font-size:.92rem;font-weight:500;line-height:1.45;padding:0;
+    max-height:0;opacity:0;overflow:hidden;transition:max-height .4s ease,opacity .3s ease,padding .3s ease,margin .3s}
+  .feedback.show{max-height:240px;opacity:1;padding:12px 14px;border-radius:13px}
+  .feedback.ok{background:var(--go-soft);color:#0F6B38;border:1px solid #BFE6CD}
+  .feedback.no{background:#FFF0EC;color:#A6361C;border:1px solid #FFD0C4}
+  .xp-row{display:flex;align-items:center;gap:10px;margin-top:14px;
+    transform:translateY(12px);opacity:0;transition:transform .45s ease,opacity .45s ease}
+  .xp-row.show{transform:translateY(0);opacity:1}
+  .xp-chip{display:inline-flex;align-items:center;gap:.4em;font-weight:700;font-size:.84rem;
+    background:var(--sunrise);color:#fff;padding:.4em .8em;border-radius:999px;box-shadow:0 6px 14px -7px var(--coral)}
+  .xp-note{font-size:.82rem;color:var(--ink-soft)}
+  @media (prefers-reduced-motion:reduce){
+    .quiz-kicker .pulse,.sun{animation:none}
+    .answered.celebrate{animation:none}
+    .feedback{transition:opacity .2s}
+    .xp-row{transition:opacity .2s}
+  }
+
+  /* ============ JOURNEY ROAD (signature) ============ */
+  .journey{padding:70px 0 36px}
+  .journey-head{text-align:center;max-width:560px;margin:0 auto 8px}
+  .road-stage{position:relative;margin-top:18px}
+  .road-svg{width:100%;height:auto;display:block;overflow:visible}
+  /* the fill stroke is drawn via stroke-dashoffset driven by --p (0..1) */
+  .road-fill{stroke-dasharray:var(--len);stroke-dashoffset:calc(var(--len) * (1 - var(--p,0)));
+    transition:stroke-dashoffset .25s linear}
+  .road-car{transition:offset-distance .25s linear;offset-rotate:auto}
+  .milestone-label{position:absolute;background:var(--white);border:1px solid var(--line);border-radius:16px;
+    padding:14px 16px;box-shadow:var(--shadow);max-width:230px;opacity:0;transform:translateY(14px);
+    transition:opacity .5s ease,transform .5s ease}
+  .milestone-label.in{opacity:1;transform:translateY(0)}
+  .milestone-label .num{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;
+    background:var(--sunrise);color:#fff;font-family:"Unbounded";font-weight:800;font-size:.8rem;margin-bottom:9px}
+  .milestone-label h3{font-size:1.02rem;font-family:"Unbounded";font-weight:700;letter-spacing:-.01em}
+  .milestone-label p{font-size:.86rem;color:var(--ink-soft);margin-top:6px;line-height:1.45}
+  @media (prefers-reduced-motion:reduce){
+    .road-fill,.road-car{transition:none}
+    .milestone-label{transition:opacity .2s}
+  }
+  /* mobile: stack steps under a compact road */
+  .steps-stack{display:none}
+  @media(max-width:860px){
+    .road-desktop{display:none}
+    .steps-stack{display:grid;gap:14px;margin-top:8px}
+    .step-row{display:flex;gap:14px;align-items:flex-start;background:var(--white);border:1px solid var(--line);
+      border-radius:18px;padding:16px;box-shadow:var(--shadow-sm)}
+    .step-row .num{flex:none;width:36px;height:36px;border-radius:10px;background:var(--sunrise);color:#fff;
+      display:grid;place-items:center;font-family:"Unbounded";font-weight:800;font-size:.9rem}
+    .step-row h3{font-size:1.05rem;font-family:"Unbounded";font-weight:700}
+    .step-row p{font-size:.92rem;color:var(--ink-soft);margin-top:5px}
+  }
+
+  /* ============ TRUST BAR ============ */
+  .trust{padding:24px 0 8px}
+  .trust-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:22px;box-shadow:var(--shadow);display:grid;gap:20px}
+  @media(min-width:760px){.trust-card{grid-template-columns:auto 1fr auto;align-items:center;padding:24px 30px}}
+  .official{display:flex;align-items:center;gap:12px}
+  .official .seal{width:46px;height:46px;flex:none}
+  .official .txt b{display:block;font-weight:700;font-size:.95rem}
+  .official .txt span{font-size:.8rem;color:var(--ink-soft)}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:16px 8px;text-align:center}
+  @media(min-width:560px){.stats{grid-template-columns:repeat(4,1fr)}}
+  .stat .n{font-weight:800;font-size:1.5rem;font-family:"Manrope";letter-spacing:-.02em;color:var(--ink)}
+  .stat .n .star{color:var(--amber)}
+  .stat .l{font-size:.74rem;color:var(--ink-soft);font-weight:500;line-height:1.3;margin-top:2px}
+  .exam-chip{display:inline-flex;align-items:center;gap:.55em;justify-self:center;
+    background:#FFF1DD;color:var(--amber-dark);border:1px solid #FFE2BB;border-radius:999px;
+    padding:.6em 1em;font-weight:700;font-size:.84rem;text-align:center}
+
+  /* ============ GAMIFICATION ============ */
+  .game{padding:64px 0}
+  .game-grid{display:grid;gap:16px}
+  @media(min-width:680px){.game-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:1000px){.game-grid{grid-template-columns:repeat(12,1fr);grid-auto-rows:minmax(0,auto)}}
+  .gcard{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .gcard .gtitle{font-weight:700;font-size:.92rem;color:var(--ink)}
+  .gcard .gsub{font-size:.82rem;color:var(--ink-soft);margin-top:3px}
+  @media(min-width:1000px){
+    .g-streak{grid-column:span 4}
+    .g-goal{grid-column:span 4}
+    .g-level{grid-column:span 4}
+    .g-path{grid-column:span 7}
+    .g-ready{grid-column:span 5}
+    .g-badges{grid-column:span 12}
+  }
+  /* streak flame */
+  .flame-wrap{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+  .flame{width:54px;height:62px;flex:none;filter:drop-shadow(0 6px 10px rgba(255,107,74,.4))}
+  .flame .core{transform-origin:center bottom;animation:flick 1.8s ease-in-out infinite alternate}
+  @keyframes flick{from{transform:scaleY(1) scaleX(1)}to{transform:scaleY(1.06) scaleX(.97)}}
+  .streak-n{font-family:"Unbounded";font-weight:800;font-size:2rem;line-height:1;letter-spacing:-.02em}
+  .week-dots{display:flex;gap:7px;margin-top:14px}
+  .week-dots span{flex:1;height:9px;border-radius:5px;background:var(--line)}
+  .week-dots span.on{background:var(--sunrise)}
+  /* daily goal ring */
+  .goal-flex{display:flex;align-items:center;gap:16px}
+  .ring{width:88px;height:88px;flex:none;transform:rotate(-90deg)}
+  .ring .track{fill:none;stroke:var(--line);stroke-width:11}
+  .ring .val{fill:none;stroke:url(#ggrad);stroke-width:11;stroke-linecap:round;
+    stroke-dasharray:226;stroke-dashoffset:90}
+  .ring-center{position:relative}
+  .ring-center .pct{position:absolute;inset:0;display:grid;place-items:center;transform:rotate(0);
+    font-family:"Manrope";font-weight:800;font-size:1rem}
+  /* level / xp */
+  .level-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .lvl-badge{display:inline-flex;align-items:center;gap:.45em;font-family:"Unbounded";font-weight:800;
+    font-size:1.05rem;background:#FFF1DD;color:var(--amber-dark);padding:.3em .7em;border-radius:12px}
+  .xp-bar{height:12px;border-radius:7px;background:var(--line);overflow:hidden}
+  .xp-bar i{display:block;height:100%;width:64%;background:var(--sunrise);border-radius:7px}
+  .xp-meta{display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-soft);margin-top:8px;font-weight:500}
+  /* topic path */
+  .topic-path{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+  .bubble{display:inline-flex;align-items:center;gap:.45em;font-weight:600;font-size:.86rem;
+    padding:.55em .85em;border-radius:999px;border:1.5px solid var(--line);background:#FBFBFC;color:var(--ink-soft)}
+  .bubble.done{background:var(--go-soft);border-color:#BFE6CD;color:#0F6B38}
+  .bubble.now{background:var(--sunrise);border-color:transparent;color:#fff;box-shadow:0 8px 18px -10px var(--coral)}
+  .bubble.lock{opacity:.7}
+  .path-line{height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 8px,transparent 8px 16px);margin:14px 0 4px}
+  /* readiness mini */
+  .ready-mini{display:flex;align-items:center;gap:16px}
+  .gauge{width:120px;height:72px;flex:none}
+  .ready-num{font-family:"Unbounded";font-weight:800;font-size:2.1rem;line-height:1;letter-spacing:-.02em}
+  .ready-band{display:inline-block;margin-top:6px;font-size:.78rem;font-weight:700;color:var(--amber-dark);
+    background:#FFF1DD;padding:.25em .6em;border-radius:999px}
+  /* badges */
+  .badges{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
+  .bdg{display:flex;align-items:center;gap:10px;background:#FBFBFC;border:1px solid var(--line);
+    border-radius:14px;padding:9px 14px 9px 9px;font-weight:600;font-size:.88rem}
+  .bdg .ico{width:38px;height:38px;flex:none}
+
+  /* ============ FEATURES ============ */
+  .features{padding:64px 0}
+  .bento{display:grid;gap:14px;grid-template-columns:repeat(1,1fr)}
+  @media(min-width:600px){.bento{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:980px){.bento{grid-template-columns:repeat(3,1fr)}}
+  .fcard{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:22px;
+    box-shadow:var(--shadow-sm);transition:transform .18s ease,box-shadow .18s ease;display:flex;flex-direction:column;gap:6px}
+  .fcard:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+  .fcard .ico{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;margin-bottom:8px;
+    background:#FFF1DD}
+  .fcard.feat{grid-column:span 1}
+  @media(min-width:980px){.fcard.wide{grid-column:span 2}}
+  .fcard h3{font-size:1.08rem;font-family:"Unbounded";font-weight:700;letter-spacing:-.01em}
+  .fcard p{font-size:.92rem;color:var(--ink-soft)}
+  @media (prefers-reduced-motion:reduce){.fcard,.fcard:hover{transform:none;transition:none}}
+
+  /* ============ READINESS BLOCK ============ */
+  .readiness{padding:64px 0}
+  .ready-card{background:linear-gradient(135deg,#241A12,#1B2430);color:#fff;border-radius:var(--radius-lg);
+    padding:34px;box-shadow:var(--shadow-lg);display:grid;gap:30px;align-items:center;overflow:hidden;position:relative}
+  .ready-card::after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;
+    background:radial-gradient(circle,rgba(245,158,11,.35),transparent 65%);top:-180px;right:-120px;pointer-events:none}
+  @media(min-width:820px){.ready-card{grid-template-columns:1.1fr .9fr;padding:44px}}
+  .ready-card h2{font-size:clamp(1.6rem,3.6vw,2.3rem);color:#fff}
+  .ready-card p{color:#D6C8BB;margin-top:14px;font-size:1.05rem;max-width:42ch}
+  .big-meter{position:relative;display:grid;place-items:center;text-align:center}
+  .big-gauge{width:min(280px,80%);height:auto}
+  .big-meter .center{position:absolute;top:54%;left:0;right:0}
+  .big-meter .pct{font-family:"Unbounded";font-weight:800;font-size:3.2rem;line-height:1;color:#fff;letter-spacing:-.03em}
+  .big-meter .lbl{font-size:.85rem;color:#D6C8BB;font-weight:500;margin-top:4px}
+  .big-meter .band{display:inline-block;margin-top:12px;font-weight:700;font-size:.92rem;color:#FFCB7A}
+
+  /* ============ TESTIMONIALS ============ */
+  .quotes{padding:64px 0}
+  .q-grid{display:grid;gap:16px;grid-template-columns:1fr}
+  @media(min-width:760px){.q-grid{grid-template-columns:repeat(3,1fr)}}
+  .qcard{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:24px;
+    box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:16px}
+  .qcard .stars{color:var(--amber);letter-spacing:2px;font-size:.95rem}
+  .qcard blockquote{margin:0;font-size:1.02rem;font-weight:500;line-height:1.5}
+  .qcard .who{display:flex;align-items:center;gap:11px;margin-top:auto}
+  .avatar{width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;
+    font-family:"Unbounded";font-weight:800;color:#fff;font-size:1rem}
+  .qcard .who b{font-weight:700;font-size:.92rem;display:block}
+  .qcard .who span{font-size:.8rem;color:var(--ink-soft)}
+
+  /* ============ PRICING ============ */
+  .pricing{padding:64px 0}
+  .price-grid{display:grid;gap:18px;grid-template-columns:1fr;max-width:780px;margin:0 auto}
+  @media(min-width:680px){.price-grid{grid-template-columns:repeat(2,1fr)}}
+  .plan{background:var(--white);border:1.5px solid var(--line);border-radius:var(--radius-lg);padding:28px;
+    box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:18px;position:relative}
+  .plan.pro{border-color:transparent;box-shadow:var(--shadow-lg);background:
+    linear-gradient(var(--white),var(--white)) padding-box,var(--sunrise) border-box;border:2px solid transparent}
+  .plan .pop{position:absolute;top:-13px;right:22px;background:var(--sunrise);color:#fff;font-weight:700;
+    font-size:.74rem;letter-spacing:.04em;text-transform:uppercase;padding:.4em .8em;border-radius:999px;
+    box-shadow:0 8px 16px -8px var(--coral)}
+  .plan h3{font-family:"Unbounded";font-weight:700;font-size:1.2rem}
+  .plan .price{font-family:"Unbounded";font-weight:800;font-size:2.2rem;letter-spacing:-.02em;line-height:1}
+  .plan .price small{font-family:"Manrope";font-weight:500;font-size:.9rem;color:var(--ink-soft)}
+  .plan ul{display:flex;flex-direction:column;gap:11px}
+  .plan li{display:flex;align-items:flex-start;gap:10px;font-size:.95rem;font-weight:500}
+  .plan li .ck{flex:none;width:22px;height:22px;margin-top:1px}
+  .plan .btn{margin-top:auto}
+
+  /* ============ FAQ ============ */
+  .faq{padding:64px 0}
+  .faq-list{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+  .faq-item{background:var(--white);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-sm);overflow:hidden}
+  .faq-item summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+    gap:14px;padding:18px 20px;font-weight:700;font-size:1.02rem}
+  .faq-item summary::-webkit-details-marker{display:none}
+  .faq-item .chev{flex:none;width:24px;height:24px;color:var(--amber-dark);transition:transform .25s ease}
+  .faq-item[open] .chev{transform:rotate(45deg)}
+  .faq-item .ans{padding:0 20px 18px;color:var(--ink-soft);font-size:.96rem;line-height:1.55;max-width:62ch}
+  @media (prefers-reduced-motion:reduce){.faq-item .chev{transition:none}}
+
+  /* ============ FINAL CTA ============ */
+  .final{padding:30px 0 70px}
+  .final-card{background:var(--sunrise);border-radius:var(--radius-lg);padding:48px 28px;text-align:center;
+    color:#fff;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;isolation:isolate}
+  .final-card .road-deco{position:absolute;inset:0;z-index:-1;opacity:.22;pointer-events:none}
+  .final-card h2{font-size:clamp(1.8rem,4.6vw,2.8rem);color:#fff;max-width:18ch;margin:0 auto}
+  .final-card p{margin-top:14px;font-size:1.1rem;color:#FFF1E6}
+  .final-card .btn{margin-top:26px}
+  .final-card .btn--cta{background:var(--white);color:var(--coral-dark);--edge:#E9CDBE}
+
+  /* ============ FOOTER ============ */
+  footer.site{background:var(--ink);color:#C3CCD6;padding:54px 0 34px;font-size:.92rem}
+  .foot-grid{display:grid;gap:30px;grid-template-columns:1fr}
+  @media(min-width:760px){.foot-grid{grid-template-columns:1.4fr repeat(3,1fr)}}
+  footer .brand{color:#fff}
+  footer .brand .badge-pdr{box-shadow:none}
+  .foot-about{max-width:34ch;margin-top:14px;color:#9BA8B5;font-size:.88rem}
+  .foot-col h4{font-family:"Manrope";font-weight:700;color:#fff;font-size:.85rem;letter-spacing:.04em;
+    text-transform:uppercase;margin-bottom:14px}
+  .foot-col a{display:block;padding:5px 0;color:#9BA8B5;transition:color .15s}
+  .foot-col a:hover{color:#fff}
+  .foot-bottom{border-top:1px solid #2C3845;margin-top:36px;padding-top:24px;display:flex;flex-wrap:wrap;
+    gap:14px;justify-content:space-between;align-items:flex-start}
+  .disclaimer{max-width:62ch;color:#8593A0;font-size:.8rem;line-height:1.5}
+  .copy{color:#8593A0;font-size:.84rem;white-space:nowrap}
+
+  .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);border:0}
+</style>
+</head>
+<body>
+
+<!-- shared SVG defs -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+    <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#FF6B4A"/>
+    </linearGradient>
+    <linearGradient id="ggrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#FF6B4A"/>
+    </linearGradient>
+    <linearGradient id="roadgrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FF6B4A"/><stop offset=".5" stop-color="#F59E0B"/><stop offset="1" stop-color="#FFC24D"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- ============ HEADER ============ -->
+<header class="site" id="siteHeader">
+  <div class="wrap navbar">
+    <a class="brand" href="#top" aria-label="Drivers School — на початок">
+      <span class="badge-pdr" aria-hidden="true">ПДР</span>
+      <span>Drivers&nbsp;School</span>
+    </a>
+    <nav class="nav-links" aria-label="Головна навігація">
+      <a href="#features">Можливості</a>
+      <a href="#how">Як це працює</a>
+      <a href="#pricing">Тарифи</a>
+      <a href="#faq">Питання</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn--ghost" href="#top">Увійти</a>
+      <a class="btn btn--cta" href="#final">Почати безкоштовно</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="sun"></div>
+    </div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow">☀️ Підготовка до теоретичного іспиту з ПДР</span>
+        <h1 class="hero-title">Вивчи ПДР так, <span class="glow">ніби це гра</span></h1>
+        <p class="hero-sub">Усі офіційні питання іспиту, реальні дорожні ситуації та розумні тренування, що ведуть тебе від нуля до впевненого «склав».</p>
+        <div class="hero-cta">
+          <a class="btn btn--cta btn--lg" href="#final">Почати безкоштовно</a>
+          <a class="btn btn--ghost btn--lg" href="#sample">Спробувати питання</a>
+        </div>
+        <div class="micro-trust">
+          <span>Без картки</span><span class="dot" aria-hidden="true"></span>
+          <span>1691 офіційне питання</span><span class="dot" aria-hidden="true"></span>
+          <span>Українською</span>
+        </div>
+      </div>
+
+      <!-- live sample question -->
+      <div class="quiz-card answered" id="sample" data-quiz>
+        <span class="quiz-kicker"><span class="pulse" aria-hidden="true"></span>Спробуй прямо зараз</span>
+        <p class="quiz-q">Як діяти, якщо під час руху ввімкнулося жовте миготливе світло світлофора?</p>
+
+        <div class="quiz-scene" aria-hidden="true">
+          <!-- tiny SVG: blinking-amber traffic light + road -->
+          <svg width="46" height="46" viewBox="0 0 46 46" role="img" aria-label="Світлофор із жовтим миготливим сигналом">
+            <rect x="15" y="4" width="16" height="38" rx="6" fill="#1B2430"/>
+            <circle cx="23" cy="12" r="4" fill="#3A4654"/>
+            <circle cx="23" cy="23" r="5" fill="#F59E0B"><animate attributeName="opacity" values="1;.25;1" dur="1.1s" repeatCount="indefinite"/></circle>
+            <circle cx="23" cy="34" r="4" fill="#3A4654"/>
+          </svg>
+          <span class="label">Реальна ситуація з бази ГСЦ МВС</span>
+        </div>
+
+        <div class="opts" role="group" aria-label="Варіанти відповіді">
+          <button class="opt" type="button" data-correct="false">
+            <span class="mark" aria-hidden="true">А</span>
+            <span>Зупинитися та чекати зеленого сигналу</span>
+          </button>
+          <button class="opt" type="button" data-correct="true">
+            <span class="mark" aria-hidden="true">Б</span>
+            <span>Продовжити рух, керуючись правилами проїзду нерегульованих перехресть</span>
+          </button>
+          <button class="opt" type="button" data-correct="false">
+            <span class="mark" aria-hidden="true">В</span>
+            <span>Зупинитися перед перехрестям до вимкнення жовтого</span>
+          </button>
+          <button class="opt" type="button" data-correct="false">
+            <span class="mark" aria-hidden="true">Г</span>
+            <span>Пришвидшитися, щоб проїхати перехрестя першим</span>
+          </button>
+        </div>
+
+        <p class="feedback" id="qFeedback" role="status" aria-live="polite"></p>
+
+        <div class="xp-row" id="xpRow" aria-hidden="true">
+          <span class="xp-chip">⚡ +10 XP</span>
+          <span class="xp-note">так працює кожне питання в Drivers School</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRUST BAR ============ -->
+  <section class="trust" aria-label="Чому нам можна довіряти">
+    <div class="wrap">
+      <div class="trust-card">
+        <div class="official">
+          <svg class="seal" viewBox="0 0 46 46" role="img" aria-label="Питання з офіційної бази ГСЦ МВС України">
+            <circle cx="23" cy="23" r="21" fill="#FFF1DD" stroke="#FFE2BB"/>
+            <path d="M23 8l3.7 7.5 8.3 1.2-6 5.8 1.4 8.2L23 34.1l-7.4 3.9 1.4-8.2-6-5.8 8.3-1.2z" fill="url(#sun)"/>
+            <path d="M19.5 23.5l2.6 2.6 5-5.2" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="txt"><b>Питання з офіційної бази</b><span>ГСЦ МВС України</span></span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="n" data-count="1691">1691</div><div class="l">офіційне питання</div></div>
+          <div class="stat"><div class="n" data-count="734">734</div><div class="l">фото реальних ситуацій</div></div>
+          <div class="stat"><div class="n">8 · <span data-count="70">70</span></div><div class="l">тем · підтем</div></div>
+          <div class="stat"><div class="n">4.9<span class="star">★</span></div><div class="l">у відгуках</div></div>
+        </div>
+        <span class="exam-chip">⏱ 20 питань · 20 хвилин · 2 помилки — як на справжньому іспиті</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS — JOURNEY ROAD (signature) ============ -->
+  <section class="journey" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="journey-head sec-head" style="margin-bottom:18px">
+        <span class="eyebrow">🚗 Дорога до прав</span>
+        <h2 class="sec-title" id="how-title">Три кроки — і ти за кермом</h2>
+        <p>Від першого знака до пробного іспиту. Прокрути — і пройди весь шлях разом із нами.</p>
+      </div>
+
+      <div class="road-stage" id="roadStage">
+        <!-- DESKTOP / TABLET: the winding journey road -->
+        <div class="road-desktop">
+          <svg class="road-svg" viewBox="0 0 1180 460" id="roadSvg" role="img"
+               aria-label="Звивиста дорога «Старт → Права» з трьома кроками-зупинками">
+            <!-- ground texture -->
+            <path d="M0 250 C 200 250 240 110 460 110 S 760 360 980 320 1140 200 1180 190"
+                  fill="none" stroke="#E9D9C2" stroke-width="68" stroke-linecap="round"/>
+            <!-- asphalt -->
+            <path id="roadBase" d="M0 250 C 200 250 240 110 460 110 S 760 360 980 320 1140 200 1180 190"
+                  fill="none" stroke="#2B3440" stroke-width="54" stroke-linecap="round"/>
+            <!-- dashed centre line (static, amber) -->
+            <path d="M0 250 C 200 250 240 110 460 110 S 760 360 980 320 1140 200 1180 190"
+                  fill="none" stroke="#F0A93A" stroke-width="3" stroke-dasharray="16 18" stroke-linecap="round" opacity=".55"/>
+            <!-- the SUNRISE FILL that grows on scroll -->
+            <path class="road-fill" id="roadFill" d="M0 250 C 200 250 240 110 460 110 S 760 360 980 320 1140 200 1180 190"
+                  fill="none" stroke="url(#roadgrad)" stroke-width="54" stroke-linecap="round"/>
+            <!-- centre line over the fill -->
+            <path d="M0 250 C 200 250 240 110 460 110 S 760 360 980 320 1140 200 1180 190"
+                  fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="18 20" stroke-linecap="round" opacity=".9" id="roadDash"/>
+
+            <!-- START marker -->
+            <g transform="translate(6,250)">
+              <circle r="13" fill="#fff" stroke="#2B3440" stroke-width="3"/>
+              <circle r="5" fill="#FF6B4A"/>
+              <text x="0" y="38" text-anchor="middle" font-family="Unbounded" font-weight="800" font-size="14" fill="#1B2430">Старт</text>
+            </g>
+
+            <!-- milestone nodes (positioned on the path) -->
+            <g class="ms-node" transform="translate(245,182)"><circle r="20" fill="#fff" stroke="#F59E0B" stroke-width="4"/><text x="0" y="6" text-anchor="middle" font-family="Unbounded" font-weight="800" font-size="16" fill="#C6790A">1</text></g>
+            <g class="ms-node" transform="translate(620,205)"><circle r="20" fill="#fff" stroke="#F59E0B" stroke-width="4"/><text x="0" y="6" text-anchor="middle" font-family="Unbounded" font-weight="800" font-size="16" fill="#C6790A">2</text></g>
+            <g class="ms-node" transform="translate(985,320)"><circle r="20" fill="#fff" stroke="#F59E0B" stroke-width="4"/><text x="0" y="6" text-anchor="middle" font-family="Unbounded" font-weight="800" font-size="16" fill="#C6790A">3</text></g>
+
+            <!-- FINISH flag -->
+            <g transform="translate(1174,190)">
+              <line x1="0" y1="-4" x2="0" y2="-46" stroke="#1B2430" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M0 -44 L26 -38 L0 -28 Z" fill="url(#sun)"/>
+              <circle cx="0" cy="0" r="6" fill="#1F9D55"/>
+              <text x="0" y="36" text-anchor="middle" font-family="Unbounded" font-weight="800" font-size="14" fill="#1B2430">Права 🎉</text>
+            </g>
+
+            <!-- the travelling car/marker (moves via offset-path) -->
+            <g class="road-car" id="roadCar">
+              <circle r="17" fill="url(#sun)" stroke="#fff" stroke-width="3"/>
+              <!-- simple top-down car -->
+              <g transform="rotate(0)">
+                <rect x="-9" y="-6" width="18" height="12" rx="3.5" fill="#1B2430"/>
+                <rect x="-5.5" y="-4" width="11" height="4" rx="1.5" fill="#FFD9A8"/>
+                <circle cx="-9" cy="0" r="2" fill="#fff"/>
+              </g>
+            </g>
+          </svg>
+
+          <!-- milestone labels overlaid (positioned in %) -->
+          <div class="milestone-label" id="lbl1" style="left:8%;top:0">
+            <span class="num">1</span>
+            <h3>Вивчай тему</h3>
+            <p>Коротко й зрозуміло: знаки, розмітка, пріоритети — без юридичної води.</p>
+          </div>
+          <div class="milestone-label" id="lbl2" style="left:44%;top:54%">
+            <span class="num">2</span>
+            <h3>Тренуйся розумно</h3>
+            <p>Система сама повертає питання, у яких ти помилився, поки ти їх не закріпиш.</p>
+          </div>
+          <div class="milestone-label" id="lbl3" style="right:2%;top:60%">
+            <span class="num">3</span>
+            <h3>Складай пробний іспит</h3>
+            <p>Той самий формат, що й офіційний: 20 питань, 20 хвилин, максимум 2 помилки.</p>
+          </div>
+        </div>
+
+        <!-- MOBILE: same content stacked -->
+        <div class="steps-stack">
+          <div class="step-row"><span class="num">1</span><div><h3>Вивчай тему</h3><p>Коротко й зрозуміло: знаки, розмітка, пріоритети — без юридичної води.</p></div></div>
+          <div class="step-row"><span class="num">2</span><div><h3>Тренуйся розумно</h3><p>Система сама повертає питання, у яких ти помилився, поки ти їх не закріпиш.</p></div></div>
+          <div class="step-row"><span class="num">3</span><div><h3>Складай пробний іспит</h3><p>Той самий формат, що й офіційний: 20 питань, 20 хвилин, максимум 2 помилки.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GAMIFICATION ============ -->
+  <section class="game" aria-labelledby="game-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">🎮 Вчись, як у грі</span>
+        <h2 class="sec-title" id="game-title">Вчись, як у грі</h2>
+        <p>Прогрес, який видно — і не хочеться кидати.</p>
+      </div>
+
+      <div class="game-grid">
+        <!-- streak -->
+        <div class="gcard g-streak">
+          <div class="flame-wrap">
+            <svg class="flame" viewBox="0 0 54 62" role="img" aria-label="Серія днів">
+              <path class="core" d="M27 2c5 9-3 13 1 20 3 5 9 4 9 13 0 11-8 17-17 17S3 59 3 47c0-7 5-9 8-14 2-3 1-6 3-9 3 5 6 4 6 9 4-5 1-9 7-31z" fill="url(#sun)"/>
+              <path d="M27 24c3 5-1 7 1 11 1 3 5 3 5 8 0 6-5 9-9 9s-9-3-9-9c0-4 3-5 5-8 1-2 0-3 1-5 2 3 3 2 3 6 1-3 0-7-3-12z" fill="#FFE08A" opacity=".9"/>
+            </svg>
+            <div><div class="gtitle" style="font-size:.82rem;color:var(--coral-dark)">🔥 Серія</div>
+            <div class="streak-n">12 <span style="font-family:Manrope;font-weight:700;font-size:1rem;color:var(--ink-soft)">днів</span></div></div>
+          </div>
+          <div class="gsub">Не зупиняйся — ще трохи.</div>
+          <div class="week-dots" aria-hidden="true">
+            <span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span>
+          </div>
+        </div>
+
+        <!-- daily goal ring -->
+        <div class="gcard g-goal">
+          <div class="goal-flex">
+            <div class="ring-center">
+              <svg class="ring" viewBox="0 0 88 88" role="img" aria-label="Денна ціль: 3 з 5 уроків">
+                <circle class="track" cx="44" cy="44" r="36"/>
+                <circle class="val" cx="44" cy="44" r="36"/>
+              </svg>
+              <span class="pct">3/5</span>
+            </div>
+            <div>
+              <div class="gtitle">Денна ціль</div>
+              <div class="gsub">3 / 5 уроків сьогодні</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- level / xp -->
+        <div class="gcard g-level">
+          <div class="level-top">
+            <span class="lvl-badge">⭐ Рівень 7</span>
+            <span class="gsub" style="font-weight:700;color:var(--coral-dark)">+15 XP</span>
+          </div>
+          <div class="xp-bar" role="img" aria-label="64% до наступного рівня"><i></i></div>
+          <div class="xp-meta"><span>+15 XP за правильну відповідь</span><span>640 / 1000</span></div>
+        </div>
+
+        <!-- topic path -->
+        <div class="gcard g-path">
+          <div class="gtitle">Твій шлях по темах</div>
+          <div class="path-line" aria-hidden="true"></div>
+          <div class="topic-path">
+            <span class="bubble done">Знаки ✓</span>
+            <span class="bubble done">Розмітка ✓</span>
+            <span class="bubble now">● Перехрестя <span style="opacity:.85;font-weight:600">(зараз)</span></span>
+            <span class="bubble lock">🔒 Обгін</span>
+            <span class="bubble lock">🔒 Швидкість</span>
+          </div>
+        </div>
+
+        <!-- readiness mini -->
+        <div class="gcard g-ready">
+          <div class="ready-mini">
+            <svg class="gauge" viewBox="0 0 120 72" role="img" aria-label="Готовність до іспиту 78 відсотків">
+              <path d="M10 66 A50 50 0 0 1 110 66" fill="none" stroke="var(--line)" stroke-width="11" stroke-linecap="round"/>
+              <path d="M10 66 A50 50 0 0 1 110 66" fill="none" stroke="url(#ggrad)" stroke-width="11"
+                    stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="34.5"/>
+              <circle cx="60" cy="66" r="4" fill="#1B2430"/>
+            </svg>
+            <div>
+              <div class="gtitle">Готовність до іспиту</div>
+              <div class="ready-num">78%</div>
+              <span class="ready-band">майже там</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- badges -->
+        <div class="gcard g-badges">
+          <div class="gtitle" style="margin-bottom:14px">Відзнаки</div>
+          <div class="badges">
+            <div class="bdg">
+              <svg class="ico" viewBox="0 0 38 38" aria-hidden="true"><rect x="6" y="6" width="26" height="26" rx="8" fill="#FFF1DD"/><path d="M19 11l2.3 4.7 5.2.8-3.8 3.6.9 5.1L19 22.7l-4.6 2.4.9-5.1-3.8-3.6 5.2-.8z" fill="url(#sun)"/></svg>
+              Знавець знаків
+            </div>
+            <div class="bdg">
+              <svg class="ico" viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="13" fill="#FFF1DD"/><text x="19" y="23" text-anchor="middle" font-family="Unbounded" font-weight="800" font-size="9" fill="#C6790A">100</text></svg>
+              100 питань
+            </div>
+            <div class="bdg">
+              <svg class="ico" viewBox="0 0 38 38" aria-hidden="true"><rect x="6" y="6" width="26" height="26" rx="8" fill="#E5F6EC"/><path d="M13 19l3.6 3.6 8-8" fill="none" stroke="#1F9D55" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Тиждень без пропусків
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES / MODES ============ -->
+  <section class="features" id="features" aria-labelledby="feat-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">🧩 Можливості</span>
+        <h2 class="sec-title" id="feat-title">П'ять режимів тренувань — і жодного зубріння</h2>
+        <p>Обери, як вчитися сьогодні. Усе працює на одній базі офіційних питань.</p>
+      </div>
+      <div class="bento">
+        <article class="fcard wide">
+          <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#C6790A" stroke-width="2"/><path d="M12 7v5l3.5 2" fill="none" stroke="#C6790A" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <h3>Пробний іспит</h3>
+          <p>Повна симуляція офіційного іспиту з таймером і лімітом помилок.</p>
+        </article>
+        <article class="fcard">
+          <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2.5" fill="none" stroke="#C6790A" stroke-width="2"/><path d="M8 10h8M8 14h5" stroke="#C6790A" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <h3>Практика за темами</h3>
+          <p>Прокачуй конкретні теми у власному темпі.</p>
+        </article>
+        <article class="fcard">
+          <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 1 2 4.9" fill="none" stroke="#C6790A" stroke-width="2" stroke-linecap="round"/><path d="M5 8v4h4" fill="none" stroke="#C6790A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <h3>Робота над помилками</h3>
+          <p>Інтервальні повторення: складні питання повертаються у правильний момент.</p>
+        </article>
+        <article class="fcard">
+          <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M5 7h6M5 12h10M5 17h7" stroke="#C6790A" stroke-width="2" stroke-linecap="round"/><circle cx="18" cy="8" r="2.4" fill="#FF6B4A"/></svg></span>
+          <h3>Змішана практика</h3>
+          <p>Випадкові питання з фокусом на твоїх слабких темах.</p>
+        </article>
+        <article class="fcard">
+          <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M7 4h10v16l-5-3.2L7 20z" fill="none" stroke="#C6790A" stroke-width="2" stroke-linejoin="round"/></svg></span>
+          <h3>Збережені питання</h3>
+          <p>Закладки на питання, до яких хочеш повернутись.</p>
+        </article>
+        <article class="fcard wide">
+          <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5" fill="none" stroke="#C6790A" stroke-width="2"/><circle cx="9" cy="11" r="2" fill="#FF6B4A"/><path d="M5 18l4.5-4 3 2.5L16 12l3 4" fill="none" stroke="#C6790A" stroke-width="2" stroke-linejoin="round"/></svg></span>
+          <h3>Фото реальних ситуацій</h3>
+          <p>734 офіційні зображення знаків і дорожніх сцен.</p>
+        </article>
+        <article class="fcard">
+          <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 16a8 8 0 0 1 16 0" fill="none" stroke="#C6790A" stroke-width="2" stroke-linecap="round"/><path d="M12 16l4-4" stroke="#FF6B4A" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <h3>Оцінка готовності</h3>
+          <p>Чесний показник, наскільки ти готовий складати.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ READINESS / OUTCOME ============ -->
+  <section class="readiness" aria-labelledby="ready-title">
+    <div class="wrap">
+      <div class="ready-card">
+        <div>
+          <span class="eyebrow" style="background:rgba(255,203,122,.16);border-color:rgba(255,203,122,.3);color:#FFCB7A">📊 Оцінка готовності</span>
+          <h2 id="ready-title" style="margin-top:16px">Не вгадуй, чи ти готовий — побач це.</h2>
+          <p>Ми рахуємо твою готовність за останніми результатами й опануванням тем. Сідай за кермо іспиту тоді, коли цифра скаже «готовий».</p>
+        </div>
+        <div class="big-meter">
+          <svg class="big-gauge" viewBox="0 0 240 150" role="img" aria-label="Готовність до іспиту: 78 відсотків — майже готовий">
+            <path d="M20 138 A100 100 0 0 1 220 138" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="18" stroke-linecap="round"/>
+            <path id="bigArc" d="M20 138 A100 100 0 0 1 220 138" fill="none" stroke="url(#ggrad)" stroke-width="18"
+                  stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"/>
+            <!-- band ticks -->
+            <text x="20" y="150" font-family="Manrope" font-size="9" fill="#8E7C6C">не готовий</text>
+            <text x="120" y="34" text-anchor="middle" font-family="Manrope" font-size="9" fill="#8E7C6C">майже</text>
+            <text x="220" y="150" text-anchor="end" font-family="Manrope" font-size="9" fill="#8E7C6C">готовий</text>
+          </svg>
+          <div class="center">
+            <div class="pct" id="bigPct">0%</div>
+            <div class="lbl">Готовність до іспиту</div>
+            <span class="band">майже готовий</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TESTIMONIALS ============ -->
+  <section class="quotes" aria-labelledby="q-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">💬 Відгуки</span>
+        <h2 class="sec-title" id="q-title">Вони вже склали з першого разу</h2>
+      </div>
+      <div class="q-grid">
+        <figure class="qcard">
+          <div class="stars" aria-label="Оцінка 5 з 5">★★★★★</div>
+          <blockquote>«Склав з першого разу, хоча знаки давались важко. Робота над помилками — це топ.»</blockquote>
+          <figcaption class="who"><span class="avatar" style="background:linear-gradient(135deg,#F59E0B,#FF6B4A)" aria-hidden="true">О</span><span><b>Олександр</b><span>Київ</span></span></figcaption>
+        </figure>
+        <figure class="qcard">
+          <div class="stars" aria-label="Оцінка 5 з 5">★★★★★</div>
+          <blockquote>«Зручно вчити в дорозі, по 15 хвилин. За два тижні була повністю готова.»</blockquote>
+          <figcaption class="who"><span class="avatar" style="background:linear-gradient(135deg,#FF6B4A,#1E5BBF)" aria-hidden="true">М</span><span><b>Марія</b><span>Львів</span></span></figcaption>
+        </figure>
+        <figure class="qcard">
+          <div class="stars" aria-label="Оцінка 5 з 5">★★★★★</div>
+          <blockquote>«Нарешті зрозумів пріоритети на перехрестях — завдяки поясненням до кожного питання.»</blockquote>
+          <figcaption class="who"><span class="avatar" style="background:linear-gradient(135deg,#1F9D55,#F59E0B)" aria-hidden="true">Д</span><span><b>Дмитро</b><span>Одеса</span></span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRICING ============ -->
+  <section class="pricing" id="pricing" aria-labelledby="price-title">
+    <div class="wrap">
+      <div class="sec-head" style="text-align:center;margin-inline:auto">
+        <span class="eyebrow">💛 Тарифи</span>
+        <h2 class="sec-title" id="price-title">Почни безкоштовно. Доплатиш, коли захочеш більше.</h2>
+      </div>
+      <div class="price-grid">
+        <article class="plan">
+          <h3>Безкоштовно</h3>
+          <div class="price">0&nbsp;₴ <small>/ назавжди</small></div>
+          <ul>
+            <li><svg class="ck" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="11" fill="#FFF1DD"/><path d="M6.5 11.2l3 3 6-6.4" fill="none" stroke="#C6790A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Практика за темами</li>
+            <li><svg class="ck" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="11" fill="#FFF1DD"/><path d="M6.5 11.2l3 3 6-6.4" fill="none" stroke="#C6790A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Демо пробних іспитів</li>
+            <li><svg class="ck" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="11" fill="#FFF1DD"/><path d="M6.5 11.2l3 3 6-6.4" fill="none" stroke="#C6790A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Базовий прогрес</li>
+          </ul>
+          <a class="btn btn--primary btn--block" href="#final">Почати безкоштовно</a>
+        </article>
+        <article class="plan pro">
+          <span class="pop">Популярне</span>
+          <h3>Преміум</h3>
+          <div class="price">99&nbsp;₴ <small>/ міс</small></div>
+          <ul>
+            <li><svg class="ck" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="11" fill="#FFE3D9"/><path d="M6.5 11.2l3 3 6-6.4" fill="none" stroke="#E04E2C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Безлімітні пробні іспити</li>
+            <li><svg class="ck" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="11" fill="#FFE3D9"/><path d="M6.5 11.2l3 3 6-6.4" fill="none" stroke="#E04E2C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Робота над помилками</li>
+            <li><svg class="ck" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="11" fill="#FFE3D9"/><path d="M6.5 11.2l3 3 6-6.4" fill="none" stroke="#E04E2C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Оцінка готовності</li>
+            <li><svg class="ck" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="11" fill="#FFE3D9"/><path d="M6.5 11.2l3 3 6-6.4" fill="none" stroke="#E04E2C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Усі 734 фото</li>
+            <li><svg class="ck" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="11" fill="#FFE3D9"/><path d="M6.5 11.2l3 3 6-6.4" fill="none" stroke="#E04E2C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Без реклами</li>
+          </ul>
+          <a class="btn btn--cta btn--block" href="#final">Спробувати Преміум</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="faq" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="sec-head" style="text-align:center;margin-inline:auto">
+        <span class="eyebrow">❓ Питання</span>
+        <h2 class="sec-title" id="faq-title">Часті питання</h2>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Це офіційний іспит?<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></summary>
+          <div class="ans">Ні. Це навчальна платформа для підготовки. Питання — з відкритої бази ГСЦ МВС, але це не офіційна екзаменаційна система.</div>
+        </details>
+        <details class="faq-item">
+          <summary>Чи актуальні питання?<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></summary>
+          <div class="ans">Так, ми оновлюємо базу за змінами в ПДР.</div>
+        </details>
+        <details class="faq-item">
+          <summary>Скільки часу треба на підготовку?<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></summary>
+          <div class="ans">Більшості вистачає 1–3 тижнів по 15–20 хвилин на день.</div>
+        </details>
+        <details class="faq-item">
+          <summary>Чи працює на телефоні?<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></summary>
+          <div class="ans">Так, сайт повністю адаптований під мобільні.</div>
+        </details>
+        <details class="faq-item">
+          <summary>Чи потрібна картка, щоб почати?<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></summary>
+          <div class="ans">Ні. Почати можна безкоштовно й без картки.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FINAL CTA ============ -->
+  <section class="final" id="final" aria-labelledby="final-title">
+    <div class="wrap">
+      <div class="final-card">
+        <svg class="road-deco" viewBox="0 0 1180 240" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M-20 200 C 200 200 280 60 520 80 S 920 220 1200 120" fill="none" stroke="#fff" stroke-width="46" stroke-linecap="round"/>
+          <path d="M-20 200 C 200 200 280 60 520 80 S 920 220 1200 120" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="20 22"/>
+        </svg>
+        <h2 id="final-title">Твоє «склав» починається сьогодні.</h2>
+        <p>Перше тренування — за 30 секунд.</p>
+        <a class="btn btn--cta btn--lg" href="#sample">Почати безкоштовно</a>
+        <p style="margin-top:18px;font-size:.84rem;color:#FFEAD8">Навчальна платформа для підготовки. Це не офіційна екзаменаційна система.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#top"><span class="badge-pdr" aria-hidden="true">ПДР</span><span>Drivers&nbsp;School</span></a>
+        <p class="foot-about">Підготовка до теоретичного іспиту з ПДР — без зубріння і страху. Українською.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Продукт</h4>
+        <a href="#features">Можливості</a>
+        <a href="#pricing">Тарифи</a>
+        <a href="#sample">Пробний іспит</a>
+      </div>
+      <div class="foot-col">
+        <h4>Підтримка</h4>
+        <a href="#faq">Питання</a>
+        <a href="#">Контакти</a>
+      </div>
+      <div class="foot-col">
+        <h4>Правове</h4>
+        <a href="#">Умови</a>
+        <a href="#">Конфіденційність</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <p class="disclaimer">Навчальна платформа для підготовки до теоретичної частини іспиту з ПДР. Це не офіційна екзаменаційна система. Питання — з відкритої бази ГСЦ МВС.</p>
+      <p class="copy">© 2026 Drivers School</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- sticky header shadow ---------- */
+  var header = document.getElementById("siteHeader");
+  var onScroll = function(){ header.classList.toggle("scrolled", window.scrollY > 8); };
+  onScroll();
+  window.addEventListener("scroll", onScroll, {passive:true});
+
+  /* ---------- interactive sample question ---------- */
+  var quiz = document.querySelector("[data-quiz]");
+  if(quiz){
+    var opts = Array.prototype.slice.call(quiz.querySelectorAll(".opt"));
+    var fb = document.getElementById("qFeedback");
+    var xpRow = document.getElementById("xpRow");
+    var OK = "✓ Правильно! Жовте миготливе означає, що перехрестя нерегульоване — далі діють знаки пріоритету.";
+    var NO = "Не зовсім. Жовте миготливе = перехрестя нерегульоване; рухайся за знаками пріоритету.";
+    var answered = false;
+
+    function answer(btn){
+      if(answered) return;
+      answered = true;
+      var isCorrect = btn.getAttribute("data-correct") === "true";
+      opts.forEach(function(o){
+        o.disabled = true;
+        if(o.getAttribute("data-correct") === "true"){
+          o.classList.add(o === btn ? "correct" : "reveal");
+          o.querySelector(".mark").textContent = "✓";
+        }
+      });
+      if(!isCorrect){
+        btn.classList.add("wrong");
+        btn.querySelector(".mark").textContent = "✕";
+      }
+      fb.textContent = isCorrect ? OK : NO;
+      fb.classList.add("show", isCorrect ? "ok" : "no");
+      // XP chip slides up; soft green pulse on the card
+      xpRow.classList.add("show");
+      xpRow.setAttribute("aria-hidden","false");
+      if(!reduce){
+        quiz.classList.add("celebrate");
+        quiz.addEventListener("animationend", function h(){ quiz.classList.remove("celebrate"); quiz.removeEventListener("animationend", h); });
+      }
+    }
+
+    opts.forEach(function(o){
+      o.addEventListener("click", function(){ answer(o); });
+    });
+  }
+
+  /* ---------- count-up trust stats + readiness arc (IntersectionObserver) ---------- */
+  function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+  function countUp(el){
+    var target = parseInt(el.getAttribute("data-count"), 10);
+    if(isNaN(target)) return;
+    if(reduce){ el.textContent = target.toLocaleString("uk-UA"); return; }
+    var dur = 1100, start = null;
+    function step(ts){
+      if(start === null) start = ts;
+      var p = Math.min(1, (ts - start) / dur);
+      el.textContent = Math.round(target * easeOut(p)).toLocaleString("uk-UA");
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  if("IntersectionObserver" in window){
+    var statObs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ countUp(e.target); statObs.unobserve(e.target); }
+      });
+    }, {threshold:.6});
+    document.querySelectorAll("[data-count]").forEach(function(el){ statObs.observe(el); });
+
+    // big readiness arc + percent
+    var bigArc = document.getElementById("bigArc");
+    var bigPct = document.getElementById("bigPct");
+    if(bigArc && bigPct){
+      var arcObs = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if(!e.isIntersecting) return;
+          arcObs.disconnect();
+          var TARGET = 78, FULL = 314, offset = FULL * (1 - TARGET/100);
+          if(reduce){
+            bigArc.style.strokeDashoffset = offset; bigPct.textContent = "78%"; return;
+          }
+          bigArc.style.transition = "stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1)";
+          requestAnimationFrame(function(){ bigArc.style.strokeDashoffset = offset; });
+          var start = null;
+          function p(ts){ if(start===null)start=ts; var t=Math.min(1,(ts-start)/1400);
+            bigPct.textContent = Math.round(78*easeOut(t)) + "%"; if(t<1) requestAnimationFrame(p); }
+          requestAnimationFrame(p);
+        });
+      }, {threshold:.5});
+      arcObs.observe(bigArc);
+    }
+  } else {
+    // no IO: show final values
+    document.querySelectorAll("[data-count]").forEach(function(el){ el.textContent = el.getAttribute("data-count"); });
+    var ba = document.getElementById("bigArc"), bp = document.getElementById("bigPct");
+    if(ba){ ba.style.strokeDashoffset = 314*(1-78/100); } if(bp){ bp.textContent="78%"; }
+  }
+
+  /* ---------- SIGNATURE: journey road fills + car advances on scroll ---------- */
+  var roadFill = document.getElementById("roadFill");
+  var roadCar  = document.getElementById("roadCar");
+  var roadStage = document.getElementById("roadStage");
+  var labels = [document.getElementById("lbl1"), document.getElementById("lbl2"), document.getElementById("lbl3")];
+  // milestone progress thresholds along the path (0..1)
+  var msAt = [0.21, 0.53, 0.86];
+
+  if(roadFill){
+    var len = roadFill.getTotalLength();
+    roadFill.style.setProperty("--len", len);
+    roadFill.style.setProperty("--p", 0);
+
+    // place car using SVG path point (offset-path support varies; compute directly = robust)
+    function placeCar(p){
+      if(!roadCar) return;
+      p = Math.max(0, Math.min(1, p));
+      var L = len * p;
+      var pt = roadFill.getPointAtLength(L);
+      var ahead = roadFill.getPointAtLength(Math.min(len, L + 1));
+      var ang = Math.atan2(ahead.y - pt.y, ahead.x - pt.x) * 180 / Math.PI;
+      roadCar.setAttribute("transform", "translate(" + pt.x.toFixed(1) + "," + pt.y.toFixed(1) + ") rotate(" + ang.toFixed(1) + ")");
+    }
+    placeCar(0);
+
+    function setProgress(p){
+      p = Math.max(0, Math.min(1, p));
+      roadFill.style.setProperty("--p", p);
+      placeCar(p);
+      labels.forEach(function(lbl, i){
+        if(lbl && p >= msAt[i] - 0.04) lbl.classList.add("in");
+      });
+    }
+
+    if(reduce){
+      // reduced motion: show the completed journey, no scroll-linked animation
+      setProgress(1);
+      // override transition so it's instant
+      roadFill.style.transition = "none";
+    } else if("IntersectionObserver" in window){
+      var ticking = false;
+      function update(){
+        ticking = false;
+        var rect = roadStage.getBoundingClientRect();
+        var vh = window.innerHeight || document.documentElement.clientHeight;
+        // progress = how far the stage has travelled through a comfortable scroll window
+        var total = rect.height + vh * 0.7;
+        var seen = (vh * 0.85) - rect.top;
+        setProgress(seen / total);
+      }
+      var inView = false;
+      var stageObs = new IntersectionObserver(function(entries){
+        inView = entries[0].isIntersecting;
+        if(inView) update();
+      }, {threshold:0});
+      stageObs.observe(roadStage);
+      window.addEventListener("scroll", function(){
+        if(!inView || ticking) return;
+        ticking = true; requestAnimationFrame(update);
+      }, {passive:true});
+      window.addEventListener("resize", function(){
+        len = roadFill.getTotalLength(); roadFill.style.setProperty("--len", len); update();
+      }, {passive:true});
+      update();
+    } else {
+      setProgress(1);
+    }
+  }
+})();
+</script>
+</body>
+</html>
