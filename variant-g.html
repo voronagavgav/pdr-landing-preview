@@ -21,7 +21,8 @@
    ============================================================ */
 
 :root{
-  --bg-base:#F4F8F6;       /* very soft off-white-green page base */
+  --bg-base:#EAF1EE;       /* slightly deeper base so glass floats off it */
+  --anchor:208 38% 24%;    /* deep teal-slate anchor behind the hero glass */
   --ink:#1F2933;           /* slate — body text on opaque cards (NEVER #000) */
   --muted:#46515D;         /* secondary text (>=4.5:1 on opaque card) */
   --green-soft:#9AD9B8;    /* soft pastel green — CTA glass tint / success fills */
@@ -59,12 +60,14 @@ body{
   -webkit-font-smoothing:antialiased;
   text-rendering:optimizeLegibility;
   overflow-x:hidden;
-  /* ---- pastel BLOBS the glass refracts (muted, calm, not neon) ---- */
+  /* ---- saturated (not neon) pastels + ONE dark anchor pool the glass refracts ---- */
   background:
-    radial-gradient(38rem 38rem at 14% 18%, hsl(158 52% 84% / .7), transparent 60%),
-    radial-gradient(36rem 36rem at 86% 22%, hsl(205 60% 86% / .7), transparent 60%),
-    radial-gradient(40rem 40rem at 50% 92%, hsl(28 70% 88% / .6), transparent 60%),
-    radial-gradient(30rem 30rem at 75% 70%, hsl(265 45% 89% / .5), transparent 60%),
+    /* DARK ANCHOR behind the hero glass (top-right) — gives real contrast to bend */
+    radial-gradient(30rem 26rem at 82% 6%,  hsl(var(--anchor) / .55), transparent 62%),
+    radial-gradient(40rem 40rem at 12% 16%, hsl(158 64% 70% / .85), transparent 60%),
+    radial-gradient(38rem 38rem at 88% 30%, hsl(202 78% 68% / .80), transparent 60%),
+    radial-gradient(42rem 42rem at 50% 96%, hsl(28 84% 74% / .70), transparent 60%),
+    radial-gradient(32rem 32rem at 74% 72%, hsl(268 60% 76% / .60), transparent 60%),
     var(--bg-base);
   background-attachment:fixed;
 }
@@ -83,10 +86,20 @@ button{font-family:inherit;cursor:pointer}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 /* drifting blobs ON TOP of the gradient give the glass moving color to refract */
-.drift{position:fixed;border-radius:50%;filter:blur(60px);z-index:-1;pointer-events:none;opacity:.55;will-change:transform}
-.drift.b1{width:42vw;height:42vw;max-width:560px;max-height:560px;background:hsl(158 56% 80%);top:-8vh;left:-6vw;animation:drift1 14s ease-in-out infinite}
-.drift.b2{width:38vw;height:38vw;max-width:520px;max-height:520px;background:hsl(205 64% 82%);top:12vh;right:-8vw;animation:drift2 16s ease-in-out infinite}
-.drift.b3{width:40vw;height:40vw;max-width:560px;max-height:560px;background:hsl(28 74% 85%);bottom:-12vh;left:18vw;animation:drift3 18s ease-in-out infinite}
+.drift{position:fixed;border-radius:50%;filter:blur(60px);z-index:-1;pointer-events:none;opacity:.62;will-change:transform}
+.drift.b1{width:42vw;height:42vw;max-width:560px;max-height:560px;background:hsl(158 60% 66%);top:-8vh;left:-6vw;animation:drift1 14s ease-in-out infinite}
+.drift.b2{width:38vw;height:38vw;max-width:520px;max-height:520px;background:hsl(202 72% 64%);top:12vh;right:-8vw;animation:drift2 16s ease-in-out infinite}
+.drift.b3{width:40vw;height:40vw;max-width:560px;max-height:560px;background:hsl(28 80% 70%);bottom:-12vh;left:18vw;animation:drift3 18s ease-in-out infinite}
+
+/* faint masked grid ONLY under the hero zone — fine high-contrast edges the lens can bend */
+.bg-detail{
+  position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.10;
+  background-image:
+    repeating-linear-gradient(0deg,  hsl(208 30% 30% / .6) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(90deg, hsl(208 30% 30% / .6) 0 1px, transparent 1px 46px);
+  -webkit-mask-image:radial-gradient(60rem 40rem at 78% 8%, #000, transparent 70%);
+          mask-image:radial-gradient(60rem 40rem at 78% 8%, #000, transparent 70%);
+}
 @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(3vw,4vh) scale(1.06)}}
 @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-3vw,3vh) scale(1.05)}}
 @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(2vw,-3vh) scale(1.07)}}
@@ -97,24 +110,59 @@ button{font-family:inherit;cursor:pointer}
    ============================================================ */
 .glass{
   position:relative;border-radius:var(--radius);
-  background:hsl(var(--glass-tint) / .62);
-  border:1px solid hsl(var(--glass-line));
+  background:hsl(var(--glass-tint) / .50);          /* airier so refraction shows through */
+  border:1px solid hsl(0 0% 100% / .60);
   isolation:isolate;overflow:hidden;
   box-shadow:
     var(--float),
-    inset 1px 1px 1px hsl(0 0% 100% / .65),         /* specular rim, top-left light */
-    inset -1px -1px 2px hsl(210 40% 50% / .16);
+    inset 0 1px 1px hsl(0 0% 100% / .85),            /* bright top-gloss line */
+    inset 1.5px 1.5px 2px hsl(0 0% 100% / .55),      /* LIT top-left bezel (thicker) */
+    inset -1.5px -1.5px 3px hsl(210 45% 55% / .22);  /* shaded bottom-right bezel */
 }
-.glass::before{
+.glass::before{                                       /* frost layer — blur lowered 14→8 */
   content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
-  -webkit-backdrop-filter:blur(14px) saturate(160%) brightness(108%);
-  backdrop-filter:blur(14px) saturate(160%) brightness(108%);
+  -webkit-backdrop-filter:blur(8px) saturate(185%) brightness(110%);
+          backdrop-filter:blur(8px) saturate(185%) brightness(110%);
 }
-.glass>*{position:relative;z-index:1}
-/* SVG edge lensing — reserved for hero panel + hero CTA only */
+/* TOP-EDGE SPECULAR GLOSS arc — the bright streak across the upper rim */
+.glass::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
+  background:linear-gradient(135deg,
+    hsl(0 0% 100% / .55) 0%, hsl(0 0% 100% / .10) 18%, transparent 42%);
+  mix-blend-mode:screen;
+}
+.glass>*{position:relative;z-index:3}
+/* SVG edge lensing — reserved for hero panel + nav capsule layer only (Chromium) */
 .refraction-ok .glass.lens::before{
-  backdrop-filter:url(#liquid-glass) blur(14px) saturate(160%) brightness(108%);
+  backdrop-filter:url(#lg) blur(8px) saturate(185%) brightness(110%);
 }
+.refraction-ok .glass.lens.chroma::before{
+  backdrop-filter:url(#lg-chroma) blur(8px) saturate(185%) brightness(110%);
+}
+
+/* ---------- pointer-reactive specular sheen (gated by reduce-motion in JS+CSS) ---------- */
+.reactive{position:relative}
+.reactive .sheen{
+  position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;opacity:0;
+  background:radial-gradient(18rem 18rem at var(--mx,50%) var(--my,0%),
+    hsl(0 0% 100% / .55), hsl(0 0% 100% / .12) 30%, transparent 60%);
+  mix-blend-mode:screen;transition:opacity .35s var(--calm-ease)}
+.reactive:hover .sheen{opacity:1}
+
+/* ---------- segmented glass toggle (decorative-but-real Apple control) ---------- */
+.seg{display:inline-flex;gap:4px;padding:4px;border-radius:var(--radius-pill);position:relative;
+  background:hsl(var(--glass-tint)/.5);border:1px solid hsl(0 0% 100%/.6);isolation:isolate;
+  box-shadow:inset 0 1px 1px hsl(0 0% 100%/.7), inset -1px -1px 2px hsl(210 45% 55%/.18)}
+.seg::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+  -webkit-backdrop-filter:blur(8px) saturate(170%);backdrop-filter:blur(8px) saturate(170%)}
+.seg button{border:0;background:transparent;padding:.5em 1.1em;border-radius:var(--radius-pill);
+  font-family:var(--font-display);font-weight:700;font-size:.86rem;color:var(--muted);position:relative;z-index:1;
+  transition:color .25s var(--calm-ease)}
+.seg button[aria-pressed="true"]{color:var(--green-ink)}
+.seg .thumb{position:absolute;top:4px;bottom:4px;border-radius:var(--radius-pill);z-index:0;
+  background:hsl(152 50% 84%/.9);border:1px solid hsl(0 0% 100%/.7);
+  box-shadow:0 2px 8px hsl(152 40% 35%/.2), inset 0 1px 1px hsl(0 0% 100%/.8);
+  transition:transform .3s var(--calm-ease), width .3s var(--calm-ease)}
 
 /* near-opaque READING card — for question text + options + feature copy */
 .solid{
@@ -144,15 +192,21 @@ button{font-family:inherit;cursor:pointer}
   isolation:isolate;overflow:hidden;
   box-shadow:
     0 6px 18px hsl(152 40% 35% / .22),
-    inset 1px 1px 1px hsl(0 0% 100% / .8),
-    inset -1px -1px 2px hsl(152 40% 45% / .18);
+    inset 0 1px 1px hsl(0 0% 100% / .9),
+    inset 1.5px 1.5px 2px hsl(0 0% 100% / .55),
+    inset -1.5px -1.5px 3px hsl(152 40% 45% / .22);
 }
 .cta-glass::before{
   content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
   -webkit-backdrop-filter:blur(10px) saturate(170%) brightness(110%);
   backdrop-filter:blur(10px) saturate(170%) brightness(110%);
 }
-.cta-glass>*{position:relative;z-index:1}
+.cta-glass::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
+  background:linear-gradient(135deg, hsl(0 0% 100% / .5) 0%, hsl(0 0% 100% / .08) 22%, transparent 46%);
+  mix-blend-mode:screen;
+}
+.cta-glass>*{position:relative;z-index:3}
 .cta-glass:hover{transform:translateY(-1px);background:hsl(152 50% 80% / .9)}
 .cta-glass:active{transform:scale(.985)}
 .cta-glass:focus-visible{outline:3px solid var(--green-deep);outline-offset:3px}
@@ -174,14 +228,23 @@ button{font-family:inherit;cursor:pointer}
    HEADER — sticky frosted glass (softened blur to avoid scroll jank)
    ============================================================ */
 header.site{
-  position:sticky;top:0;z-index:60;
-  background:hsl(var(--glass-tint) / .68);
-  -webkit-backdrop-filter:saturate(150%) blur(12px);
-  backdrop-filter:saturate(150%) blur(12px);
-  border-bottom:1px solid hsl(0 0% 100% / .5);
-  box-shadow:0 2px 14px hsl(210 40% 40% / .08);
+  position:sticky;top:14px;z-index:60;
+  background:transparent;border:0;box-shadow:none;
+  -webkit-backdrop-filter:none;backdrop-filter:none;   /* the capsule carries the glass, not the bar */
 }
-.nav{display:flex;align-items:center;gap:18px;height:70px}
+/* floating rounded glass capsule (detached, shadowed) — the biggest visual upgrade */
+.nav{
+  display:flex;align-items:center;gap:18px;height:62px;
+  margin:0 auto;border-radius:var(--radius-pill);padding:0 14px 0 18px;position:relative;
+  background:hsl(var(--glass-tint) / .55);
+  border:1px solid hsl(0 0% 100% / .6);
+  -webkit-backdrop-filter:blur(10px) saturate(180%) brightness(108%);
+          backdrop-filter:blur(10px) saturate(180%) brightness(108%);
+  box-shadow:var(--float), inset 0 1px 1px hsl(0 0% 100% / .8), inset -1px -1px 2px hsl(210 45% 55% / .2);
+  isolation:isolate;
+}
+.nav>*{position:relative;z-index:3}
+.nav .sheen{z-index:2}
 .brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:700;font-size:1.16rem}
 .badge-mark{
   width:42px;height:42px;border-radius:13px;flex:0 0 auto;
@@ -247,7 +310,10 @@ h1.hero-title .soft{color:var(--green-deep)}
 .quiz .kicker{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-display);font-weight:700;font-size:.8rem;color:var(--green-deep);background:hsl(158 44% 90%);border:1px solid hsl(158 40% 80%);padding:.4em .85em;border-radius:var(--radius-pill)}
 .quiz-helper{display:flex;align-items:center;gap:8px;background:hsl(205 40% 94%);border:1px solid hsl(205 30% 82%);border-radius:14px;padding:.4em .7em .4em .5em;font-size:.78rem;color:var(--muted);line-height:1.3;max-width:230px}
 .quiz-helper svg{width:24px;flex:0 0 auto}
-.quiz-q{font-family:var(--font-display);font-weight:600;font-size:1.16rem;line-height:1.35;margin-bottom:18px;color:var(--ink)}
+/* local scrim so the question stays >=4.5:1 even over the dark anchor behind the lensed panel */
+.quiz-q{font-family:var(--font-display);font-weight:600;font-size:1.16rem;line-height:1.35;margin-bottom:18px;color:var(--ink);
+  background:hsl(var(--glass-tint) / .82);border-radius:14px;padding:12px 14px;
+  box-shadow:inset 0 0 0 1px hsl(0 0% 100% / .5)}
 .options{display:grid;gap:10px}
 /* options sit on NEAR-OPAQUE surface for legibility */
 .opt{
@@ -530,26 +596,33 @@ footer.site{
    ACCESSIBILITY FALLBACKS (the #1 glass risk — hard gates)
    ============================================================ */
 @media (prefers-reduced-transparency:reduce){
-  .glass,.solid,.btn-ghost,.eyebrow,.speech,.node,.bdg{background:hsl(var(--glass-tint) / .98)}
+  .glass,.solid,.btn-ghost,.eyebrow,.speech,.node,.bdg,.seg{background:hsl(var(--glass-tint) / .98)}
+  .nav{background:hsl(var(--glass-tint) / .98)}
   .cta-glass{background:hsl(152 50% 84%)}
-  .glass::before,.cta-glass::before,.btn-ghost::before{backdrop-filter:none;-webkit-backdrop-filter:none}
-  header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none;background:hsl(var(--glass-tint) / .98)}
-  .drift{display:none}
+  .glass::before,.glass::after,.cta-glass::before,.cta-glass::after,.btn-ghost::before,.seg::before,.nav{backdrop-filter:none;-webkit-backdrop-filter:none}
+  header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none}
+  footer.site{background:hsl(var(--glass-tint) / .98)}
+  .glass::after,.cta-glass::after,.sheen,.bg-detail,.drift{display:none}
 }
 @media (prefers-contrast:more){
-  .glass,.solid,.cta-glass,.btn-ghost,.eyebrow,.speech,.opt,.node,.bdg,.plan{background:#fff;border-color:#1F2933;color:var(--ink)}
+  .glass,.solid,.cta-glass,.btn-ghost,.eyebrow,.speech,.opt,.node,.bdg,.plan,.seg{background:#fff;border-color:#1F2933;color:var(--ink)}
+  .nav{background:#fff;border-color:#1F2933}
   .cta-glass{color:#0f2c22;border-color:#14463b}
-  .glass::before,.cta-glass::before,.btn-ghost::before{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .glass::before,.glass::after,.cta-glass::before,.cta-glass::after,.btn-ghost::before,.seg::before{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .glass::after,.cta-glass::after,.sheen{display:none}
+  .nav{backdrop-filter:none;-webkit-backdrop-filter:none}
   header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none;background:#fff;border-color:#1F2933}
+  .refraction-ok .glass.lens::before,.refraction-ok .glass.lens.chroma::before{backdrop-filter:none;-webkit-backdrop-filter:none}
   .nav-links a,.foot-cols a,.muted,.hero-sub,.stat .l,.feat p,.section-head p{color:#1F2933}
-  .drift{display:none}
+  .bg-detail,.drift{display:none}
 }
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   .glass{background:hsl(var(--glass-tint) / .96)}
-  .glass::before{display:none}
+  .glass::before,.glass::after{display:none}
   .cta-glass{background:hsl(152 50% 84%)}
-  .cta-glass::before{display:none}
-  .btn-ghost::before{display:none}
+  .cta-glass::before,.cta-glass::after{display:none}
+  .btn-ghost::before,.seg::before,.sheen{display:none}
+  .nav{background:hsl(var(--glass-tint) / .96)}
   header.site,footer.site{background:hsl(var(--glass-tint) / .96)}
 }
 
@@ -562,29 +635,47 @@ footer.site{
   .reveal{opacity:1;transform:none;transition:opacity .15s linear}
   .btn:hover,.lift:hover,.opt:hover{transform:none}
   .lift{transition:none}
+  .reactive .sheen{display:none}
 }
 </style>
 </head>
 <body>
 
-<!-- pastel drifting blobs the glass refracts -->
+<!-- pastel drifting blobs + masked grid the glass refracts -->
 <span class="drift b1" aria-hidden="true"></span>
 <span class="drift b2" aria-hidden="true"></span>
 <span class="drift b3" aria-hidden="true"></span>
+<span class="bg-detail" aria-hidden="true"></span>
 
-<!-- LIQUID-GLASS SVG FILTER — organic edge lensing (dropped once, invisible) -->
+<!-- LIQUID-GLASS SVG FILTERS — edge-concentrated displacement + 3-pass chromatic split (Chromium) -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <filter id="liquid-glass" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="7" stitchTiles="stitch" result="n"/>
-    <feGaussianBlur in="n" stdDeviation="2" result="sn"/>
-    <feDisplacementMap in="SourceGraphic" in2="sn" scale="64" xChannelSelector="R" yChannelSelector="G"/>
+  <!-- shared turbulence: higher baseFrequency → warp lives at the rim, scale 92 → clearly liquid -->
+  <filter id="lg" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.014" numOctaves="2" seed="11" stitchTiles="stitch" result="n"/>
+    <feGaussianBlur in="n" stdDeviation="1.4" result="sn"/>
+    <feDisplacementMap in="SourceGraphic" in2="sn" scale="92" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+
+  <!-- HERO: chromatic-aberration lens — R/G/B split at scales 104/92/80 (tasteful fringe, spread ~24) -->
+  <filter id="lg-chroma" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.014" numOctaves="2" seed="11" stitchTiles="stitch" result="n"/>
+    <feGaussianBlur in="n" stdDeviation="1.4" result="sn"/>
+    <feDisplacementMap in="SourceGraphic" in2="sn" scale="104" xChannelSelector="R" yChannelSelector="G" result="rdisp"/>
+    <feColorMatrix in="rdisp" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="r"/>
+    <feDisplacementMap in="SourceGraphic" in2="sn" scale="92"  xChannelSelector="R" yChannelSelector="G" result="gdisp"/>
+    <feColorMatrix in="gdisp" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="g"/>
+    <feDisplacementMap in="SourceGraphic" in2="sn" scale="80"  xChannelSelector="R" yChannelSelector="G" result="bdisp"/>
+    <feColorMatrix in="bdisp" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="b"/>
+    <feBlend in="r" in2="g" mode="screen" result="rg"/>
+    <feBlend in="rg" in2="b" mode="screen"/>
   </filter>
 </svg>
 
 <!-- ============================ HEADER ============================ -->
 <header class="site">
   <div class="wrap">
-    <nav class="nav" aria-label="Головна навігація">
+    <nav class="nav reactive" aria-label="Головна навігація">
+      <span class="sheen" aria-hidden="true"></span>
       <a class="brand" href="#top" aria-label="Drivers School — головна">
         <span class="badge-mark" aria-hidden="true">ПДР</span>
         <span>Drivers&nbsp;School</span>
@@ -643,8 +734,9 @@ footer.site{
         <p class="micro-calm"><span aria-hidden="true">🫧</span> Без стресу. Без картки. Перше питання — прямо зараз.</p>
       </div>
 
-      <!-- SAMPLE QUESTION — signature liquid-glass panel (SVG refraction) -->
-      <div class="glass lens quiz" id="sample" aria-labelledby="quiz-q">
+      <!-- SAMPLE QUESTION — signature liquid-glass panel (chromatic SVG lens + pointer sheen) -->
+      <div class="glass lens chroma reactive quiz" id="sample" aria-labelledby="quiz-q">
+        <span class="sheen" aria-hidden="true"></span>
         <div class="quiz-head">
           <span class="kicker"><span aria-hidden="true">✨</span> Спробуй прямо зараз</span>
           <span class="quiz-helper">
@@ -661,6 +753,12 @@ footer.site{
           </span>
         </div>
         <p class="quiz-q" id="quiz-q">Як діяти, якщо під час руху ввімкнулося жовте миготливе світло світлофора?</p>
+
+        <div class="seg" id="mode-seg" role="group" aria-label="Режим практики" style="margin-bottom:16px">
+          <span class="thumb" aria-hidden="true"></span>
+          <button type="button" aria-pressed="true">Тренування</button>
+          <button type="button" aria-pressed="false">Іспит</button>
+        </div>
 
         <div class="options" id="options" role="group" aria-labelledby="quiz-q">
           <button class="opt" data-correct="false"><span class="mark" aria-hidden="true">А</span><span>Зупинитися та чекати зеленого сигналу</span></button>
@@ -1099,6 +1197,40 @@ footer.site{
       document.documentElement.classList.add('refraction-ok');
     }
   }catch(e){/* no-op: frosted-glass floor stays in effect */}
+
+  /* ---------- Pointer-reactive specular sheen (--mx/--my → radial highlight) ---------- */
+  if(!reduceMotion){
+    document.querySelectorAll('.reactive').forEach(function(el){
+      el.addEventListener('pointermove', function(e){
+        var r = el.getBoundingClientRect();
+        el.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%');
+        el.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%');
+      });
+    });
+  }
+
+  /* ---------- Segmented glass toggle — slide the .thumb under the active button ---------- */
+  (function(){
+    var seg = document.getElementById('mode-seg');
+    if(!seg) return;
+    var thumb = seg.querySelector('.thumb');
+    var btns = Array.prototype.slice.call(seg.querySelectorAll('button'));
+    function place(btn){
+      if(!thumb) return;
+      thumb.style.width = btn.offsetWidth + 'px';
+      thumb.style.transform = 'translateX(' + (btn.offsetLeft - 4) + 'px)';
+    }
+    function select(btn){
+      btns.forEach(function(b){ b.setAttribute('aria-pressed', b === btn ? 'true':'false'); });
+      place(btn);
+    }
+    btns.forEach(function(b){ b.addEventListener('click', function(){ select(b); }); });
+    var active = seg.querySelector('button[aria-pressed="true"]') || btns[0];
+    requestAnimationFrame(function(){ place(active); });
+    window.addEventListener('resize', function(){
+      place(seg.querySelector('button[aria-pressed="true"]') || btns[0]);
+    });
+  })();
 
   /* ---------- Interactive sample question ---------- */
   var options  = document.getElementById('options');
