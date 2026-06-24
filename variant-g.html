@@ -70,8 +70,8 @@
     0 2px 4px hsl(210 40% 38% / .12),
     0 18px 48px hsl(210 44% 40% / .22),
     0 4px 14px hsl(210 44% 40% / .14);
-  --e3-blur: blur(8px) saturate(196%) brightness(118%);
-  --e3-fill: hsl(var(--glass-tint) / .38);   /* lens: more transparent + bright = glassy, not a gray card */
+  --e3-blur: blur(6px) saturate(168%) brightness(133%);
+  --e3-fill: hsl(var(--glass-tint) / .28);   /* lens: transparent + BRIGHT clean glass (no chroma darkening) */
 
   /* shared rim: bright top-left bevel + shaded bottom-right + top gloss. Reused on ALL tiers. */
   --rim:
@@ -234,14 +234,14 @@ button{font-family:inherit;cursor:pointer}
     radial-gradient(44rem 44rem at 92% 34%, hsl(202 56% 82% / .24), transparent 62%),
     radial-gradient(48rem 48rem at 50% 98%, hsl(28 62% 86% / .22), transparent 62%);
   background-attachment:fixed;
-  filter:url(#lg) saturate(140%) brightness(106%);opacity:.92}
+  filter:url(#lg) saturate(150%) brightness(116%);opacity:.6}
 .refraction-ok .glass.lens .lens-refract{display:none}
 /* SVG edge lensing — reserved for hero panel + nav capsule layer only (Chromium) */
-.refraction-ok .glass.lens::before{
-  backdrop-filter:url(#lg) blur(8px) saturate(185%) brightness(110%);
-}
+/* single #lg displacement + BRIGHT settings = clean light liquid glass.
+   (The #lg-chroma 3-pass chromatic filter rendered dark/muddy in Chrome — removed from the lenses.) */
+.refraction-ok .glass.lens::before,
 .refraction-ok .glass.lens.chroma::before{
-  backdrop-filter:url(#lg-chroma) blur(8px) saturate(185%) brightness(110%);
+  backdrop-filter:url(#lg) blur(6px) saturate(168%) brightness(133%);
 }
 
 /* ---------- pointer-reactive specular sheen (gated by reduce-motion in JS+CSS) ---------- */
@@ -1020,7 +1020,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       </div>
 
       <!-- SAMPLE QUESTION — SIGNATURE #1 liquid-glass panel (chromatic SVG lens + sweep + breathe + tilt) -->
-      <div class="glass e3 lens chroma reactive tilt quiz" id="sample" data-anim aria-labelledby="quiz-q">
+      <div class="glass e3 lens reactive tilt quiz" id="sample" data-anim aria-labelledby="quiz-q">
         <span class="lens-refract" aria-hidden="true"></span>
         <span class="sheen" aria-hidden="true"></span>
         <span class="sweep" aria-hidden="true"></span>
@@ -1287,7 +1287,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 <section class="section-pad" id="readiness" aria-labelledby="ready-h">
   <div class="wrap">
     <div class="ready-grid zone" style="--zone-hue:158 50% 80%">
-      <div class="glass e3 lens chroma reactive tilt ready-card reveal" data-anim style="--bd:1.2s">
+      <div class="glass e3 lens reactive tilt ready-card reveal" data-anim style="--bd:1.2s">
         <span class="lens-refract" aria-hidden="true"></span>
         <span class="sheen" aria-hidden="true"></span>
         <span class="sweep" aria-hidden="true"></span>
