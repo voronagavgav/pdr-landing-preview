@@ -280,14 +280,9 @@ button{font-family:inherit;cursor:pointer}
 .ready-num.count{animation:numpulse .6s var(--calm-ease)}
 @keyframes numpulse{0%{transform:scale(.96);opacity:.7}100%{transform:scale(1);opacity:1}}
 
-/* H — subtle ELASTIC pull toward the cursor (≤4px) on the lens panels; --px/--py set in JS.
-   (No 3D rotate: rotating a backdrop-filter panel re-rasterises it at an angle and blurs it.) */
-.tilt{transition:transform .3s var(--calm-ease)}
-@media(hover:hover) and (min-width:760px){
-  /* elastic PULL toward the cursor only — no 3D rotate. Rotating a backdrop-filter glass panel
-     re-rasterises it at an angle and softens the text/glass (the "blurry on hover" Danil saw). */
-  .tilt:hover{transform:translate3d(var(--px,0),var(--py,0),0)}
-}
+/* H — (removed) the lens panels USED to pull/tilt toward the cursor on hover, but ANY transform on a
+   backdrop-filter panel re-samples it sub-pixel and softens the text while you read it. The quiz panel
+   must stay crisp, so there is no hover transform now — only the pointer sheen (a light overlay) remains. */
 
 /* soft green inner-glow bloom (readiness gauge + final CTA), screen blend */
 .glass>.bloom,.bloom{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:1;mix-blend-mode:screen;
@@ -661,13 +656,13 @@ section{position:relative}
 /* the #how zone pool is the ONLY background here, so it must clearly FRAME the 3-card row with a
    tint margin (the previous faint off-centre wash was smaller than the row — outer cards overran it). */
 #how .zone::before{
-  inset:-13% -3.4%;
+  inset:-22% -8%;
   background:
-    radial-gradient(96% 90% at 50% 48%, hsl(var(--zone-hue,158 50% 80%) / .12), transparent 80%),
-    radial-gradient(46% 72% at 13% 26%, hsl(var(--zone-hue,158 50% 80%) / .07), transparent 72%),
-    radial-gradient(46% 72% at 87% 78%, hsl(28 60% 84% / .06), transparent 72%);
-  -webkit-mask-image:radial-gradient(118% 128% at 50% 50%, #000 82%, transparent 100%);
-          mask-image:radial-gradient(118% 128% at 50% 50%, #000 82%, transparent 100%);
+    radial-gradient(92% 86% at 50% 50%, hsl(var(--zone-hue,158 50% 80%) / .12), transparent 82%),
+    radial-gradient(44% 68% at 14% 28%, hsl(var(--zone-hue,158 50% 80%) / .07), transparent 72%),
+    radial-gradient(44% 68% at 86% 76%, hsl(28 60% 84% / .06), transparent 72%);
+  -webkit-mask-image:radial-gradient(124% 138% at 50% 50%, #000 74%, transparent 100%);
+          mask-image:radial-gradient(124% 138% at 50% 50%, #000 74%, transparent 100%);
 }
 
 /* ---------- gamification showcase (glass/opaque chrome) ---------- */
@@ -937,7 +932,6 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   .msh{animation:none!important;transform:none!important;opacity:.12!important}
   .ripple{animation:none!important}
   .ripple{display:none}
-  .tilt:hover{transform:none}
   .ring .val,.xp-bar i,.meter i{transition:none!important}
   .reveal{opacity:1;transform:none;transition:opacity .15s linear}
   .btn:hover,.lift:hover,.opt:hover{transform:none}
@@ -1059,8 +1053,8 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         </div>
       </div>
 
-      <!-- SAMPLE QUESTION — SIGNATURE #1 liquid-glass panel (single #lg SVG lens + pointer sheen + tilt) -->
-      <div class="glass e3 lens reactive tilt quiz" id="sample" aria-labelledby="quiz-q">
+      <!-- SAMPLE QUESTION — SIGNATURE #1 liquid-glass panel (single #lg SVG lens + pointer sheen) -->
+      <div class="glass e3 lens reactive quiz" id="sample" aria-labelledby="quiz-q">
         <span class="lens-refract" aria-hidden="true"></span>
         <span class="sheen" aria-hidden="true"></span>
         <div class="quiz-head">
@@ -1326,7 +1320,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 <section class="section-pad" id="readiness" aria-labelledby="ready-h">
   <div class="wrap">
     <div class="ready-grid zone" style="--zone-hue:158 50% 80%">
-      <div class="glass e3 lens reactive tilt ready-card reveal" style="--bd:1.2s">
+      <div class="glass e3 lens reactive ready-card reveal" style="--bd:1.2s">
         <span class="lens-refract" aria-hidden="true"></span>
         <span class="sheen" aria-hidden="true"></span>
         <span class="bloom" aria-hidden="true"></span>
@@ -1534,11 +1528,10 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     window.addEventListener('keydown',function(e){ if(e.key==='Escape') setOpen(false); });
   })();
 
-  /* ---------- Pointer-reactive sheen + micro tilt (rAF-throttled, ≤2°) ---------- */
-  var finePointer = window.matchMedia && window.matchMedia('(hover:hover) and (min-width:760px)').matches;
+  /* ---------- Pointer-reactive sheen (rAF-throttled). No tilt/pull — it blurred the glass text. ---------- */
   if(!reduceMotion){
     document.querySelectorAll('.reactive').forEach(function(el){
-      var raf = 0, lx = 50, ly = 50, canTilt = finePointer && el.classList.contains('tilt');
+      var raf = 0, lx = 50, ly = 50;
       el.addEventListener('pointermove', function(e){
         var r = el.getBoundingClientRect();
         lx = (e.clientX - r.left)/r.width*100;
@@ -1548,14 +1541,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
           raf = 0;
           el.style.setProperty('--mx', lx.toFixed(1)+'%');
           el.style.setProperty('--my', ly.toFixed(1)+'%');
-          if(canTilt){
-            el.style.setProperty('--px', ((lx-50)/50*4).toFixed(1)+'px');   /* elastic pull toward cursor */
-            el.style.setProperty('--py', ((ly-50)/50*4).toFixed(1)+'px');
-          }
         });
-      });
-      if(canTilt) el.addEventListener('pointerleave', function(){
-        el.style.setProperty('--px','0px'); el.style.setProperty('--py','0px');
       });
     });
   }
