@@ -670,6 +670,24 @@ section{position:relative}
 /* corners fix: squircle (superellipse) corners drop their border in Chrome — use round so the border is continuous */
 #how .step{corner-shape:round}
 
+/* ---------- route connectors + step icons (the steps read as ONE route 1→2→3) ---------- */
+.steps{position:relative}
+.step{position:relative;z-index:1}
+/* quiet muted line-icon, top-right of each card (balances the number badge on the left) */
+.step .step-ic{position:absolute;top:34px;right:24px;width:26px;height:26px;color:hsl(205 15% 62%);opacity:.62;pointer-events:none}
+.step .step-ic svg{width:100%;height:100%;display:block}
+/* mobile (stacked): a down-chevron in the gap below each non-last step */
+.step:not(:last-child)::after{content:"";position:absolute;left:50%;bottom:-20px;width:20px;height:20px;transform:translateX(-50%);opacity:.7;z-index:2;pointer-events:none;
+  background:center/contain no-repeat url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2389a2ad' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>")}
+@media(min-width:860px){
+  /* swap to a horizontal route: hide the mobile down-chevrons, draw right-chevrons in the two gaps at badge height */
+  .steps>.step:not(:last-child)::after{display:none}
+  .steps::before,.steps::after{content:"";position:absolute;top:55px;width:22px;height:22px;transform:translate(-50%,-50%);opacity:.7;z-index:2;pointer-events:none;
+    background:center/contain no-repeat url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2389a2ad' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></svg>")}
+  .steps::before{left:calc((100% - 40px)/3 + 10px)}
+  .steps::after{left:calc((100% - 40px)*2/3 + 30px)}
+}
+
 /* ===== Liquid-glass TWEAKS — applied when toggles are on (panel-driven) ===== */
 /* "Скло всюди": every frosted panel refracts like the hero lens + gains the dome gloss */
 .lg-everywhere.refraction-ok .glass::before{ backdrop-filter:url(#lg) var(--e2-blur); }
@@ -1175,19 +1193,22 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     <div class="zone reveal" style="--zone-hue:158 50% 80%">
       <div class="glass tray">
       <span class="tray-edge" aria-hidden="true"></span>
-      <div class="steps" data-comment-anchor="4967a12388-div" style="height: 246px; opacity: 1">
+      <div class="steps" data-comment-anchor="4967a12388-div" style="opacity: 1">
         <div class="solid step lift" style="border-radius: 22px; border-width: 1px; padding: 30px 26px">
           <div class="num">1</div>
+          <span class="step-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.4 5.4 8.2 4.9 6 4.9c-1 0-1.9.1-2.6.3v12.4c.7-.2 1.6-.3 2.6-.3 2.2 0 4.4.5 6 1.7m0-12.4c1.6-1.2 3.8-1.7 6-1.7 1 0 1.9.1 2.6.3v12.4c-.7-.2-1.6-.3-2.6-.3-2.2 0-4.4.5-6 1.7m0-12.4V19"/></svg></span>
           <h3>Вивчай тему</h3>
           <p>Коротко й зрозуміло: знаки, розмітка, пріоритети — без юридичної води.</p>
         </div>
         <div class="solid step lift">
           <div class="num">2</div>
+          <span class="step-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 9.4A7.5 7.5 0 0 1 17 6.2l2.4 2.2m.1-4.4v4.4H15M19.4 14.6A7.5 7.5 0 0 1 7 17.8l-2.4-2.2m-.1 4.4v-4.4H9"/></svg></span>
           <h3>Тренуйся розумно</h3>
           <p>Система сама повертає питання, у яких ти помилився, поки ти їх не закріпиш.</p>
         </div>
         <div class="solid step lift">
           <div class="num">3</div>
+          <span class="step-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4.5" width="14" height="16.5" rx="2.6"/><path d="M9 4.5v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M8.6 11.3l1.5 1.5 2.7-2.9M8.6 16.5h5"/></svg></span>
           <h3>Складай пробний іспит</h3>
           <p>Той самий формат, що й офіційний: 20 питань, 20 хвилин, максимум 2 помилки.</p>
         </div>
