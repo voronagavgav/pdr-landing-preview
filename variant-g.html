@@ -668,16 +668,12 @@ section{position:relative}
 /* the #how zone pool is the ONLY background here, so it must clearly FRAME the 3-card row with a
    tint margin (the previous faint off-centre wash was smaller than the row — outer cards overran it). */
 #how .zone::before{
-  /* a ROUNDED-RECT soft panel (not a radial blob — a radial fades at the corners, so the outer card
-     corners always sat where the tint had run out). FIXED-px margin so it's even on all 4 sides and
-     consistent on desktop + mobile (a % vertical inset overhung the heading on the tall mobile zone). */
-  inset:-28px -16px;
+  /* a CLEARLY-VISIBLE soft-gray rounded panel the 3 cards sit on (Danil wants a real filled zone, not a
+     faint tint or a thin border). Cool light gray reads "slightly gray" against the warm cream page; the
+     near-white cards pop on it. FIXED-px even margin all 4 sides, consistent desktop + mobile. */
+  inset:-34px -22px;
   border-radius:30px;
-  background:linear-gradient(150deg,
-    hsl(var(--zone-hue,158 50% 80%) / .13) 0%,
-    hsl(var(--zone-hue,158 50% 80%) / .08) 52%,
-    hsl(28 60% 84% / .08) 100%);
-  box-shadow:inset 0 0 0 1px hsl(0 0% 100% / .35);
+  background:hsl(214 16% 92.5%);
   -webkit-mask-image:none;
           mask-image:none;
 }
