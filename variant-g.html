@@ -309,6 +309,9 @@ button{font-family:inherit;cursor:pointer}
   background:hsl(152 50% 84%/.9);border:1px solid hsl(0 0% 100%/.7);
   box-shadow:0 2px 8px hsl(152 40% 35%/.2), inset 0 1px 1px hsl(0 0% 100%/.8);
   transition:transform .3s var(--calm-ease), width .3s var(--calm-ease)}
+/* the active segment reads as a glass capsule (top specular gloss) */
+.seg .thumb::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,hsl(0 0% 100% / .55),transparent 52%);mix-blend-mode:screen}
 
 /* near-opaque READING card — for question text + options + feature copy */
 .solid{
@@ -341,8 +344,12 @@ button{font-family:inherit;cursor:pointer}
     inset 1.5px 1.5px 2px hsl(0 0% 100% / .55),
     inset -1.5px -1.5px 3px hsl(152 40% 45% / .22);
 }
-/* NO ::before backdrop-blur: the green fill is near-opaque, so the blur barely read
-   yet counted as a co-visible layer (2 CTAs live in the hero viewport). Flat green pill. */
+/* No backdrop-blur (flat green pill) — but a liquid light-SWEEP on hover: the glass catches light. */
+.cta-glass::before{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(105deg,transparent 40%,hsl(0 0% 100% / .5) 50%,transparent 60%);
+  background-size:250% 100%;background-position:200% 0;opacity:0;mix-blend-mode:screen}
+@media(hover:hover){.cta-glass:hover::before{opacity:1;animation:liquidSweep .85s var(--calm-ease)}}
+@keyframes liquidSweep{from{background-position:200% 0}to{background-position:-60% 0}}
 .cta-glass::after{
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
   background:linear-gradient(135deg, hsl(0 0% 100% / .5) 0%, hsl(0 0% 100% / .08) 22%, transparent 46%);
@@ -509,6 +516,13 @@ h1.hero-title .soft{color:var(--green-deep)}
 .opt:hover:not(:disabled){transform:translateY(-2px);box-shadow:var(--float)}
 .opt:active:not(:disabled){transform:translateY(0)}
 .opt:disabled{cursor:default}
+/* liquid glass behaviour on answer buttons — light sweeps across on hover */
+.opt{position:relative;overflow:hidden}
+.opt>*{position:relative;z-index:2}
+.opt::after{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(105deg,transparent 42%,hsl(0 0% 100% / .42) 50%,transparent 58%);
+  background-size:250% 100%;background-position:200% 0;opacity:0;mix-blend-mode:screen}
+@media(hover:hover){.opt:hover:not(:disabled)::after{opacity:1;animation:liquidSweep .7s var(--calm-ease)}}
 .opt .mark{
   flex:0 0 auto;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;
   background:hsl(158 30% 90%);font-family:var(--font-display);font-weight:700;font-size:.9rem;color:var(--muted);
