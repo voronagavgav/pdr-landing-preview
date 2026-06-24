@@ -70,8 +70,8 @@
     0 2px 4px hsl(210 40% 38% / .12),
     0 18px 48px hsl(210 44% 40% / .22),
     0 4px 14px hsl(210 44% 40% / .14);
-  --e3-blur: blur(8px) saturate(185%) brightness(110%);
-  --e3-fill: hsl(var(--glass-tint) / .50);
+  --e3-blur: blur(8px) saturate(196%) brightness(118%);
+  --e3-fill: hsl(var(--glass-tint) / .38);   /* lens: more transparent + bright = glassy, not a gray card */
 
   /* shared rim: bright top-left bevel + shaded bottom-right + top gloss. Reused on ALL tiers. */
   --rim:
@@ -228,7 +228,8 @@ button{font-family:inherit;cursor:pointer}
 .glass.lens .lens-refract{position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;overflow:hidden}
 .glass.lens .lens-refract::before{content:"";position:absolute;inset:-30%;
   background:
-    radial-gradient(26rem 22rem at 82% 6%,  hsl(var(--anchor) / .12), transparent 64%),
+    radial-gradient(22rem 18rem at 86% 22%, hsl(165 64% 86% / .32), transparent 60%),
+    radial-gradient(26rem 22rem at 82% 6%,  hsl(var(--anchor) / .10), transparent 64%),
     radial-gradient(46rem 46rem at 10% 12%, hsl(158 52% 80% / .26), transparent 62%),
     radial-gradient(44rem 44rem at 92% 34%, hsl(202 56% 82% / .24), transparent 62%),
     radial-gradient(48rem 48rem at 50% 98%, hsl(28 62% 86% / .22), transparent 62%);
@@ -436,6 +437,9 @@ header.site{
    HERO
    ============================================================ */
 .hero{position:relative;padding:40px 0 26px}
+/* light, BRIGHT mint glow behind the #sample lens so the glass picks up clean light colour (not gray) */
+.hero::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(22rem 18rem at 88% 24%, hsl(165 64% 86% / .32), transparent 60%)}
 .hero-grid{position:relative;z-index:2;display:grid;gap:30px;align-items:center}
 .eyebrow{
   display:inline-flex;align-items:center;gap:8px;
@@ -725,8 +729,8 @@ section{position:relative}
 .ready-grid{position:relative}
 .ready-grid::after{content:"";position:absolute;z-index:0;pointer-events:none;
   width:min(420px,86vw);height:300px;left:50%;top:50%;transform:translate(-50%,-50%);
-  background:radial-gradient(58% 58% at 50% 42%, hsl(158 52% 82% / .13), transparent 66%),
-            radial-gradient(50% 50% at 58% 82%, hsl(202 58% 84% / .09), transparent 70%);
+  background:radial-gradient(60% 60% at 50% 40%, hsl(165 64% 86% / .30), transparent 64%),
+            radial-gradient(50% 50% at 58% 82%, hsl(202 60% 88% / .15), transparent 70%);
   -webkit-mask-image:radial-gradient(120% 100% at 50% 50%, #000 50%, transparent 100%);
           mask-image:radial-gradient(120% 100% at 50% 50%, #000 50%, transparent 100%)}
 @media(min-width:900px){.ready-grid::after{left:auto;right:0;transform:translateY(-50%);width:min(440px,42vw)}}
