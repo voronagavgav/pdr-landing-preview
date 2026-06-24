@@ -674,24 +674,20 @@ section{position:relative}
 .merge-divider::before,.merge-divider::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,hsl(158 30% 80%),transparent)}
 .merge-divider span{font-family:var(--font-display);font-weight:700;font-size:.92rem;letter-spacing:.01em;white-space:nowrap}
 /* demo video block — a rich "show, don't tell" media moment (togcard-style: the block IS a video) */
-/* animation wired INTO the existing streak block — its day-cells fill in a continuous wave + flame flickers
-   (no separate block; the motion lives inside a card you already have) */
-@media (prefers-reduced-motion: no-preference){
-  .streak-days span{animation:streakFill 5s ease-in-out infinite}
-  .streak-days span:nth-child(2){animation-delay:.3s}
-  .streak-days span:nth-child(3){animation-delay:.6s}
-  .streak-days span:nth-child(4){animation-delay:.9s}
-  .streak-days span:nth-child(5){animation-delay:1.2s}
-  .streak-days span:nth-child(6){animation-delay:1.5s}
-  .streak-days span:nth-child(7){animation-delay:1.8s}
-  .flame{animation:flameDance 2.6s ease-in-out infinite;transform-origin:60% 80%}
+/* streak day-cells fill ONCE when the card reveals (same idiom as the Level bar — a CSS transition on
+   reveal, staggered; NOT an always-running loop) */
+.streak-days span{transition:background .5s var(--calm-ease), border-color .5s var(--calm-ease)}
+.streak-days span.on{background:hsl(34 28% 91%);border-color:hsl(30 26% 84%)}
+.reveal.in .streak-days span.on{background:linear-gradient(90deg,hsl(34 50% 70%),hsl(24 50% 64%));border-color:hsl(24 38% 64%)}
+.reveal.in .streak-days span.on:nth-child(2){transition-delay:.1s}
+.reveal.in .streak-days span.on:nth-child(3){transition-delay:.2s}
+.reveal.in .streak-days span.on:nth-child(4){transition-delay:.3s}
+.reveal.in .streak-days span.on:nth-child(5){transition-delay:.4s}
+.reveal.in .streak-days span.on:nth-child(6){transition-delay:.5s}
+@media (prefers-reduced-motion: reduce){
+  .streak-days span{transition:none}
+  .streak-days span.on{background:linear-gradient(90deg,hsl(34 50% 70%),hsl(24 50% 64%));border-color:hsl(24 38% 64%)}
 }
-@keyframes streakFill{
-  0%,5%{background:hsl(34 28% 91%);border-color:hsl(30 26% 84%)}
-  14%,76%{background:linear-gradient(90deg,hsl(34 50% 70%),hsl(24 50% 64%));border-color:hsl(24 38% 64%)}
-  90%,100%{background:hsl(34 28% 91%);border-color:hsl(30 26% 84%)}
-}
-@keyframes flameDance{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.1) rotate(-4deg)}}
 
 /* ---------- step icons only (clean cards; no connectors — they kept getting rejected) ---------- */
 .steps{position:relative}
