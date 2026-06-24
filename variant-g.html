@@ -214,6 +214,9 @@ button{font-family:inherit;cursor:pointer}
     radial-gradient(125% 80% at 50% -40%, hsl(0 0% 100% / .42), transparent 56%),
     linear-gradient(135deg, hsl(0 0% 100% / .55) 0%, hsl(0 0% 100% / .10) 18%, transparent 42%);
 }
+/* Fresnel-style reflective edge — the rim catches more light (per liquid-glass-studio feature set);
+   a faint full-perimeter inner highlight reads as an environment reflection on the glass edge. */
+.glass.lens{box-shadow:var(--e3-shadow), var(--rim), inset 0 0 0 1px hsl(0 0% 100% / .26)}
 .glass>*{position:relative;z-index:3}
 /* SVG edge lensing — reserved for hero panel + nav capsule layer only (Chromium) */
 .refraction-ok .glass.lens::before{
