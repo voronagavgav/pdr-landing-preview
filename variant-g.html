@@ -663,30 +663,60 @@ section{position:relative}
 @media(min-width:860px){.steps{grid-template-columns:repeat(3,1fr)}}
 /* #how: the e2 tray held OPAQUE cards (a near-invisible double-frame) — strip the glass
    so the 3 cards read as one sequence on the zone pool; keep only the hairline tray-edge. */
-#how .glass.tray{background:transparent;box-shadow:none;border:0;padding:0;overflow:visible}
-#how .glass.tray::before,#how .glass.tray::after{display:none}
+.method .glass.tray{background:transparent;box-shadow:none;border:0;padding:0;overflow:visible}
+.method .glass.tray::before,.method .glass.tray::after{display:none}
 /* white hairline pinned above the cards (z-index:4) — overlapped cards on hover; removed */
-#how .tray-edge{display:none}
+.method .tray-edge{display:none}
 /* corners fix: squircle (superellipse) corners drop their border in Chrome — use round so the border is continuous */
-#how .step{corner-shape:round}
+.method .step{corner-shape:round}
+/* divider between the method (3 steps) and the progress grid in the merged section */
+.merge-divider{display:flex;align-items:center;gap:16px;margin:34px 4px 22px;color:var(--green-deep)}
+.merge-divider::before,.merge-divider::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,hsl(158 30% 80%),transparent)}
+.merge-divider span{font-family:var(--font-display);font-weight:700;font-size:.92rem;letter-spacing:.01em;white-space:nowrap}
+/* demo video block — a rich "show, don't tell" media moment (togcard-style: the block IS a video) */
+/* LIVE demo block — a looping mini-animation of answering a question, integrated INTO a grid block
+   (togcard idea: a gif that just keeps running inside the block — no play button) */
+.game-card.video{position:relative;padding:0;overflow:hidden;min-height:230px;
+  background:
+    radial-gradient(90% 120% at 14% 6%, hsl(158 52% 90%), transparent 60%),
+    radial-gradient(90% 130% at 94% 98%, hsl(28 62% 90%), transparent 55%),
+    linear-gradient(160deg, hsl(200 56% 91%), hsl(150 46% 89%))}
+.glass.game-card.video::before{display:none}
+.demo-scene{position:absolute;inset:0}
+.demo-app{position:absolute;left:6%;top:13%;width:42%;max-width:320px;padding:14px;border-radius:15px;
+  background:hsl(0 0% 100% / .68);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  border:1px solid hsl(0 0% 100% / .72);box-shadow:0 12px 26px hsl(214 30% 45% / .18);display:flex;flex-direction:column;gap:8px}
+.demo-q{height:10px;border-radius:6px;background:hsl(214 18% 80%);width:86%}
+.demo-q.short{width:56%;margin-bottom:5px}
+.demo-opt{position:relative;height:22px;border-radius:8px;background:hsl(214 16% 88%);border:1px solid hsl(214 18% 82%)}
+.demo-opt.ok{background:hsl(152 46% 86%);border-color:var(--green-deep);animation:demoOk 5s ease-in-out infinite}
+.demo-check{position:absolute;right:7px;top:50%;width:15px;height:15px;opacity:1;transform:translateY(-50%) scale(1);animation:demoCheck 5s ease-in-out infinite}
+.demo-svit{position:absolute;right:4%;bottom:-6%;width:30%;max-width:165px;height:auto;filter:drop-shadow(0 12px 22px hsl(158 40% 38% / .26));animation:demoBob 3.6s ease-in-out infinite}
+.demo-chip{position:absolute;font-family:var(--font-display);font-weight:700;font-size:.8rem;color:var(--green-deep);
+  background:hsl(0 0% 100% / .76);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:1px solid hsl(0 0% 100% / .78);padding:5px 11px;border-radius:var(--radius-pill);box-shadow:0 8px 18px hsl(214 30% 45% / .16)}
+.demo-chip.xp{left:42%;top:16%;animation:demoXp 5s ease-in-out infinite}
+.demo-cap{position:absolute;left:16px;bottom:14px;display:inline-flex;align-items:center;gap:7px;font-family:var(--font-display);font-weight:700;font-size:.84rem;color:var(--ink);
+  background:hsl(0 0% 100% / .72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid hsl(0 0% 100% / .75);padding:5px 12px;border-radius:var(--radius-pill);box-shadow:0 8px 18px hsl(214 30% 45% / .16)}
+.demo-cap::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green-deep);animation:demoPulse 2s ease-out infinite}
+@keyframes demoOk{0%,16%{background:hsl(214 16% 88%);border-color:hsl(214 18% 82%)}28%,82%{background:hsl(152 46% 86%);border-color:var(--green-deep)}94%,100%{background:hsl(214 16% 88%);border-color:hsl(214 18% 82%)}}
+@keyframes demoCheck{0%,22%{opacity:0;transform:translateY(-50%) scale(.4)}34%,82%{opacity:1;transform:translateY(-50%) scale(1)}92%,100%{opacity:0;transform:translateY(-50%) scale(.4)}}
+@keyframes demoXp{0%,30%{opacity:0;transform:translateY(10px) scale(.85)}44%,78%{opacity:1;transform:translateY(0) scale(1)}88%,100%{opacity:0;transform:translateY(10px) scale(.85)}}
+@keyframes demoBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes demoPulse{0%{box-shadow:0 0 0 0 hsl(150 50% 60% / .6)}70%,100%{box-shadow:0 0 0 7px hsl(150 50% 60% / 0)}}
+@media(max-width:1040px){.game-card.video{min-height:250px}}
+@media (prefers-reduced-motion: reduce){
+  .demo-opt.ok,.demo-check,.demo-chip.xp,.demo-svit,.demo-cap::before{animation:none}
+  .demo-check{opacity:1;transform:translateY(-50%) scale(1)}
+  .demo-chip.xp{opacity:1;transform:none}
+}
 
-/* ---------- route connectors + step icons (the steps read as ONE route 1→2→3) ---------- */
+/* ---------- step icons only (clean cards; no connectors — they kept getting rejected) ---------- */
 .steps{position:relative}
 .step{position:relative;z-index:1}
 /* quiet muted line-icon, top-right of each card (balances the number badge on the left) */
 .step .step-ic{position:absolute;top:34px;right:24px;width:26px;height:26px;color:hsl(205 15% 62%);opacity:.62;pointer-events:none}
 .step .step-ic svg{width:100%;height:100%;display:block}
-/* mobile (stacked): a down-chevron in the gap below each non-last step */
-.step:not(:last-child)::after{content:"";position:absolute;left:50%;bottom:-20px;width:20px;height:20px;transform:translateX(-50%);opacity:.7;z-index:2;pointer-events:none;
-  background:center/contain no-repeat url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2389a2ad' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>")}
-@media(min-width:860px){
-  /* swap to a horizontal route: hide the mobile down-chevrons, draw right-chevrons in the two gaps at badge height */
-  .steps>.step:not(:last-child)::after{display:none}
-  .steps::before,.steps::after{content:"";position:absolute;top:55px;width:22px;height:22px;transform:translate(-50%,-50%);opacity:.7;z-index:2;pointer-events:none;
-    background:center/contain no-repeat url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2389a2ad' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></svg>")}
-  .steps::before{left:calc((100% - 40px)/3 + 10px)}
-  .steps::after{left:calc((100% - 40px)*2/3 + 30px)}
-}
 
 /* ===== Liquid-glass TWEAKS — applied when toggles are on (panel-driven) ===== */
 /* "Скло всюди": every frosted panel refracts like the hero lens + gains the dome gloss */
@@ -981,17 +1011,6 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   .reactive .sheen{display:none}
 }
 </style>
-<style id="lg-baked">/* baked from the Design-app tweak defaults: glass everywhere · transparency .46 · frost 10px */
-:root{
-  --e2-fill:hsl(var(--glass-tint) / 0.46);
-  --e1-fill:hsl(var(--glass-tint) / 0.52);
-  --e3-fill:hsl(var(--glass-tint) / 0.267);
-  --lg-solid-alpha:0.80;
-  --e2-blur:blur(10px) saturate(175%) brightness(108%);
-  --e1-blur:blur(7.0px) saturate(160%) brightness(106%);
-  --e3-blur:blur(6.0px) saturate(168%) brightness(133%);
-}
-</style>
 </head>
 <body class="lg-everywhere">
 
@@ -1055,7 +1074,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       </a>
       <div class="nav-links">
         <a href="#features">Можливості</a>
-        <a href="#how">Як це працює</a>
+        <a href="#game">Як це працює</a>
         <a href="#pricing">Тарифи</a>
         <a href="#faq">Питання</a>
       </div>
@@ -1067,7 +1086,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     </nav>
     <div class="mobile-menu" id="mobile-menu">
       <a href="#features">Можливості</a>
-      <a href="#how">Як це працює</a>
+      <a href="#game">Як це працює</a>
       <a href="#pricing">Тарифи</a>
       <a href="#faq">Питання</a>
       <a href="#top">Увійти</a>
@@ -1182,18 +1201,20 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   </div>
 </section>
 
-<!-- ============================ HOW IT WORKS ============================ -->
-<section class="section-pad" id="how" aria-labelledby="how-h" style="padding: 104px 0px">
-  <div class="wrap" data-comment-anchor="f6b4d9f71b-div" style="opacity: 1">
+<!-- ============================ HOW IT WORKS + PROGRESS (merged) ============================ -->
+<section class="section-pad" id="game" aria-labelledby="game-h">
+  <div class="wrap">
     <div class="section-head reveal">
       <span class="tag">Як це працює</span>
-      <h2 id="how-h">Три спокійні кроки до «склав»</h2>
-      <p>Ніякого хаосу — зрозумілий маршрут від першого питання до пробного іспиту.</p>
+      <h2 id="game-h">Три кроки. І прогрес, який видно.</h2>
+      <p>Спокійний метод — і мотивація, яка тримає аж до іспиту.</p>
     </div>
-    <div class="zone reveal" style="--zone-hue:158 50% 80%">
+
+    <!-- the method: 3 calm steps -->
+    <div class="zone method reveal" style="--zone-hue:158 50% 80%">
       <div class="glass tray">
       <span class="tray-edge" aria-hidden="true"></span>
-      <div class="steps" data-comment-anchor="4967a12388-div" style="opacity: 1">
+      <div class="steps">
         <div class="solid step lift" style="border-radius: 22px; border-width: 1px; padding: 30px 26px">
           <div class="num">1</div>
           <span class="step-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.4 5.4 8.2 4.9 6 4.9c-1 0-1.9.1-2.6.3v12.4c.7-.2 1.6-.3 2.6-.3 2.2 0 4.4.5 6 1.7m0-12.4c1.6-1.2 3.8-1.7 6-1.7 1 0 1.9.1 2.6.3v12.4c-.7-.2-1.6-.3-2.6-.3-2.2 0-4.4.5-6 1.7m0-12.4V19"/></svg></span>
@@ -1215,19 +1236,25 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       </div>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- ============================ GAMIFICATION ============================ -->
-<section class="section-pad" id="game" aria-labelledby="game-h">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="tag">Мотивація</span>
-      <h2 id="game-h">Вчись, як у грі</h2>
-      <p>Прогрес, який видно — і не хочеться кидати.</p>
-    </div>
+    <!-- connective label into the progress part -->
+    <div class="merge-divider reveal"><span>А ось твій прогрес</span></div>
 
     <div class="game-grid zone" style="--zone-hue:158 50% 80%">
+      <!-- demo video — ONE block among the progress tiles (togcard-style, integrated) -->
+      <div class="glass game-card video span2 lift reveal">
+        <div class="demo-scene" aria-hidden="true">
+          <div class="demo-app">
+            <span class="demo-q"></span><span class="demo-q short"></span>
+            <span class="demo-opt"></span>
+            <span class="demo-opt ok"><svg class="demo-check" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span>
+            <span class="demo-opt"></span>
+          </div>
+          <span class="demo-chip xp">+15 XP</span>
+          <svg class="demo-svit" viewBox="0 0 100 100"><use href="#svitlyk"/></svg>
+        </div>
+        <span class="demo-cap">Як це працює</span>
+      </div>
       <!-- streak -->
       <div class="glass game-card lift reveal">
         <div class="streak-top">
@@ -1541,7 +1568,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
           <h4>Продукт</h4>
           <a href="#features">Можливості</a>
           <a href="#pricing">Тарифи</a>
-          <a href="#how">Пробний іспит</a>
+          <a href="#game">Пробний іспит</a>
         </div>
         <div>
           <h4>Підтримка</h4>
