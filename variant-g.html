@@ -674,42 +674,24 @@ section{position:relative}
 .merge-divider::before,.merge-divider::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,hsl(158 30% 80%),transparent)}
 .merge-divider span{font-family:var(--font-display);font-weight:700;font-size:.92rem;letter-spacing:.01em;white-space:nowrap}
 /* demo video block — a rich "show, don't tell" media moment (togcard-style: the block IS a video) */
-/* LIVE demo block — a looping mini-animation of answering a question, integrated INTO a grid block
-   (togcard idea: a gif that just keeps running inside the block — no play button) */
-.game-card.video{position:relative;padding:0;overflow:hidden;min-height:230px;
-  background:
-    radial-gradient(90% 120% at 14% 6%, hsl(158 52% 90%), transparent 60%),
-    radial-gradient(90% 130% at 94% 98%, hsl(28 62% 90%), transparent 55%),
-    linear-gradient(160deg, hsl(200 56% 91%), hsl(150 46% 89%))}
-.glass.game-card.video::before{display:none}
-.demo-scene{position:absolute;inset:0}
-.demo-app{position:absolute;left:6%;top:13%;width:42%;max-width:320px;padding:14px;border-radius:15px;
-  background:hsl(0 0% 100% / .68);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
-  border:1px solid hsl(0 0% 100% / .72);box-shadow:0 12px 26px hsl(214 30% 45% / .18);display:flex;flex-direction:column;gap:8px}
-.demo-q{height:10px;border-radius:6px;background:hsl(214 18% 80%);width:86%}
-.demo-q.short{width:56%;margin-bottom:5px}
-.demo-opt{position:relative;height:22px;border-radius:8px;background:hsl(214 16% 88%);border:1px solid hsl(214 18% 82%)}
-.demo-opt.ok{background:hsl(152 46% 86%);border-color:var(--green-deep);animation:demoOk 5s ease-in-out infinite}
-.demo-check{position:absolute;right:7px;top:50%;width:15px;height:15px;opacity:1;transform:translateY(-50%) scale(1);animation:demoCheck 5s ease-in-out infinite}
-.demo-svit{position:absolute;right:4%;bottom:-6%;width:30%;max-width:165px;height:auto;filter:drop-shadow(0 12px 22px hsl(158 40% 38% / .26));animation:demoBob 3.6s ease-in-out infinite}
-.demo-chip{position:absolute;font-family:var(--font-display);font-weight:700;font-size:.8rem;color:var(--green-deep);
-  background:hsl(0 0% 100% / .76);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  border:1px solid hsl(0 0% 100% / .78);padding:5px 11px;border-radius:var(--radius-pill);box-shadow:0 8px 18px hsl(214 30% 45% / .16)}
-.demo-chip.xp{left:42%;top:16%;animation:demoXp 5s ease-in-out infinite}
-.demo-cap{position:absolute;left:16px;bottom:14px;display:inline-flex;align-items:center;gap:7px;font-family:var(--font-display);font-weight:700;font-size:.84rem;color:var(--ink);
-  background:hsl(0 0% 100% / .72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid hsl(0 0% 100% / .75);padding:5px 12px;border-radius:var(--radius-pill);box-shadow:0 8px 18px hsl(214 30% 45% / .16)}
-.demo-cap::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green-deep);animation:demoPulse 2s ease-out infinite}
-@keyframes demoOk{0%,16%{background:hsl(214 16% 88%);border-color:hsl(214 18% 82%)}28%,82%{background:hsl(152 46% 86%);border-color:var(--green-deep)}94%,100%{background:hsl(214 16% 88%);border-color:hsl(214 18% 82%)}}
-@keyframes demoCheck{0%,22%{opacity:0;transform:translateY(-50%) scale(.4)}34%,82%{opacity:1;transform:translateY(-50%) scale(1)}92%,100%{opacity:0;transform:translateY(-50%) scale(.4)}}
-@keyframes demoXp{0%,30%{opacity:0;transform:translateY(10px) scale(.85)}44%,78%{opacity:1;transform:translateY(0) scale(1)}88%,100%{opacity:0;transform:translateY(10px) scale(.85)}}
-@keyframes demoBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-@keyframes demoPulse{0%{box-shadow:0 0 0 0 hsl(150 50% 60% / .6)}70%,100%{box-shadow:0 0 0 7px hsl(150 50% 60% / 0)}}
-@media(max-width:1040px){.game-card.video{min-height:250px}}
-@media (prefers-reduced-motion: reduce){
-  .demo-opt.ok,.demo-check,.demo-chip.xp,.demo-svit,.demo-cap::before{animation:none}
-  .demo-check{opacity:1;transform:translateY(-50%) scale(1)}
-  .demo-chip.xp{opacity:1;transform:none}
+/* animation wired INTO the existing streak block — its day-cells fill in a continuous wave + flame flickers
+   (no separate block; the motion lives inside a card you already have) */
+@media (prefers-reduced-motion: no-preference){
+  .streak-days span{animation:streakFill 5s ease-in-out infinite}
+  .streak-days span:nth-child(2){animation-delay:.3s}
+  .streak-days span:nth-child(3){animation-delay:.6s}
+  .streak-days span:nth-child(4){animation-delay:.9s}
+  .streak-days span:nth-child(5){animation-delay:1.2s}
+  .streak-days span:nth-child(6){animation-delay:1.5s}
+  .streak-days span:nth-child(7){animation-delay:1.8s}
+  .flame{animation:flameDance 2.6s ease-in-out infinite;transform-origin:60% 80%}
 }
+@keyframes streakFill{
+  0%,5%{background:hsl(34 28% 91%);border-color:hsl(30 26% 84%)}
+  14%,76%{background:linear-gradient(90deg,hsl(34 50% 70%),hsl(24 50% 64%));border-color:hsl(24 38% 64%)}
+  90%,100%{background:hsl(34 28% 91%);border-color:hsl(30 26% 84%)}
+}
+@keyframes flameDance{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.1) rotate(-4deg)}}
 
 /* ---------- step icons only (clean cards; no connectors — they kept getting rejected) ---------- */
 .steps{position:relative}
@@ -1241,20 +1223,6 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     <div class="merge-divider reveal"><span>А ось твій прогрес</span></div>
 
     <div class="game-grid zone" style="--zone-hue:158 50% 80%">
-      <!-- demo video — ONE block among the progress tiles (togcard-style, integrated) -->
-      <div class="glass game-card video span2 lift reveal">
-        <div class="demo-scene" aria-hidden="true">
-          <div class="demo-app">
-            <span class="demo-q"></span><span class="demo-q short"></span>
-            <span class="demo-opt"></span>
-            <span class="demo-opt ok"><svg class="demo-check" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span>
-            <span class="demo-opt"></span>
-          </div>
-          <span class="demo-chip xp">+15 XP</span>
-          <svg class="demo-svit" viewBox="0 0 100 100"><use href="#svitlyk"/></svg>
-        </div>
-        <span class="demo-cap">Як це працює</span>
-      </div>
       <!-- streak -->
       <div class="glass game-card lift reveal">
         <div class="streak-top">
