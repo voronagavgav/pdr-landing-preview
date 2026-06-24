@@ -102,7 +102,9 @@ body{
 body::before{
   content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;
   background:
-    radial-gradient(26rem 22rem at 82% 6%,  hsl(var(--anchor) / .16), transparent 64%),
+    /* stronger LOCAL contrast pool behind the hero #sample lens so the refraction has more to bend */
+    radial-gradient(24rem 20rem at 80% 4%,   hsl(var(--anchor) / .30), transparent 60%),
+    radial-gradient(26rem 22rem at 82% 6%,  hsl(var(--anchor) / .18), transparent 64%),
     radial-gradient(46rem 46rem at 10% 12%, hsl(158 52% 80% / .26), transparent 62%),
     radial-gradient(44rem 44rem at 92% 34%, hsl(202 56% 82% / .24), transparent 62%),
     radial-gradient(48rem 48rem at 50% 98%, hsl(28 62% 86% / .22), transparent 62%);
@@ -130,7 +132,7 @@ button{font-family:inherit;cursor:pointer}
 
 /* faint masked grid ONLY under the hero zone — fine high-contrast edges the lens can bend */
 .bg-detail{
-  position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.045;
+  position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.08;
   background-image:
     repeating-linear-gradient(0deg,  hsl(208 22% 48% / .5) 0 1px, transparent 1px 46px),
     repeating-linear-gradient(90deg, hsl(208 22% 48% / .5) 0 1px, transparent 1px 46px);
@@ -221,6 +223,19 @@ button{font-family:inherit;cursor:pointer}
    a faint full-perimeter inner highlight reads as an environment reflection on the glass edge. */
 .glass.lens{box-shadow:var(--e3-shadow), var(--rim), inset 0 0 0 1px hsl(0 0% 100% / .26)}
 .glass>*{position:relative;z-index:3}
+/* SAFARI/FIREFOX refraction fallback: backdrop-filter:url() is Chromium-only, so refract a fixed-position
+   CLONE of the page's pastel field inside the lens via regular filter:url() (works everywhere). Hidden in
+   Chromium (.refraction-ok), which keeps the better LIVE backdrop refraction. */
+.glass.lens .lens-refract{position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;overflow:hidden}
+.glass.lens .lens-refract::before{content:"";position:absolute;inset:-30%;
+  background:
+    radial-gradient(24rem 20rem at 80% 4%,   hsl(var(--anchor) / .30), transparent 60%),
+    radial-gradient(46rem 46rem at 10% 12%, hsl(158 52% 80% / .26), transparent 62%),
+    radial-gradient(44rem 44rem at 92% 34%, hsl(202 56% 82% / .24), transparent 62%),
+    radial-gradient(48rem 48rem at 50% 98%, hsl(28 62% 86% / .22), transparent 62%);
+  background-attachment:fixed;
+  filter:url(#lg) saturate(140%) brightness(106%);opacity:.92}
+.refraction-ok .glass.lens .lens-refract{display:none}
 /* SVG edge lensing — reserved for hero panel + nav capsule layer only (Chromium) */
 .refraction-ok .glass.lens::before{
   backdrop-filter:url(#lg) blur(8px) saturate(185%) brightness(110%);
@@ -376,6 +391,9 @@ header.site{
   background:hsl(var(--glass-tint) / .70);
   box-shadow:var(--e2-shadow), var(--rim-pill);
 }
+/* PROMOTE the nav capsule to a real refraction lens in Chromium — the iconic liquid-glass toolbar
+   (refracts the content scrolling beneath it). Safari/FF keep the frosted -webkit fallback. */
+.refraction-ok .nav{ backdrop-filter:url(#lg) var(--e1-blur); }
 .nav>*{position:relative;z-index:3}
 /* nav sheen: tighter radius + centred default (the bar is only 62px tall) */
 .nav .sheen{z-index:2;background:radial-gradient(10rem 7rem at var(--mx,50%) var(--my,50%),
@@ -708,8 +726,9 @@ section{position:relative}
 .ready-grid{position:relative}
 .ready-grid::after{content:"";position:absolute;z-index:0;pointer-events:none;
   width:min(420px,86vw);height:300px;left:50%;top:50%;transform:translate(-50%,-50%);
-  background:radial-gradient(58% 58% at 50% 42%, hsl(158 50% 80% / .16), transparent 68%),
-            radial-gradient(50% 50% at 55% 80%, hsl(202 56% 82% / .11), transparent 70%);
+  background:radial-gradient(58% 58% at 50% 42%, hsl(158 52% 78% / .26), transparent 66%),
+            radial-gradient(50% 50% at 58% 82%, hsl(202 58% 80% / .18), transparent 70%),
+            radial-gradient(34% 34% at 42% 30%, hsl(28 60% 80% / .14), transparent 68%);
   -webkit-mask-image:radial-gradient(120% 100% at 50% 50%, #000 50%, transparent 100%);
           mask-image:radial-gradient(120% 100% at 50% 50%, #000 50%, transparent 100%)}
 @media(min-width:900px){.ready-grid::after{left:auto;right:0;transform:translateY(-50%);width:min(440px,42vw)}}
@@ -1000,6 +1019,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 
       <!-- SAMPLE QUESTION — SIGNATURE #1 liquid-glass panel (chromatic SVG lens + sweep + breathe + tilt) -->
       <div class="glass e3 lens chroma reactive tilt quiz" id="sample" data-anim aria-labelledby="quiz-q">
+        <span class="lens-refract" aria-hidden="true"></span>
         <span class="sheen" aria-hidden="true"></span>
         <span class="sweep" aria-hidden="true"></span>
         <div class="quiz-head">
@@ -1266,6 +1286,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   <div class="wrap">
     <div class="ready-grid zone" style="--zone-hue:158 50% 80%">
       <div class="glass e3 lens chroma reactive tilt ready-card reveal" data-anim style="--bd:1.2s">
+        <span class="lens-refract" aria-hidden="true"></span>
         <span class="sheen" aria-hidden="true"></span>
         <span class="sweep" aria-hidden="true"></span>
         <span class="bloom" aria-hidden="true"></span>
