@@ -162,6 +162,9 @@ button{font-family:inherit;cursor:pointer}
 .glass.e1::before{ -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur); }
 .glass.e3{ background:var(--e3-fill); box-shadow:var(--e3-shadow), var(--rim); }
 .glass.e3::before{ -webkit-backdrop-filter:var(--e3-blur); backdrop-filter:var(--e3-blur); }
+/* Apple SUPERELLIPSE (squircle) corners on panels + reading cards where supported (Chrome 139+);
+   gracefully ignored elsewhere → plain rounded fallback. superellipse(2) = the premium squircle. */
+.glass,.solid{ corner-shape:superellipse(2); }
 /* TRAY — biggest squircle + a 1px white→transparent top rim-light (section-edge treatment) */
 .tray{ border-radius:var(--radius-lg); padding:22px; }
 .tray>.tray-edge{ position:absolute; left:8%; right:8%; top:0; height:1px; z-index:4; pointer-events:none;
@@ -265,10 +268,10 @@ button{font-family:inherit;cursor:pointer}
 .ready-num.count{animation:numpulse .6s var(--calm-ease)}
 @keyframes numpulse{0%{transform:scale(.96);opacity:.7}100%{transform:scale(1);opacity:1}}
 
-/* H — micro pointer TILT (≤2°), driven by --tx/--ty in JS */
+/* H — micro pointer TILT (≤2°) + subtle ELASTIC pull toward the cursor (≤4px), --tx/--ty/--px/--py in JS */
 .tilt{transition:transform .3s var(--calm-ease)}
 @media(hover:hover) and (min-width:760px){
-  .tilt:hover{transform:perspective(900px) rotateX(var(--ty,0deg)) rotateY(var(--tx,0deg))}
+  .tilt:hover{transform:perspective(900px) rotateX(var(--ty,0deg)) rotateY(var(--tx,0deg)) translate3d(var(--px,0),var(--py,0),0)}
 }
 
 /* soft green inner-glow bloom (readiness gauge + final CTA), screen blend */
@@ -1476,11 +1479,14 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
           if(canTilt){
             el.style.setProperty('--tx', ((lx-50)/50*2).toFixed(2)+'deg');
             el.style.setProperty('--ty', ((50-ly)/50*2).toFixed(2)+'deg');
+            el.style.setProperty('--px', ((lx-50)/50*4).toFixed(1)+'px');   /* elastic pull toward cursor */
+            el.style.setProperty('--py', ((ly-50)/50*4).toFixed(1)+'px');
           }
         });
       });
       if(canTilt) el.addEventListener('pointerleave', function(){
         el.style.setProperty('--tx','0deg'); el.style.setProperty('--ty','0deg');
+        el.style.setProperty('--px','0px'); el.style.setProperty('--py','0px');
       });
     });
   }
