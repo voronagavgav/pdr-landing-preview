@@ -254,6 +254,18 @@ button{font-family:inherit;cursor:pointer}
   -webkit-backdrop-filter:url(#lg) blur(5px) saturate(180%) brightness(140%);
           backdrop-filter:url(#lg) blur(5px) saturate(180%) brightness(140%);
 }
+/* LIQUID-GLASS hover response on the hero panel: a single light-sweep glides across the glass.
+   It lives BELOW the text (z-index:2 < content z-index:3) and only animates a gradient's position +
+   opacity — the panel/text never transforms, so it stays crisp. Pairs with the pointer sheen. */
+#sample .glass-sweep{position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;
+  mix-blend-mode:screen;opacity:0;
+  background:linear-gradient(105deg,transparent 40%,hsl(0 0% 100% / .42) 50%,transparent 60%);
+  background-size:250% 100%;background-position:200% 0}
+@media(hover:hover) and (min-width:760px){
+  #sample:hover .glass-sweep{animation:heroSweep 1s var(--calm-ease)}
+}
+@keyframes heroSweep{0%{background-position:200% 0;opacity:0}
+  16%{opacity:.95}82%{opacity:.95}100%{background-position:-40% 0;opacity:0}}
 
 /* ---------- pointer-reactive specular sheen (gated by reduce-motion in JS+CSS) ---------- */
 .reactive{position:relative}
@@ -656,13 +668,18 @@ section{position:relative}
 /* the #how zone pool is the ONLY background here, so it must clearly FRAME the 3-card row with a
    tint margin (the previous faint off-centre wash was smaller than the row — outer cards overran it). */
 #how .zone::before{
-  inset:-22% -8%;
-  background:
-    radial-gradient(92% 86% at 50% 50%, hsl(var(--zone-hue,158 50% 80%) / .12), transparent 82%),
-    radial-gradient(44% 68% at 14% 28%, hsl(var(--zone-hue,158 50% 80%) / .07), transparent 72%),
-    radial-gradient(44% 68% at 86% 76%, hsl(28 60% 84% / .06), transparent 72%);
-  -webkit-mask-image:radial-gradient(124% 138% at 50% 50%, #000 74%, transparent 100%);
-          mask-image:radial-gradient(124% 138% at 50% 50%, #000 74%, transparent 100%);
+  /* a ROUNDED-RECT soft panel (not a radial blob — a radial fades at the corners, so the outer card
+     corners always sat where the tint had run out). FIXED-px margin so it's even on all 4 sides and
+     consistent on desktop + mobile (a % vertical inset overhung the heading on the tall mobile zone). */
+  inset:-28px -16px;
+  border-radius:30px;
+  background:linear-gradient(150deg,
+    hsl(var(--zone-hue,158 50% 80%) / .13) 0%,
+    hsl(var(--zone-hue,158 50% 80%) / .08) 52%,
+    hsl(28 60% 84% / .08) 100%);
+  box-shadow:inset 0 0 0 1px hsl(0 0% 100% / .35);
+  -webkit-mask-image:none;
+          mask-image:none;
 }
 
 /* ---------- gamification showcase (glass/opaque chrome) ---------- */
@@ -898,7 +915,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   .refraction-ok .glass.lens::before,.refraction-ok #sample.glass.lens::before{backdrop-filter:none;-webkit-backdrop-filter:none}
   header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none}
   footer.site{background:hsl(var(--glass-tint) / .98)}
-  .glass::after,.cta-glass::after,.sheen,.bg-detail,.drift,.zone::before,.ready-grid::after,.bloom,.tray>.tray-edge,.lens-refract{display:none}
+  .glass::after,.cta-glass::after,.sheen,.glass-sweep,.bg-detail,.drift,.zone::before,.ready-grid::after,.bloom,.tray>.tray-edge,.lens-refract{display:none}
 }
 @media (prefers-contrast:more){
   .glass,.solid,.cta-glass,.btn-ghost,.eyebrow,.speech,.opt,.node,.bdg,.plan,.seg,.stat,.chip-glass,.format-chip{background:#fff;border-color:#1F2933;color:var(--ink)}
@@ -1057,6 +1074,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       <div class="glass e3 lens reactive quiz" id="sample" aria-labelledby="quiz-q">
         <span class="lens-refract" aria-hidden="true"></span>
         <span class="sheen" aria-hidden="true"></span>
+        <span class="glass-sweep" aria-hidden="true"></span>
         <div class="quiz-head">
           <span class="kicker"><span aria-hidden="true">✨</span> Спробуй прямо зараз</span>
           <span class="quiz-helper">
