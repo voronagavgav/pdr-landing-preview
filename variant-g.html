@@ -29,6 +29,8 @@
   --green-deep:#226157;    /* deep green — ONLY green text/icons on white where contrast needed */
   --green-ink:#173B30;     /* dark slate-green text used on green glass CTA */
   --warn:#B4532E;          /* calm clear "wrong" (icon+label, never color alone) */
+  --warm-ink:#6a4a28;      /* tokenised warm text (format-chip, peach icon strokes) */
+  --amber:#B07A12;         /* tokenised rating amber — darkened to clear 3:1 (was #C98A1E) */
 
   /* glass tint (HSL parts so opacity is tunable) */
   --glass-tint:200 50% 97%;          /* soft cool-white */
@@ -92,18 +94,18 @@ body{
   -webkit-font-smoothing:antialiased;
   text-rendering:optimizeLegibility;
   overflow-x:hidden;
-  /* ---- CALM PASTEL FIELD: very soft mint/sky/peach washes on near-white ----
-     + ONE subtle low-opacity contrast pool behind the hero glass (top-right)
-       so the lens still has a faint dark->light edge to bend. Soft, not colorful. */
+  background:var(--bg-base);
+}
+/* ---- CALM PASTEL FIELD on a FIXED layer (no background-attachment:fixed repaint) ----
+   very soft mint/sky/peach washes + ONE subtle contrast pool behind the hero glass
+   (top-right) so the lens still has a faint dark->light edge to bend. Soft, not colorful. */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;
   background:
-    /* faint shadow-ish tint behind the hero glass (top-right) — gentle, ~.16 */
     radial-gradient(26rem 22rem at 82% 6%,  hsl(var(--anchor) / .16), transparent 64%),
-    /* soft pastel washes — low saturation, low opacity, near-white */
     radial-gradient(46rem 46rem at 10% 12%, hsl(158 52% 80% / .26), transparent 62%),
     radial-gradient(44rem 44rem at 92% 34%, hsl(202 56% 82% / .24), transparent 62%),
-    radial-gradient(48rem 48rem at 50% 98%, hsl(28 62% 86% / .22), transparent 62%),
-    var(--bg-base);
-  background-attachment:fixed;
+    radial-gradient(48rem 48rem at 50% 98%, hsl(28 62% 86% / .22), transparent 62%);
 }
 h1,h2,h3,h4{font-family:var(--font-display);font-weight:700;line-height:1.18;margin:0;letter-spacing:-.005em}
 h3,h4{font-weight:600}
@@ -158,7 +160,7 @@ button{font-family:inherit;cursor:pointer}
 }
 .glass.e1{ background:var(--e1-fill); box-shadow:var(--e1-shadow), var(--rim); border-radius:var(--radius-md); }
 .glass.e1::before{ -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur); }
-.glass.e3{ background:var(--e3-fill); box-shadow:var(--e3-shadow), var(--rim); will-change:transform; }
+.glass.e3{ background:var(--e3-fill); box-shadow:var(--e3-shadow), var(--rim); }
 .glass.e3::before{ -webkit-backdrop-filter:var(--e3-blur); backdrop-filter:var(--e3-blur); }
 /* TRAY — biggest squircle + a 1px white→transparent top rim-light (section-edge treatment) */
 .tray{ border-radius:var(--radius-lg); padding:22px; }
@@ -260,20 +262,20 @@ button{font-family:inherit;cursor:pointer}
 
 /* soft green inner-glow bloom (readiness gauge + final CTA), screen blend */
 .glass>.bloom,.bloom{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:1;mix-blend-mode:screen;
-  background:radial-gradient(50% 55% at 50% 62%, hsl(152 56% 62% / .38), transparent 70%);opacity:0;
+  background:radial-gradient(50% 55% at 50% 62%, hsl(152 56% 62% / .44), transparent 70%);opacity:0;
   transition:opacity .9s var(--calm-ease)}
 .bloom.lit{opacity:1}
 
 /* ---------- segmented glass toggle (decorative-but-real Apple control) ---------- */
+/* FLAT tinted fill — it sits ON the frosted #sample panel, so a 2nd backdrop-blur here
+   was glass-on-glass (refracted nothing, cost a layer). Solid tint reads identical. */
 .seg{display:inline-flex;gap:4px;padding:4px;border-radius:var(--radius-pill);position:relative;
-  background:hsl(var(--glass-tint)/.5);border:1px solid hsl(0 0% 100%/.6);isolation:isolate;
+  background:hsl(var(--glass-tint)/.88);border:1px solid hsl(0 0% 100%/.6);isolation:isolate;
   box-shadow:inset 0 1px 1px hsl(0 0% 100%/.7), inset -1px -1px 2px hsl(210 45% 55%/.18)}
-.seg::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
-  -webkit-backdrop-filter:blur(8px) saturate(170%);backdrop-filter:blur(8px) saturate(170%)}
 .seg button{border:0;background:transparent;padding:.5em 1.1em;border-radius:var(--radius-pill);
   font-family:var(--font-display);font-weight:700;font-size:.86rem;color:var(--muted);position:relative;z-index:1;
   transition:color .25s var(--calm-ease)}
-.seg button[aria-pressed="true"]{color:var(--green-ink)}
+.seg button[aria-checked="true"]{color:var(--green-ink)}
 .seg .thumb{position:absolute;top:4px;bottom:4px;border-radius:var(--radius-pill);z-index:0;
   background:hsl(152 50% 84%/.9);border:1px solid hsl(0 0% 100%/.7);
   box-shadow:0 2px 8px hsl(152 40% 35%/.2), inset 0 1px 1px hsl(0 0% 100%/.8);
@@ -297,12 +299,11 @@ button{font-family:inherit;cursor:pointer}
   font-family:var(--font-display);font-weight:700;font-size:1.02rem;
   padding:.86em 1.5em;border-radius:var(--radius-pill);border:1px solid transparent;
   transition:transform .18s var(--calm-ease), box-shadow .18s ease, background .18s ease;
-  will-change:transform;
 }
 /* PRIMARY = green-tinted liquid glass pill, dark green-slate text */
 .cta-glass{
   position:relative;color:var(--green-ink);font-weight:700;
-  background:hsl(152 46% 84% / .82);
+  background:hsl(152 47% 83% / .95);
   border:1px solid hsl(152 50% 99% / .7);
   isolation:isolate;overflow:hidden;
   box-shadow:
@@ -311,11 +312,8 @@ button{font-family:inherit;cursor:pointer}
     inset 1.5px 1.5px 2px hsl(0 0% 100% / .55),
     inset -1.5px -1.5px 3px hsl(152 40% 45% / .22);
 }
-.cta-glass::before{
-  content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
-  -webkit-backdrop-filter:blur(10px) saturate(170%) brightness(110%);
-  backdrop-filter:blur(10px) saturate(170%) brightness(110%);
-}
+/* NO ::before backdrop-blur: the green fill is near-opaque, so the blur barely read
+   yet counted as a co-visible layer (2 CTAs live in the hero viewport). Flat green pill. */
 .cta-glass::after{
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
   background:linear-gradient(135deg, hsl(0 0% 100% / .5) 0%, hsl(0 0% 100% / .08) 22%, transparent 46%);
@@ -349,8 +347,8 @@ header.site{
 }
 /* floating rounded glass capsule (detached, shadowed) — the biggest visual upgrade */
 .nav{
-  display:flex;align-items:center;gap:18px;height:62px;
-  margin:0 auto;border-radius:var(--radius-pill);padding:0 14px 0 18px;position:relative;
+  display:flex;align-items:center;gap:14px;height:62px;
+  margin:0 auto;border-radius:var(--radius-pill);padding:0 14px;position:relative;
   background:var(--e1-fill);
   border:1px solid hsl(0 0% 100% / .6);
   -webkit-backdrop-filter:var(--e1-blur);
@@ -365,26 +363,43 @@ header.site{
   box-shadow:var(--e2-shadow), var(--rim-pill);
 }
 .nav>*{position:relative;z-index:3}
-.nav .sheen{z-index:2}
+/* nav sheen: tighter radius + centred default (the bar is only 62px tall) */
+.nav .sheen{z-index:2;background:radial-gradient(10rem 7rem at var(--mx,50%) var(--my,50%),
+  hsl(0 0% 100% / .5), hsl(0 0% 100% / .12) 32%, transparent 62%)}
 .brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:700;font-size:1.16rem}
 .badge-mark{
-  width:42px;height:42px;border-radius:13px;flex:0 0 auto;
+  width:42px;height:42px;border-radius:14px;flex:0 0 auto;
   background:linear-gradient(150deg,hsl(158 44% 70%),hsl(170 42% 56%));
   color:var(--green-ink);display:grid;place-items:center;
   font-family:var(--font-display);font-weight:700;font-size:.9rem;letter-spacing:.03em;
   border:1px solid hsl(0 0% 100% / .7);
   box-shadow:0 4px 12px hsl(158 40% 40% / .28), inset 1px 1px 1px hsl(0 0% 100% / .85), inset -1px -1px 2px hsl(158 40% 45% / .25);
 }
-.nav-links{display:none;gap:26px;margin-left:14px}
+.nav-links{display:none;gap:26px}
 .nav-links a{color:var(--muted);font-weight:600;font-size:.96rem;padding:6px 2px;position:relative}
 .nav-links a:hover{color:var(--ink)}
 .nav-links a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;background:var(--green-deep);border-radius:2px;transition:right .25s var(--calm-ease)}
-.nav-links a:hover::after{right:0}
+.nav-links a:hover::after,.nav-links a[aria-current="true"]::after{right:0}
+.nav-links a[aria-current="true"]{color:var(--ink)}
 .nav-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
-.nav-actions .btn{padding:.58em 1.05em;font-size:.94rem}
+.nav-actions .btn{padding:.58em 1.05em;font-size:.94rem;white-space:nowrap}
+.cta-short{display:none}
 .link-login{display:none;color:var(--muted);font-weight:700;font-family:var(--font-display);padding:.58em .9em;border-radius:var(--radius-pill)}
 .link-login:hover{color:var(--ink);background:hsl(var(--glass-tint) / .8)}
-@media(min-width:900px){.nav-links{display:flex}.link-login{display:inline-flex}}
+/* ≥900px: 3-zone grid (brand | centred links | actions) kills the dead middle gulf */
+@media(min-width:900px){
+  .nav{display:grid;grid-template-columns:auto 1fr auto}
+  .nav-links{display:flex;justify-self:center}
+  .nav-actions{margin-left:0;justify-self:end}
+  .link-login{display:inline-flex}
+}
+/* small phones: tighten the capsule + swap CTA to the short «Почати» so it never wraps */
+@media(max-width:480px){
+  .nav{gap:10px;padding:0 12px}
+  .nav-actions .btn{padding:.55em .95em}
+  .cta-full{display:none}
+  .cta-short{display:inline}
+}
 
 /* ============================================================
    HERO
@@ -414,18 +429,37 @@ header.site{
 @keyframes svShadow{0%,100%{transform:scale(1);opacity:.12}50%{transform:scale(.82);opacity:.07}}
 /* cramped mini placements keep face + shadow, hide the waving arm */
 .mini-mascot .marm,.quiz-helper svg .marm{display:none}
-.speech{
-  background:hsl(var(--glass-tint) / .92);border:1px solid hsl(210 22% 86%);
-  border-radius:18px;padding:13px 16px;font-size:.95rem;color:var(--ink);position:relative;
-  box-shadow:var(--float);
+
+/* ===== SIGNATURE: Світлик flight-path spine — a calm companion gliding the gutter on scroll =====
+   Gutter-only (never over reading content), pointer-events:none, hidden on narrow screens
+   and for reduced motion. The body's svFloat/svShadow keyframes give the in-place bob. */
+.svitlyk-spine{
+  position:fixed;top:0;z-index:40;width:64px;pointer-events:none;display:none;
+  right:clamp(20px, calc((100vw - 1160px)/2 - 72px), 240px);
+  transform:translateY(var(--spine-y,16vh));
+  transition:transform .65s var(--calm-ease);will-change:transform;
 }
-.speech::before{content:"";position:absolute;left:-7px;top:22px;width:14px;height:14px;background:hsl(var(--glass-tint) / .92);border-left:1px solid hsl(210 22% 86%);border-bottom:1px solid hsl(210 22% 86%);transform:rotate(45deg)}
+.svitlyk-spine svg{width:100%;height:auto;filter:drop-shadow(0 9px 16px hsl(210 40% 40% / .20))}
+@media(min-width:1320px){.svitlyk-spine{display:block}}
+@media(prefers-reduced-motion:reduce){.svitlyk-spine{display:none}}
+/* OPAQUE soft card in the copy column (not a 3rd floating-glass tier) — lighter shadow */
+.speech{
+  background:hsl(var(--glass-tint) / .98);border:1px solid hsl(210 22% 88%);
+  border-radius:18px;padding:13px 16px;font-size:.95rem;color:var(--ink);position:relative;
+  box-shadow:0 6px 18px hsl(210 40% 40% / .10);
+}
+.speech::before{content:"";position:absolute;left:-7px;top:22px;width:14px;height:14px;background:hsl(var(--glass-tint) / .98);border-left:1px solid hsl(210 22% 88%);border-bottom:1px solid hsl(210 22% 88%);transform:rotate(45deg)}
 .speech b{color:var(--green-deep);font-weight:700}
 
 h1.hero-title{font-size:clamp(2.1rem,6.4vw,3.4rem);font-weight:700;margin-bottom:.46em;letter-spacing:-.015em}
 h1.hero-title .soft{color:var(--green-deep)}
-.hero-sub{font-size:1.1rem;color:var(--muted);max-width:34ch;margin-bottom:24px;line-height:1.6}
+.hero-sub{font-size:1.1rem;color:var(--muted);max-width:38ch;margin-bottom:24px;line-height:1.6}
 .hero-cta-row{display:flex;flex-wrap:wrap;gap:13px;align-items:center}
+/* small phones: stack hero CTAs full-width so the green primary clearly wins */
+@media(max-width:520px){
+  .hero-cta-row .btn{width:100%}
+  .hero-mascot{margin-top:20px}
+}
 .micro-trust{margin-top:18px;color:var(--muted);font-size:.92rem;display:flex;flex-wrap:wrap;gap:7px 14px;align-items:center}
 .micro-trust b{color:var(--ink);font-weight:700}
 .micro-calm{margin-top:9px;font-size:.9rem;color:var(--green-deep);font-weight:600;display:flex;align-items:center;gap:7px}
@@ -434,8 +468,9 @@ h1.hero-title .soft{color:var(--green-deep)}
 .quiz{padding:24px 22px;position:relative;z-index:2}
 .quiz-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .quiz .kicker{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-display);font-weight:700;font-size:.8rem;color:var(--green-deep);background:hsl(158 44% 90%);border:1px solid hsl(158 40% 80%);padding:.4em .85em;border-radius:var(--radius-pill)}
-.quiz-helper{display:flex;align-items:center;gap:8px;background:hsl(205 40% 94%);border:1px solid hsl(205 30% 82%);border-radius:14px;padding:.4em .7em .4em .5em;font-size:.78rem;color:var(--muted);line-height:1.3;max-width:230px}
+.quiz-helper{display:flex;align-items:center;gap:8px;background:hsl(205 40% 94%);border:1px solid hsl(205 30% 82%);border-radius:var(--radius-sm);padding:.4em .7em .4em .5em;font-size:.78rem;color:var(--muted);line-height:1.3;max-width:230px}
 .quiz-helper svg{width:24px;flex:0 0 auto}
+@media(max-width:460px){.quiz-helper{width:100%;max-width:none}}
 /* local scrim so the question stays >=4.5:1 even over the dark anchor behind the lensed panel */
 .quiz-q{font-family:var(--font-display);font-weight:600;font-size:1.16rem;line-height:1.35;margin-bottom:18px;color:var(--ink);
   background:hsl(var(--glass-tint) / .82);border-radius:14px;padding:12px 14px;
@@ -519,18 +554,18 @@ h1.hero-title .soft{color:var(--green-deep)}
   background:hsl(var(--glass-tint) / .60);border:1px solid hsl(0 0% 100% / .6);
   box-shadow:var(--e1-shadow), var(--rim-pill)}
 .stat .n{font-family:var(--font-display);font-weight:700;font-size:1.5rem;color:var(--ink)}
-.stat .l{color:var(--muted);font-size:.82rem;font-weight:500;line-height:1.3}
-.stat .n .star{color:#C98A1E}
+.stat .l{color:var(--muted);font-size:.82rem;font-weight:500;line-height:1.3;min-height:2.2em;display:flex;align-items:center;justify-content:center}
+.stat .n .star{color:var(--amber)}
+/* FLAT tinted pill (no nested backdrop-blur — it sat on the frosted trust-card) */
 .format-chip{
-  position:relative;isolation:isolate;overflow:hidden;
-  margin:0 auto;display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:center;
-  background:hsl(28 50% 92% / .7);border:1px solid hsl(28 40% 82% / .8);color:#6a4a28;font-weight:600;font-size:.9rem;
-  padding:.6em 1.05em;border-radius:var(--radius-pill);box-shadow:var(--e1-shadow), var(--rim-pill);
+  position:relative;
+  margin:0 auto;display:inline-flex;align-items:center;gap:7px 12px;flex-wrap:wrap;justify-content:center;
+  background:hsl(28 50% 92% / .88);border:1px solid hsl(28 40% 82% / .8);color:var(--warm-ink);font-weight:600;font-size:.9rem;
+  padding:.6em 1.1em;border-radius:var(--radius-pill);box-shadow:var(--e1-shadow), var(--rim-pill);
 }
-.format-chip::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
-  -webkit-backdrop-filter:var(--e1-blur);backdrop-filter:var(--e1-blur)}
-.format-chip>*{position:relative;z-index:1}
-.format-chip .pill{background:hsl(var(--glass-tint) / .95);color:var(--ink);padding:.16em .58em;border-radius:var(--radius-pill);font-weight:700;font-size:.84rem;border:1px solid hsl(28 40% 80%)}
+.format-chip .unit{display:inline-flex;align-items:center;gap:.4em;white-space:nowrap}
+.format-chip .unit-note{white-space:nowrap;opacity:.92}
+.format-chip .pill{background:hsl(0 0% 100% / .9);color:var(--warm-ink);padding:.16em .58em;border-radius:var(--radius-pill);font-weight:700;font-size:.84rem;border:1px solid hsl(28 40% 80%)}
 @media(min-width:760px){
   .trust-card{grid-template-columns:auto 1fr;align-items:center;gap:30px;padding:26px 32px}
   .official{justify-content:flex-start;text-align:left;border-right:1px solid hsl(210 20% 82%);padding-right:30px}
@@ -553,16 +588,20 @@ section{position:relative}
 .steps{display:grid;gap:20px}
 .step{padding:30px 26px}
 .step .num{
-  position:relative;width:50px;height:50px;border-radius:15px;display:grid;place-items:center;
+  position:relative;width:50px;height:50px;border-radius:16px;display:grid;place-items:center;
   font-family:var(--font-display);font-weight:700;font-size:1.35rem;color:#fff;margin-bottom:16px;
   border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--rim-pill);
 }
-.step:nth-child(1) .num{background:linear-gradient(150deg,hsl(158 42% 56%),hsl(158 44% 46%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5)}
-.step:nth-child(2) .num{background:linear-gradient(150deg,hsl(205 46% 60%),hsl(205 48% 50%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5)}
-.step:nth-child(3) .num{background:linear-gradient(150deg,hsl(28 50% 62%),hsl(28 52% 52%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5)}
-.step h3{font-size:1.24rem;margin-bottom:.45em;color:var(--ink)}
+.step:nth-child(1) .num{background:linear-gradient(150deg,hsl(158 42% 56%),hsl(158 44% 46%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5), var(--rim-pill)}
+.step:nth-child(2) .num{background:linear-gradient(150deg,hsl(205 46% 60%),hsl(205 48% 50%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5), var(--rim-pill)}
+.step:nth-child(3) .num{background:linear-gradient(150deg,hsl(28 50% 62%),hsl(28 52% 52%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5), var(--rim-pill)}
+.step h3{font-size:1.24rem;margin-bottom:.55em;color:var(--ink)}
 .step p{color:var(--muted)}
 @media(min-width:860px){.steps{grid-template-columns:repeat(3,1fr)}}
+/* #how: the e2 tray held OPAQUE cards (a near-invisible double-frame) — strip the glass
+   so the 3 cards read as one sequence on the zone pool; keep only the hairline tray-edge. */
+#how .glass.tray{background:transparent;box-shadow:none;border:0;padding:0}
+#how .glass.tray::before,#how .glass.tray::after{display:none}
 
 /* ---------- gamification showcase (glass/opaque chrome) ---------- */
 .game-grid{display:grid;gap:18px}
@@ -581,7 +620,7 @@ section{position:relative}
 .flame svg{width:26px;height:26px}
 .streak-days{display:flex;gap:6px;margin-top:16px}
 .streak-days span{flex:1;height:9px;border-radius:6px;background:hsl(158 30% 90%);border:1px solid hsl(158 28% 80%)}
-.streak-days span.on{background:linear-gradient(90deg,hsl(34 56% 66%),hsl(20 56% 58%));border-color:hsl(20 48% 52%)}
+.streak-days span.on{background:linear-gradient(90deg,hsl(34 50% 70%),hsl(24 50% 64%));border-color:hsl(24 38% 64%)}
 
 /* daily goal ring */
 .goal{display:flex;align-items:center;gap:18px}
@@ -601,14 +640,16 @@ section{position:relative}
 
 /* topic path */
 .path{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+/* OPAQUE chips — they sit ON the frosted game-card, so glass-tint here was glass-on-glass */
 .node{
   position:relative;display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:.9rem;
-  padding:.5em .95em;border-radius:var(--radius-pill);background:hsl(var(--glass-tint) / .82);border:1px solid hsl(0 0% 100% / .6);color:var(--muted);
+  padding:.5em .95em;border-radius:var(--radius-pill);background:#fff;border:1px solid hsl(210 22% 86%);color:var(--muted);
   box-shadow:var(--rim-pill);
 }
 .node.done{background:hsl(158 36% 90%);color:var(--green-deep);border-color:hsl(158 32% 78%)}
 .node.now{background:var(--green-deep);color:#fff;border-color:#14463b;box-shadow:0 4px 12px hsl(158 40% 30% / .3)}
-.node.locked{opacity:.6}
+.node.locked{opacity:.72}
+.node.locked svg{opacity:.8}
 .path .arrow{color:var(--muted);font-weight:700;opacity:.5}
 
 /* readiness mini meter */
@@ -616,12 +657,12 @@ section{position:relative}
 .meter{height:16px;border-radius:10px;background:hsl(158 30% 90%);border:1px solid hsl(158 28% 80%);overflow:hidden}
 .meter i{display:block;height:100%;width:0;border-radius:10px;background:linear-gradient(90deg,hsl(28 56% 66%),hsl(158 44% 50%));transition:width 1.4s var(--calm-ease)}
 .meter-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px}
-.meter-row b{font-family:var(--font-display);font-weight:700;font-size:1.55rem;color:var(--ink)}
+.meter-row b{font-family:var(--font-display);font-weight:700;font-size:1.4rem;color:var(--ink)}
 .meter-row span{color:var(--green-deep);font-weight:600;font-size:.92rem}
 
 /* badges */
 .badges{display:flex;flex-wrap:wrap;gap:10px}
-.bdg{position:relative;display:inline-flex;align-items:center;gap:8px;background:hsl(var(--glass-tint) / .82);border:1px solid hsl(0 0% 100% / .6);border-radius:var(--radius-pill);padding:.48em .9em;font-weight:600;font-size:.88rem;color:var(--ink);box-shadow:var(--rim-pill)}
+.bdg{position:relative;display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid hsl(210 22% 86%);border-radius:var(--radius-pill);padding:.48em .9em;font-weight:600;font-size:.88rem;color:var(--ink);box-shadow:var(--rim-pill)}
 .bdg .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:#fff;border:1px solid hsl(0 0% 100% / .4)}
 .bdg .ic svg{width:15px;height:15px}
 
@@ -633,15 +674,30 @@ section{position:relative}
 .glass.game-card.span2{ background:hsl(var(--glass-tint) / .66); }
 
 /* ---------- features bento (reading content = near-opaque) ---------- */
-.bento{display:grid;gap:16px}
+.bento{display:grid;gap:18px}
 .feat{padding:26px 22px}
 .feat .fic{position:relative;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin-bottom:15px;border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--rim-pill)}
 .feat .fic svg{width:24px;height:24px}
 .feat h3{font-size:1.12rem;margin-bottom:.4em;color:var(--ink)}
 .feat p{color:var(--muted);font-size:.95rem;line-height:1.55}
 .feat .add{display:block;margin-top:.6em;color:var(--green-deep);font-size:.85rem;font-weight:600}
-@media(min-width:680px){.bento{grid-template-columns:repeat(2,1fr)}}
-@media(min-width:1040px){.bento{grid-template-columns:repeat(3,1fr)}}
+/* featured bento tiles + the REAL Ukrainian road-sign strip (the ownable moat) */
+.feat-stats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px}
+.feat-stats span{color:var(--muted);font-size:.92rem;white-space:nowrap}
+.feat-stats b{font-family:var(--font-display);color:var(--ink);font-weight:700;font-size:1.06rem;margin-right:.18em}
+.sign-strip{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+.sign-strip .tile{width:50px;height:50px;border-radius:12px;display:grid;place-items:center;
+  background:hsl(var(--glass-tint) / .94);border:1px solid hsl(210 22% 86%);box-shadow:var(--rim-pill)}
+.sign-strip .tile svg{width:36px;height:36px}
+/* 3·3·1 orphan fix: two featured tiles span 2 → clean rows at every breakpoint */
+@media(min-width:680px){.bento{grid-template-columns:repeat(2,1fr)} .feat-photo{grid-column:span 2}}
+@media(min-width:1040px){.bento{grid-template-columns:repeat(3,1fr)} .feat-wide,.feat-photo{grid-column:span 2}}
+/* tint the frosted tray so the 'glass framing opaque cards' actually reads; lift cards whiter */
+@media(min-width:761px){ #features .glass.tray{ background:hsl(var(--glass-tint) / .40); } }
+#features .solid.feat{ background:hsl(var(--glass-tint) / .98); }
+#features .zone::before{
+  background:radial-gradient(70% 60% at 24% 16%, hsl(202 56% 80% / .15), transparent 70%),
+            radial-gradient(60% 55% at 88% 84%, hsl(158 50% 80% / .11), transparent 72%); }
 
 /* ---------- readiness outcome block (SIGNATURE #2 — glowing glass gauge) ---------- */
 .ready-grid{display:grid;gap:30px;align-items:center}
@@ -651,49 +707,56 @@ section{position:relative}
 .ready-grid{position:relative}
 .ready-grid::after{content:"";position:absolute;z-index:0;pointer-events:none;
   width:min(420px,86vw);height:300px;left:50%;top:50%;transform:translate(-50%,-50%);
-  background:radial-gradient(58% 58% at 50% 42%, hsl(28 60% 80% / .12), transparent 68%),
-            radial-gradient(50% 50% at 55% 80%, hsl(158 50% 78% / .10), transparent 70%);
+  background:radial-gradient(58% 58% at 50% 42%, hsl(158 50% 80% / .16), transparent 68%),
+            radial-gradient(50% 50% at 55% 80%, hsl(202 56% 82% / .11), transparent 70%);
   -webkit-mask-image:radial-gradient(120% 100% at 50% 50%, #000 50%, transparent 100%);
           mask-image:radial-gradient(120% 100% at 50% 50%, #000 50%, transparent 100%)}
 @media(min-width:900px){.ready-grid::after{left:auto;right:0;transform:translateY(-50%);width:min(440px,42vw)}}
-.ready-dial{position:relative;z-index:1;width:200px;height:122px;margin:0 auto 6px}
-.ready-num{position:relative;z-index:1;font-family:var(--font-display);font-weight:700;font-size:3.3rem;color:var(--ink);line-height:1;
-  background:hsl(var(--glass-tint) / .55);border-radius:14px;display:inline-block;padding:.02em .3em}
-.ready-state{position:relative;z-index:1;color:var(--green-deep);font-weight:700;font-size:1.04rem;margin-top:4px;font-family:var(--font-display)}
+.ready-dial{position:relative;z-index:1;width:200px;height:120px;margin:0 auto 6px}
+/* clean numeral — no tinted plate (that was glass-on-glass on the e3 card) */
+.ready-num{position:relative;z-index:1;font-family:var(--font-display);font-weight:700;font-size:3.3rem;color:var(--ink);line-height:1;display:inline-block;margin-bottom:2px}
+.ready-state{position:relative;z-index:1;color:var(--green-deep);font-weight:700;font-size:1.04rem;margin-top:7px;font-family:var(--font-display)}
 .ready-cap{position:relative;z-index:1;color:var(--muted);font-size:.86rem;margin-top:6px}
 .ready-text h2{font-size:clamp(1.7rem,4.2vw,2.35rem);margin-bottom:.5em;color:var(--ink)}
 .ready-text p{color:var(--muted);font-size:1.08rem;line-height:1.6}
 .ready-reassure{margin-top:14px;color:var(--green-deep);font-weight:600;font-size:.96rem;display:flex;align-items:center;gap:8px}
-@media(min-width:900px){.ready-grid{grid-template-columns:1fr 1fr;gap:54px}.ready-text{order:-1}}
+.ready-reassure svg{width:18px;height:18px;flex:0 0 auto}
+/* framing copy leads on BOTH mobile and desktop (anxious user reads the why before the bare number) */
+.ready-text{order:-1}
+@media(min-width:900px){.ready-grid{grid-template-columns:1fr 1fr;gap:54px}}
 
 /* ---------- testimonials ---------- */
 .tcards{display:grid;gap:18px}
-.tcard{padding:28px 24px}
+.tcard{padding:28px 24px;display:flex;flex-direction:column}
 .tcard .quote{font-size:1.02rem;line-height:1.55;margin:0 0 18px;color:var(--ink)}
-.tcard .who{display:flex;align-items:center;gap:12px}
-.tcard .av{position:relative;width:44px;height:44px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-weight:700;border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--rim-pill)}
-.tcard .who b{font-family:var(--font-display);font-weight:700;color:var(--ink)}
-.tcard .who small{display:block;color:var(--muted)}
-.stars{color:#C98A1E;font-size:.95rem;margin-bottom:11px;letter-spacing:1px}
+.tcard .who{display:flex;align-items:center;gap:12px;margin-top:auto;padding-top:6px}
+.tcard .av{position:relative;width:44px;height:44px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;color:var(--ink);font-family:var(--font-display);font-weight:700;border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--rim-pill)}
+.tcard .who b{font-family:var(--font-display);font-weight:700;color:var(--ink);line-height:1.25}
+.tcard .who small{display:block;color:var(--muted);margin-top:1px}
+.stars{color:var(--amber);font-size:.88rem;margin-bottom:11px;letter-spacing:1px}
 @media(min-width:860px){.tcards{grid-template-columns:repeat(3,1fr)}}
 
 /* ---------- pricing ---------- */
 .price-grid{display:grid;gap:20px;max-width:760px;margin:0 auto}
 .plan{padding:32px 28px;display:flex;flex-direction:column}
+.price-grid .plan{border-radius:var(--radius-md)}   /* both plans share one corner radius */
 .plan.pro{background:hsl(152 40% 90% / .82);border-color:hsl(152 44% 78%)}
-.plan .pname{font-family:var(--font-display);font-weight:700;font-size:1.28rem;display:flex;align-items:center;gap:10px;margin-bottom:6px;color:var(--ink)}
+.plan .pname{font-family:var(--font-display);font-weight:700;font-size:1.28rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;color:var(--ink)}
 .plan .popular{font-family:var(--font-display);font-size:.72rem;font-weight:700;background:var(--green-deep);color:#fff;padding:.28em .7em;border-radius:var(--radius-pill);box-shadow:var(--rim-pill)}
 .plan .pprice{font-family:var(--font-display);font-weight:700;font-size:2.3rem;margin:6px 0 4px;color:var(--ink)}
 .plan .pprice small{font-size:1rem;color:var(--muted);font-weight:500}
-.plan .pfree{font-family:var(--font-display);font-weight:700;font-size:1.4rem;color:var(--muted);margin:6px 0 4px}
+.plan .pfree{font-family:var(--font-display);font-weight:700;font-size:2.1rem;color:var(--ink);margin:6px 0 4px}
+.plan .pfree small{font-size:1rem;color:var(--muted);font-weight:500}
 .plan ul{display:grid;gap:11px;margin:18px 0 24px}
 /* PRO is e2 glass (.50-ish fill) — seat its feature list on a local .92 scrim to hold ≥4.5:1 */
 .plan.pro ul{background:hsl(var(--glass-tint) / .82);border-radius:var(--radius-md);padding:14px 14px;
   box-shadow:inset 0 0 0 1px hsl(0 0% 100% / .5)}
 .plan li{display:flex;align-items:flex-start;gap:10px;color:var(--muted);font-size:.96rem;line-height:1.45}
-.plan li .ck{position:relative;flex:0 0 auto;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:hsl(158 36% 88%);color:var(--green-deep);margin-top:1px;border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--rim-pill)}
+.plan li .ck{position:relative;flex:0 0 auto;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:hsl(152 36% 88%);color:var(--green-deep);margin-top:1px;border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--rim-pill)}
 .plan li .ck svg{width:13px;height:13px}
+.plan-note{color:var(--muted);font-size:.86rem;margin:2px 0 14px}
 .plan .btn{margin-top:auto}
+#pricing .btn-ghost{border-color:hsl(152 24% 80%)}   /* green-neutral, not cool blue, in a green section */
 @media(min-width:760px){.price-grid{grid-template-columns:1fr 1fr}}
 
 /* ---------- faq ---------- */
@@ -711,14 +774,21 @@ section{position:relative}
 .faq summary .q-ic svg{width:15px;height:15px}
 .faq[open] summary .q-ic{transform:rotate(45deg)}
 .faq .a{padding:0 22px 22px;color:var(--muted);line-height:1.6}
+/* warm cream cards (was cold 200° grey), one border token, softer shadow, summary hover */
+#faq .faq{background:hsl(40 38% 98% / .97);border-color:hsl(38 26% 88%);box-shadow:0 6px 20px hsl(210 40% 40% / .10)}
+.faq summary:hover{background:hsl(40 40% 96% / .55)}
+.faq summary:hover .q-ic{color:var(--green-deep)}
+.faq[open] .a{animation:fadeUp .3s var(--calm-ease)}
 
 /* ---------- final cta ---------- */
-.final-card{padding:54px 30px;text-align:center;position:relative;overflow:hidden}
+.final-card{padding:54px 30px;text-align:center;position:relative;overflow:hidden;max-width:720px;margin:0 auto;border-radius:var(--radius-lg)}
 .final-mascot{width:88px;height:auto;margin:0 auto 16px;position:relative;z-index:2}
-.final-card h2{font-size:clamp(1.9rem,4.8vw,2.7rem);margin-bottom:.35em;position:relative;z-index:2;letter-spacing:-.01em;color:var(--ink)}
+.final-card h2{font-size:clamp(1.9rem,4.8vw,2.7rem);margin-bottom:.35em;position:relative;z-index:2;letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
 .final-card p{color:var(--muted);font-size:1.12rem;margin-bottom:26px;position:relative;z-index:2}
 .final-card .btn{position:relative;z-index:2}
-.final-note{margin-top:16px;color:var(--muted);font-size:.88rem;position:relative;z-index:2}
+.final-note{margin-top:22px;color:var(--muted);font-size:.88rem;position:relative;z-index:2;max-width:34ch;margin-left:auto;margin-right:auto;text-wrap:pretty}
+@media(min-width:980px){.final-mascot{width:108px}}
+@media(max-width:560px){.final-card .btn{width:100%;max-width:340px}}
 
 /* ---------- footer — the GLASS FLOOR the page rests on ---------- */
 footer.site{
@@ -736,14 +806,15 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 .foot-brand{max-width:330px}
 .foot-brand p{color:var(--muted);font-size:.92rem;margin-top:14px;line-height:1.6}
 .foot-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.foot-cols h4{font-family:var(--font-display);font-weight:700;font-size:.94rem;margin-bottom:12px;color:var(--ink)}
-.foot-cols a{display:block;color:var(--muted);font-size:.92rem;padding:5px 0}
+.foot-cols h4{font-family:var(--font-display);font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;color:var(--ink)}
+.foot-cols a{display:inline-block;color:var(--muted);font-size:.92rem;padding:8px 0}
 .foot-cols a:hover{color:var(--green-deep)}
-.disclaimer{margin-top:38px;padding-top:24px;border-top:1px solid hsl(210 20% 82%);color:var(--muted);font-size:.85rem;line-height:1.6;display:flex;flex-direction:column;gap:12px}
+.disclaimer{margin-top:38px;padding-top:24px;border-top:1px solid hsl(0 0% 100% / .5);box-shadow:0 -1px 0 hsl(210 16% 88% / .6);color:var(--muted);font-size:.85rem;line-height:1.6;display:flex;flex-direction:column;gap:12px}
 .disclaimer .copy{font-weight:700;color:var(--ink)}
+@media(max-width:600px){.foot-cols{grid-template-columns:repeat(2,1fr);gap:18px 16px}}
 @media(min-width:880px){
   .foot-grid{grid-template-columns:1.4fr 1.6fr}
-  .disclaimer{flex-direction:row;justify-content:space-between;align-items:flex-start;gap:30px}
+  .disclaimer{flex-direction:row;justify-content:space-between;align-items:center;gap:30px}
   .disclaimer .copy{white-space:nowrap}
 }
 
@@ -759,7 +830,9 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   .glass.pro,.plan.pro{background:hsl(152 44% 92%)}
   .nav,.nav.stuck{background:hsl(var(--glass-tint) / .98)}
   .cta-glass{background:hsl(152 50% 84%)}
-  .glass::before,.glass::after,.cta-glass::before,.cta-glass::after,.btn-ghost::before,.seg::before,.stat::before,.chip-glass::before,.format-chip::before,.nav{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .glass::before,.glass::after,.cta-glass::after,.btn-ghost::before,.stat::before,.chip-glass::before,.format-chip::before,.nav{backdrop-filter:none;-webkit-backdrop-filter:none}
+  /* the Chromium chromatic lens out-specifies the generic rule above — kill it explicitly */
+  .refraction-ok .glass.lens::before,.refraction-ok .glass.lens.chroma::before{backdrop-filter:none;-webkit-backdrop-filter:none}
   header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none}
   footer.site{background:hsl(var(--glass-tint) / .98)}
   .glass::after,.cta-glass::after,.sheen,.bg-detail,.drift,.zone::before,.ready-grid::after,.sweep,.bloom,.tray>.tray-edge{display:none}
@@ -870,6 +943,11 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   </defs>
 </svg>
 
+<!-- SIGNATURE: Світлик flight-path spine (gutter companion, JS-driven, ≥1320px, motion-safe) -->
+<div class="svitlyk-spine" aria-hidden="true">
+  <svg viewBox="0 0 100 100"><use href="#svitlyk"/></svg>
+</div>
+
 <!-- ============================ HEADER ============================ -->
 <header class="site">
   <div class="wrap">
@@ -887,7 +965,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       </div>
       <div class="nav-actions">
         <a class="link-login" href="#top">Увійти</a>
-        <a class="btn cta-glass" href="#hero-cta"><span>Почати безкоштовно</span></a>
+        <a class="btn cta-glass" href="#hero-cta"><span class="cta-full">Почати безкоштовно</span><span class="cta-short">Почати</span></a>
       </div>
     </nav>
   </div>
@@ -903,6 +981,16 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       <div class="hero-copy">
         <span class="eyebrow"><span class="dot" aria-hidden="true"></span>Підготовка до теоретичного іспиту з ПДР</span>
 
+        <h1 class="hero-title" id="hero-title">Іспит ПДР — <span class="soft">без зубріння і страху</span></h1>
+        <p class="hero-sub">Усі офіційні питання іспиту, реальні дорожні ситуації та розумні тренування, що ведуть тебе від нуля до впевненого «склав».</p>
+
+        <div class="hero-cta-row" id="hero-cta">
+          <a class="btn cta-glass btn-lg" href="#pricing"><span>Почати безкоштовно</span></a>
+          <a class="btn btn-ghost btn-lg" href="#sample">Спробувати питання — без реєстрації</a>
+        </div>
+
+        <p class="micro-trust"><b>1691</b> офіційне питання · без картки · українською</p>
+
         <div class="hero-mascot">
           <!-- MASCOT "Світлик" — original first-version buddy (shared #svitlyk symbol) -->
           <span class="mascot-stage">
@@ -912,36 +1000,25 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
           </span>
           <p class="speech">Привіт, я <b>Світлик</b> — допоможу скласти спокійно. Почнемо з одного питання, без зубріння і без стресу.</p>
         </div>
-
-        <h1 class="hero-title" id="hero-title">Іспит ПДР — <span class="soft">без зубріння і страху</span></h1>
-        <p class="hero-sub">Усі офіційні питання іспиту, реальні дорожні ситуації та розумні тренування, що ведуть тебе від нуля до впевненого «склав».</p>
-
-        <div class="hero-cta-row" id="hero-cta">
-          <a class="btn cta-glass btn-lg" href="#pricing"><span>Почати безкоштовно</span></a>
-          <a class="btn btn-ghost btn-lg" href="#sample">Спробувати питання — без реєстрації</a>
-        </div>
-
-        <p class="micro-trust">Без картки · <b>1691</b> офіційне питання · Українською</p>
-        <p class="micro-calm"><span aria-hidden="true">🫧</span> Без стресу. Без картки. Перше питання — прямо зараз.</p>
       </div>
 
       <!-- SAMPLE QUESTION — SIGNATURE #1 liquid-glass panel (chromatic SVG lens + sweep + breathe + tilt) -->
-      <div class="glass e3 lens chroma reactive tilt breathe-glass quiz" id="sample" data-anim aria-labelledby="quiz-q">
+      <div class="glass e3 lens chroma reactive tilt quiz" id="sample" data-anim aria-labelledby="quiz-q">
         <span class="sheen" aria-hidden="true"></span>
         <span class="sweep" aria-hidden="true"></span>
         <div class="quiz-head">
           <span class="kicker"><span aria-hidden="true">✨</span> Спробуй прямо зараз</span>
           <span class="quiz-helper">
             <svg class="mini-mascot" viewBox="0 0 100 100" aria-hidden="true"><use href="#svitlyk"/></svg>
-            <span>Тут можна помилятися — це тренування, а не іспит.</span>
+            <span id="quiz-helper-text">Тут можна помилятися — це тренування, а не іспит.</span>
           </span>
         </div>
         <p class="quiz-q" id="quiz-q">Як діяти, якщо під час руху ввімкнулося жовте миготливе світло світлофора?</p>
 
-        <div class="seg" id="mode-seg" role="group" aria-label="Режим практики" style="margin-bottom:16px">
+        <div class="seg" id="mode-seg" role="radiogroup" aria-label="Режим практики" style="margin-bottom:16px">
           <span class="thumb" aria-hidden="true"></span>
-          <button type="button" aria-pressed="true">Тренування</button>
-          <button type="button" aria-pressed="false">Іспит</button>
+          <button type="button" role="radio" aria-checked="true" tabindex="0" data-mode="train">Тренування</button>
+          <button type="button" role="radio" aria-checked="false" tabindex="-1" data-mode="exam">Іспит</button>
         </div>
 
         <div class="options" id="options" role="group" aria-labelledby="quiz-q">
@@ -990,9 +1067,10 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 
       <div class="trust-extra">
         <span class="format-chip">
-          <span class="pill">20</span> питань
-          <span class="pill">20</span> хвилин
-          <span class="pill">2</span> помилки — як на справжньому іспиті
+          <span class="unit"><span class="pill">20</span> питань</span>
+          <span class="unit"><span class="pill">20</span> хвилин</span>
+          <span class="unit"><span class="pill">2</span> помилки</span>
+          <span class="unit-note">— як на справжньому іспиті</span>
         </span>
       </div>
     </div>
@@ -1036,7 +1114,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 <section class="section-pad" id="game" aria-labelledby="game-h">
   <div class="wrap">
     <div class="section-head reveal">
-      <span class="tag">Вчись, як у грі</span>
+      <span class="tag">Мотивація</span>
       <h2 id="game-h">Вчись, як у грі</h2>
       <p>Прогрес, який видно — і не хочеться кидати.</p>
     </div>
@@ -1095,18 +1173,18 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
           <span class="arrow" aria-hidden="true">→</span>
           <span class="node now">Перехрестя <span aria-hidden="true">●</span> зараз</span>
           <span class="arrow" aria-hidden="true">→</span>
-          <span class="node locked">Обгін <span aria-hidden="true">🔒</span></span>
+          <span class="node locked">Обгін <svg viewBox="0 0 24 24" fill="none" width="13" height="13" aria-hidden="true" style="vertical-align:-1px"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg></span>
           <span class="arrow" aria-hidden="true">→</span>
-          <span class="node locked">Швидкість <span aria-hidden="true">🔒</span></span>
+          <span class="node locked">Швидкість <svg viewBox="0 0 24 24" fill="none" width="13" height="13" aria-hidden="true" style="vertical-align:-1px"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg></span>
         </div>
       </div>
 
-      <!-- readiness mini -->
+      <!-- accuracy — a DISTINCT metric (the 78% readiness number lives only in the #readiness dial) -->
       <div class="glass game-card lift reveal">
-        <h4>Готовність до іспиту</h4>
+        <h4>Середня точність</h4>
         <div class="meter-wrap">
-          <div class="meter" role="img" aria-label="Готовність 78 відсотків"><i data-w="78"></i></div>
-          <div class="meter-row"><b>78%</b><span>майже там</span></div>
+          <div class="meter" role="img" aria-label="Середня точність 92 відсотки"><i data-w="92"></i></div>
+          <div class="meter-row"><b>92%</b><span>впевнено</span></div>
         </div>
       </div>
 
@@ -1136,21 +1214,35 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     <div class="glass tray">
     <span class="tray-edge" aria-hidden="true"></span>
     <div class="bento">
-      <div class="solid feat lift">
+      <!-- FEATURED: mock exam (spans 2 on desktop) -->
+      <div class="solid feat feat-wide lift">
         <div class="fic" style="background:hsl(28 50% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="#6a4a28" stroke-width="2"/><path d="M12 9v4l2.5 2M9 2h6" stroke="#6a4a28" stroke-width="2" stroke-linecap="round"/></svg></div>
         <h3>Пробний іспит</h3>
-        <p>Повна симуляція офіційного іспиту з таймером і лімітом помилок.</p>
+        <p>Повна симуляція офіційного іспиту — той самий формат, що й справжній, з таймером і лімітом помилок.</p>
+        <div class="feat-stats"><span><b>20</b>питань</span><span><b>20</b>хвилин</span><span><b>2</b>помилки</span></div>
       </div>
       <div class="solid feat lift">
         <div class="fic" style="background:hsl(158 40% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 1-2-2V5Z" stroke="#226157" stroke-width="2" stroke-linejoin="round"/><path d="M20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 0 2-2V5Z" stroke="#226157" stroke-width="2" stroke-linejoin="round"/></svg></div>
         <h3>Практика за темами</h3>
         <p>Прокачуй конкретні теми у власному темпі.</p>
       </div>
+      <!-- FEATURED MOAT: real official road signs (spans 2 from tablet up) -->
+      <div class="solid feat feat-photo lift">
+        <div class="fic" style="background:hsl(205 45% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="14" rx="3" stroke="#255A8C" stroke-width="2"/><path d="M8 6 9.5 3.5h5L16 6" stroke="#255A8C" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" stroke="#255A8C" stroke-width="2"/></svg></div>
+        <h3>Справжні знаки й дорожні ситуації</h3>
+        <p>734 офіційні зображення — вчись на тих самих знаках і сценах, що будуть на іспиті, а не на абстрактних іконках.</p>
+        <div class="sign-strip" role="img" aria-label="Приклади офіційних дорожніх знаків: стоп, дати дорогу, головна дорога, обмеження швидкості, пішохідний перехід">
+          <span class="tile"><svg viewBox="0 0 48 48"><polygon points="15.5,4 32.5,4 44,15.5 44,32.5 32.5,44 15.5,44 4,32.5 4,15.5" fill="#C5392B" stroke="#fff" stroke-width="2.5"/><text x="24" y="28.5" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="10.5" fill="#fff">STOP</text></svg></span>
+          <span class="tile"><svg viewBox="0 0 48 48"><polygon points="5,9 43,9 24,42" fill="#fff" stroke="#C5392B" stroke-width="4" stroke-linejoin="round"/></svg></span>
+          <span class="tile"><svg viewBox="0 0 48 48"><rect x="10.5" y="10.5" width="27" height="27" rx="3" transform="rotate(45 24 24)" fill="#F2C200" stroke="#fff" stroke-width="3"/></svg></span>
+          <span class="tile"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="#fff" stroke="#C5392B" stroke-width="5"/><text x="24" y="31" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="17" fill="#1F2933">50</text></svg></span>
+          <span class="tile"><svg viewBox="0 0 48 48"><rect x="5" y="5" width="38" height="38" rx="5" fill="#2C6AA8"/><polygon points="24,11 39,38 9,38" fill="#fff"/><circle cx="24" cy="19" r="2.6" fill="#2C6AA8"/><path d="M24 22v8M24 25l-4 3M24 25l4 3M24 30l-3 6M24 30l3 6" stroke="#2C6AA8" stroke-width="2" stroke-linecap="round" fill="none"/></svg></span>
+        </div>
+      </div>
       <div class="solid feat lift">
         <div class="fic" style="background:hsl(205 45% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 9a8 8 0 0 1 13.5-3.5L20 8M20 4v4h-4" stroke="#255A8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 15a8 8 0 0 1-13.5 3.5L4 16M4 20v-4h4" stroke="#255A8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <h3>Робота над помилками</h3>
-        <p>Інтервальні повторення: складні питання повертаються у правильний момент.</p>
-        <span class="add">Кожна помилка показує, що варто повторити.</span>
+        <p>Інтервальні повторення: складні питання повертаються саме тоді, коли їх варто закріпити.</p>
       </div>
       <div class="solid feat lift">
         <div class="fic" style="background:hsl(28 50% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="4" stroke="#6a4a28" stroke-width="2"/><circle cx="9" cy="9" r="1.4" fill="#6a4a28"/><circle cx="15" cy="15" r="1.4" fill="#6a4a28"/><circle cx="15" cy="9" r="1.4" fill="#6a4a28"/><circle cx="9" cy="15" r="1.4" fill="#6a4a28"/></svg></div>
@@ -1161,11 +1253,6 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         <div class="fic" style="background:hsl(158 40% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h12a1 1 0 0 1 1 1v15l-7-3.5L5 20V5a1 1 0 0 1 1-1Z" stroke="#226157" stroke-width="2" stroke-linejoin="round"/></svg></div>
         <h3>Збережені питання</h3>
         <p>Закладки на питання, до яких хочеш повернутись.</p>
-      </div>
-      <div class="solid feat lift">
-        <div class="fic" style="background:hsl(205 45% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="14" rx="3" stroke="#255A8C" stroke-width="2"/><path d="M8 6 9.5 3.5h5L16 6" stroke="#255A8C" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" stroke="#255A8C" stroke-width="2"/></svg></div>
-        <h3>Фото реальних ситуацій</h3>
-        <p>734 офіційні зображення знаків і дорожніх сцен.</p>
       </div>
       <div class="solid feat lift">
         <div class="fic" style="background:hsl(28 50% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 18 9 12l3.5 3.5L20 7" stroke="#6a4a28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h5v5" stroke="#6a4a28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -1181,8 +1268,8 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 <!-- ============================ READINESS OUTCOME ============================ -->
 <section class="section-pad" id="readiness" aria-labelledby="ready-h">
   <div class="wrap">
-    <div class="ready-grid zone" style="--zone-hue:28 60% 84%">
-      <div class="glass e3 lens chroma reactive tilt breathe-glass ready-card reveal" data-anim style="--bd:1.2s">
+    <div class="ready-grid zone" style="--zone-hue:158 50% 80%">
+      <div class="glass e3 lens chroma reactive tilt ready-card reveal" data-anim style="--bd:1.2s">
         <span class="sheen" aria-hidden="true"></span>
         <span class="sweep" aria-hidden="true"></span>
         <span class="bloom" aria-hidden="true"></span>
@@ -1190,17 +1277,17 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
           <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="hsl(158 30% 86%)" stroke-width="16" stroke-linecap="round"/>
           <path id="readyArc" d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="url(#rg)" stroke-width="16" stroke-linecap="round"
                 stroke-dasharray="251" stroke-dashoffset="251"/>
-          <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#D6A86A"/><stop offset="1" stop-color="#226157"/></linearGradient></defs>
+          <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8FBF8E"/><stop offset="1" stop-color="#226157"/></linearGradient></defs>
         </svg>
-        <div class="ready-num">78%</div>
+        <div class="ready-num" id="ready-num" data-target="78">78%</div>
         <div class="ready-state">майже готовий</div>
-        <div class="ready-cap">Готовність до іспиту</div>
+        <div class="ready-cap">Оновлюється після кожного тесту</div>
       </div>
 
       <div class="ready-text reveal">
-        <h2 id="ready-h">Не вгадуй, чи ти готовий — побач це.</h2>
+        <h2 id="ready-h">Не вгадуй, чи ти готовий&nbsp;— побач це.</h2>
         <p>Ми рахуємо твою готовність за останніми результатами й опануванням тем. Сідай за кермо іспиту тоді, коли цифра скаже «готовий».</p>
-        <p class="ready-reassure"><span aria-hidden="true">🫶</span> Тисячі вже склали з першого разу. Ви теж зможете.</p>
+        <p class="ready-reassure"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20s-7-4.5-9.2-9C1.3 8 3 4.5 6.5 4.5c2 0 3.3 1.2 4 2.4l1.5 2.1 1.5-2.1c.7-1.2 2-2.4 4-2.4 3.5 0 5.2 3.5 3.7 6.5C19 15.5 12 20 12 20Z" fill="hsl(152 44% 72%)" stroke="var(--green-deep)" stroke-width="1.5" stroke-linejoin="round"/></svg> Тисячі вже склали з першого разу. Ви теж зможете.</p>
         <div style="margin-top:22px"><a class="btn cta-glass btn-lg" href="#pricing"><span>Почати безкоштовно</span></a></div>
       </div>
     </div>
@@ -1252,15 +1339,16 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       <h2 id="price-h">Почни безкоштовно. Без картки.</h2>
       <p>Преміум — коли захочеш більше. Жодного тиску.</p>
     </div>
-    <div class="price-grid zone" style="--zone-hue:268 40% 84%">
+    <div class="price-grid zone" style="--zone-hue:152 40% 84%">
       <div class="solid plan reveal">
         <div class="pname">Безкоштовно</div>
-        <div class="pfree">0 ₴</div>
+        <div class="pfree">0 ₴ <small>назавжди</small></div>
         <ul>
           <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Практика за темами</li>
           <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Демо пробних іспитів</li>
           <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Базовий прогрес</li>
         </ul>
+        <p class="plan-note">Без картки. Назавжди.</p>
         <a class="btn btn-ghost btn-block" href="#hero-cta">Почати безкоштовно</a>
       </div>
 
@@ -1289,23 +1377,23 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       <p>Коротко й чесно — щоб ти почувався спокійно.</p>
     </div>
     <div class="faq-list">
-      <details class="solid faq reveal">
+      <details class="solid faq reveal" name="faq">
         <summary>Це офіційний іспит?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
         <div class="a">Ні. Це навчальна платформа для підготовки. Питання — з відкритої бази ГСЦ МВС, але це не офіційна екзаменаційна система.</div>
       </details>
-      <details class="solid faq reveal">
+      <details class="solid faq reveal" name="faq">
         <summary>Чи актуальні питання?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
         <div class="a">Так, ми оновлюємо базу за змінами в ПДР.</div>
       </details>
-      <details class="solid faq reveal">
+      <details class="solid faq reveal" name="faq">
         <summary>Скільки часу треба на підготовку?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
         <div class="a">Більшості вистачає 1–3 тижнів по 15–20 хвилин на день.</div>
       </details>
-      <details class="solid faq reveal">
+      <details class="solid faq reveal" name="faq">
         <summary>Чи працює на телефоні?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
         <div class="a">Так, сайт повністю адаптований під мобільні.</div>
       </details>
-      <details class="solid faq reveal">
+      <details class="solid faq reveal" name="faq">
         <summary>Чи потрібна картка, щоб почати?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
         <div class="a">Ні. Почати можна безкоштовно й без картки.</div>
       </details>
@@ -1316,7 +1404,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 <!-- ============================ FINAL CTA ============================ -->
 <section class="section-pad final zone" id="final" aria-labelledby="final-h" style="--zone-hue:158 50% 80%">
   <div class="wrap">
-    <div class="glass final-card breathe-glass reveal" data-anim style="--bd:.6s">
+    <div class="solid final-card breathe-glass reveal" data-anim style="--bd:.6s">
       <span class="bloom" aria-hidden="true"></span>
       <svg class="final-mascot" viewBox="0 0 100 100" role="img" aria-label="Світлик — твій спокійний помічник"><use href="#svitlyk"/></svg>
       <h2 id="final-h">Твоє «склав» починається сьогодні.</h2>
@@ -1449,20 +1537,40 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     if(!seg) return;
     var thumb = seg.querySelector('.thumb');
     var btns = Array.prototype.slice.call(seg.querySelectorAll('button'));
+    var helper = document.getElementById('quiz-helper-text');
+    var HINTS = {
+      train: 'Тут можна помилятися — це тренування, а не іспит.',
+      exam:  'Як на справжньому іспиті: одна спроба на питання.'
+    };
     function place(btn){
       if(!thumb) return;
       thumb.style.width = btn.offsetWidth + 'px';
       thumb.style.transform = 'translateX(' + (btn.offsetLeft - 4) + 'px)';
     }
-    function select(btn){
-      btns.forEach(function(b){ b.setAttribute('aria-pressed', b === btn ? 'true':'false'); });
+    function select(btn, focus){
+      btns.forEach(function(b){
+        var on = b === btn;
+        b.setAttribute('aria-checked', on ? 'true':'false');
+        b.tabIndex = on ? 0 : -1;
+      });
       place(btn);
+      if(helper && btn.dataset.mode && HINTS[btn.dataset.mode]) helper.textContent = HINTS[btn.dataset.mode];
+      if(focus) btn.focus();
     }
-    btns.forEach(function(b){ b.addEventListener('click', function(){ select(b); }); });
-    var active = seg.querySelector('button[aria-pressed="true"]') || btns[0];
+    btns.forEach(function(b, i){
+      b.addEventListener('click', function(){ select(b); });
+      b.addEventListener('keydown', function(e){
+        var dir = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1
+                : (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   ? -1 : 0;
+        if(!dir) return;
+        e.preventDefault();
+        select(btns[(i + dir + btns.length) % btns.length], true);
+      });
+    });
+    var active = seg.querySelector('button[aria-checked="true"]') || btns[0];
     requestAnimationFrame(function(){ place(active); });
     window.addEventListener('resize', function(){
-      place(seg.querySelector('button[aria-pressed="true"]') || btns[0]);
+      place(seg.querySelector('button[aria-checked="true"]') || btns[0]);
     });
   })();
 
@@ -1513,6 +1621,9 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 
     xp.classList.add('show');
     resetBtn.classList.add('show');
+    /* move focus to the explanation so keyboard/SR users don't sit on a disabled option */
+    feedback.setAttribute('tabindex','-1');
+    feedback.focus();
   }
 
   function reset(){
@@ -1567,7 +1678,20 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     var bloom = card && card.querySelector('.bloom');
     var num = card && card.querySelector('.ready-num');
     if(bloom) setTimeout(function(){ bloom.classList.add('lit'); }, 250);
-    if(num) setTimeout(function(){ num.classList.add('count'); }, 1300);
+    /* count the numeral 0 -> target in sync with the arc settling (the emotional payoff) */
+    if(num){
+      var target = parseInt(num.getAttribute('data-target'), 10) || 78;
+      num.textContent = '0%';
+      var t0 = null, dur = 1500;
+      requestAnimationFrame(function step(ts){
+        if(t0 === null) t0 = ts;
+        var p = Math.min(1, (ts - t0) / dur);
+        var eased = 1 - Math.pow(1 - p, 3);
+        num.textContent = Math.round(eased * target) + '%';
+        if(p < 1){ requestAnimationFrame(step); }
+        else { num.classList.add('count'); }
+      });
+    }
   }
 
   if('IntersectionObserver' in window && !reduceMotion){
@@ -1590,6 +1714,47 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     revealEls.forEach(function(el){ el.classList.add('in'); });
     fillMeters(document); fillReadyArc();
   }
+
+  /* ---------- Світлик flight-path spine: glide down the gutter with scroll ---------- */
+  (function(){
+    var spine = document.querySelector('.svitlyk-spine');
+    if(!spine || reduceMotion) return;
+    if(!(window.matchMedia && window.matchMedia('(min-width:1320px)').matches)) return;
+    var ticking = false;
+    function update(){
+      ticking = false;
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      var p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      spine.style.setProperty('--spine-y', (15 + p * 60).toFixed(1) + 'vh');  // glide 15vh -> 75vh
+    }
+    window.addEventListener('scroll', function(){
+      if(!ticking){ ticking = true; requestAnimationFrame(update); }
+    }, {passive:true});
+    window.addEventListener('resize', update);
+    update();
+  })();
+
+  /* ---------- Nav scroll-spy: aria-current on the section in the middle band ---------- */
+  (function(){
+    if(!('IntersectionObserver' in window)) return;
+    var links = Array.prototype.slice.call(document.querySelectorAll('.nav-links a[href^="#"]'));
+    var map = {};
+    links.forEach(function(a){
+      var sec = document.getElementById(a.getAttribute('href').slice(1));
+      if(sec) map[sec.id] = a;
+    });
+    var ids = Object.keys(map);
+    if(!ids.length) return;
+    var spy = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          links.forEach(function(a){ a.removeAttribute('aria-current'); });
+          map[e.target.id].setAttribute('aria-current','true');
+        }
+      });
+    }, {rootMargin:'-45% 0px -50% 0px', threshold:0});
+    ids.forEach(function(id){ spy.observe(document.getElementById(id)); });
+  })();
 })();
 </script>
 </body>
