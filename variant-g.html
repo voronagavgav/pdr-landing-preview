@@ -663,21 +663,32 @@ section{position:relative}
 @media(min-width:860px){.steps{grid-template-columns:repeat(3,1fr)}}
 /* #how: the e2 tray held OPAQUE cards (a near-invisible double-frame) — strip the glass
    so the 3 cards read as one sequence on the zone pool; keep only the hairline tray-edge. */
-#how .glass.tray{background:transparent;box-shadow:none;border:0;padding:0}
+#how .glass.tray{background:transparent;box-shadow:none;border:0;padding:0;overflow:visible}
 #how .glass.tray::before,#how .glass.tray::after{display:none}
-/* the #how zone pool is the ONLY background here, so it must clearly FRAME the 3-card row with a
-   tint margin (the previous faint off-centre wash was smaller than the row — outer cards overran it). */
-#how .zone::before{
-  /* a CLEARLY-VISIBLE soft-gray rounded panel the 3 cards sit on (Danil wants a real filled zone, not a
-     faint tint or a thin border). Cool light gray reads "slightly gray" against the warm cream page; the
-     near-white cards pop on it. FIXED-px even margin all 4 sides, consistent desktop + mobile. */
-  inset:-34px -22px;
-  border-radius:30px;
-  background:hsl(214 16% 92.5%);
-  -webkit-mask-image:none;
-          mask-image:none;
-}
+/* white hairline pinned above the cards (z-index:4) — overlapped cards on hover; removed */
+#how .tray-edge{display:none}
+/* corners fix: squircle (superellipse) corners drop their border in Chrome — use round so the border is continuous */
+#how .step{corner-shape:round}
 
+/* ===== Liquid-glass TWEAKS — applied when toggles are on (panel-driven) ===== */
+/* "Скло всюди": every frosted panel refracts like the hero lens + gains the dome gloss */
+.lg-everywhere.refraction-ok .glass::before{ backdrop-filter:url(#lg) var(--e2-blur); }
+.lg-everywhere.refraction-ok .glass.e1::before{ backdrop-filter:url(#lg) var(--e1-blur); }
+.lg-everywhere.refraction-ok .glass.e3::before{ backdrop-filter:url(#lg) var(--e3-blur); }
+.lg-everywhere.refraction-ok .nav{ backdrop-filter:url(#lg) var(--e1-blur); }
+.lg-everywhere .glass{ box-shadow:var(--e3-shadow), var(--rim), inset 0 0 0 1px hsl(0 0% 100% / .26); }
+.lg-everywhere .glass::after{
+  background:
+    radial-gradient(125% 80% at 50% -40%, hsl(0 0% 100% / .42), transparent 56%),
+    linear-gradient(135deg, hsl(0 0% 100% / .55) 0%, hsl(0 0% 100% / .10) 18%, transparent 42%);
+}
+/* "Скляні картки контенту": near-opaque reading cards become frosted glass */
+.lg-content .solid{
+  background:hsl(var(--glass-tint) / var(--lg-solid-alpha, .82));
+  -webkit-backdrop-filter:var(--e1-blur);
+          backdrop-filter:var(--e1-blur);
+  border-color:hsl(0 0% 100% / .6);
+}
 /* ---------- gamification showcase (glass/opaque chrome) ---------- */
 .game-grid{display:grid;gap:18px}
 .game-card{padding:24px 22px}
@@ -952,8 +963,19 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   .reactive .sheen{display:none}
 }
 </style>
+<style id="lg-baked">/* baked from the Design-app tweak defaults: glass everywhere · transparency .46 · frost 10px */
+:root{
+  --e2-fill:hsl(var(--glass-tint) / 0.46);
+  --e1-fill:hsl(var(--glass-tint) / 0.52);
+  --e3-fill:hsl(var(--glass-tint) / 0.267);
+  --lg-solid-alpha:0.80;
+  --e2-blur:blur(10px) saturate(175%) brightness(108%);
+  --e1-blur:blur(7.0px) saturate(160%) brightness(106%);
+  --e3-blur:blur(6.0px) saturate(168%) brightness(133%);
+}
+</style>
 </head>
-<body>
+<body class="lg-everywhere">
 
 <!-- pastel drifting blobs + masked grid the glass refracts -->
 <span class="drift b1" aria-hidden="true"></span>
@@ -1143,8 +1165,8 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 </section>
 
 <!-- ============================ HOW IT WORKS ============================ -->
-<section class="section-pad" id="how" aria-labelledby="how-h">
-  <div class="wrap">
+<section class="section-pad" id="how" aria-labelledby="how-h" style="padding: 104px 0px">
+  <div class="wrap" data-comment-anchor="f6b4d9f71b-div" style="opacity: 1">
     <div class="section-head reveal">
       <span class="tag">Як це працює</span>
       <h2 id="how-h">Три спокійні кроки до «склав»</h2>
@@ -1153,8 +1175,8 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     <div class="zone reveal" style="--zone-hue:158 50% 80%">
       <div class="glass tray">
       <span class="tray-edge" aria-hidden="true"></span>
-      <div class="steps">
-        <div class="solid step lift">
+      <div class="steps" data-comment-anchor="4967a12388-div" style="height: 246px; opacity: 1">
+        <div class="solid step lift" style="border-radius: 22px; border-width: 1px; padding: 30px 26px">
           <div class="num">1</div>
           <h3>Вивчай тему</h3>
           <p>Коротко й зрозуміло: знаки, розмітка, пріоритети — без юридичної води.</p>
@@ -1798,5 +1820,6 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   })();
 })();
 </script>
+
 </body>
 </html>
