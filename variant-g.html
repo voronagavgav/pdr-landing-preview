@@ -131,12 +131,12 @@ button{font-family:inherit;cursor:pointer}
 
 /* faint masked grid ONLY under the hero zone — fine high-contrast edges the lens can bend */
 .bg-detail{
-  position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.05;
+  position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.07;
   background-image:
-    repeating-linear-gradient(0deg,  hsl(208 22% 48% / .5) 0 1px, transparent 1px 46px),
-    repeating-linear-gradient(90deg, hsl(208 22% 48% / .5) 0 1px, transparent 1px 46px);
-  -webkit-mask-image:radial-gradient(54rem 36rem at 80% 7%, #000, transparent 70%);
-          mask-image:radial-gradient(54rem 36rem at 80% 7%, #000, transparent 70%);
+    repeating-linear-gradient(0deg,  hsl(208 24% 46% / .5) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, hsl(208 24% 46% / .5) 0 1px, transparent 1px 40px);
+  -webkit-mask-image:radial-gradient(44rem 32rem at 80% 26%, #000 8%, transparent 72%);
+          mask-image:radial-gradient(44rem 32rem at 80% 26%, #000 8%, transparent 72%);
 }
 @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(3vw,4vh) scale(1.06)}}
 @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-3vw,3vh) scale(1.05)}}
@@ -238,10 +238,21 @@ button{font-family:inherit;cursor:pointer}
 .refraction-ok .glass.lens .lens-refract{display:none}
 /* SVG edge lensing — reserved for hero panel + nav capsule layer only (Chromium) */
 /* single #lg displacement + BRIGHT settings = clean light liquid glass.
-   (The #lg-chroma 3-pass chromatic filter rendered dark/muddy in Chrome — removed from the lenses.) */
-.refraction-ok .glass.lens::before,
-.refraction-ok .glass.lens.chroma::before{
+   (A 3-pass chromatic filter was tried and dropped — it rendered dark/muddy in Chrome.) */
+.refraction-ok .glass.lens::before{
   backdrop-filter:url(#lg) blur(6px) saturate(168%) brightness(133%);
+}
+/* HERO panel pushed glassier than the shared default: brighter top dome + a lower-blur,
+   higher-vibrancy LIVE refraction so the warp actually reads. The readiness card keeps the
+   calmer default. (Kept in sync with the reduced-transparency/contrast kill rules below.) */
+#sample.glass.lens::after{
+  background:
+    radial-gradient(130% 86% at 50% -42%, hsl(0 0% 100% / .52), transparent 58%),
+    linear-gradient(135deg, hsl(0 0% 100% / .60) 0%, hsl(0 0% 100% / .12) 18%, transparent 44%);
+}
+.refraction-ok #sample.glass.lens::before{
+  -webkit-backdrop-filter:url(#lg) blur(5px) saturate(180%) brightness(140%);
+          backdrop-filter:url(#lg) blur(5px) saturate(180%) brightness(140%);
 }
 
 /* ---------- pointer-reactive specular sheen (gated by reduce-motion in JS+CSS) ---------- */
@@ -254,25 +265,10 @@ button{font-family:inherit;cursor:pointer}
 .reactive:hover .sheen{opacity:1}
 
 /* ============================================================
-   MOTION (v3 addendum) — all GPU-cheap: transform / opacity / gradient
-   Loops paused off-screen via .anim-run gate (IntersectionObserver).
+   MOTION (v3 addendum) — all GPU-cheap: transform / opacity / gradient.
+   (The periodic light-sweep + idle breathe shimmer were removed — Danil found the recurring
+   gloss distracting; only pointer/hover/press-driven effects remain.)
    ============================================================ */
-/* A — slow specular LIGHT-SWEEP (animated background-position; runs only when .anim-run) */
-.sweep{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
-  mix-blend-mode:screen;opacity:0;
-  background:linear-gradient(105deg,transparent 30%,hsl(0 0% 100% / .50) 48%,transparent 66%);
-  background-size:250% 100%;background-position:200% 0}
-/* periodic light-sweep removed (Danil: distracting "glossy from time to time"); hover sweeps stay */
-.anim-run .sweep{animation:none}
-@keyframes sweep{0%{background-position:200% 0;opacity:0}
-  12%{opacity:.85}40%{opacity:.85}55%{background-position:-60% 0;opacity:0}100%{opacity:0}}
-
-/* B — idle BREATHING shimmer (staggered via --bd). Animates only filter+box-shadow so it never
-   conflicts with the pointer-tilt transform on the same panel. */
-.anim-run .breathe-glass{animation:breatheGlass 8s ease-in-out infinite;animation-delay:var(--bd,0s)}
-@keyframes breatheGlass{0%,100%{filter:brightness(1) saturate(1)}
-  50%{filter:brightness(1.035) saturate(1.05)}}
-
 /* C — liquid PRESS RIPPLE from the click point */
 .ripple{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;overflow:hidden}
 .ripple i{position:absolute;left:var(--rx,50%);top:var(--ry,50%);width:12px;height:12px;border-radius:50%;
@@ -284,10 +280,13 @@ button{font-family:inherit;cursor:pointer}
 .ready-num.count{animation:numpulse .6s var(--calm-ease)}
 @keyframes numpulse{0%{transform:scale(.96);opacity:.7}100%{transform:scale(1);opacity:1}}
 
-/* H — micro pointer TILT (≤2°) + subtle ELASTIC pull toward the cursor (≤4px), --tx/--ty/--px/--py in JS */
+/* H — subtle ELASTIC pull toward the cursor (≤4px) on the lens panels; --px/--py set in JS.
+   (No 3D rotate: rotating a backdrop-filter panel re-rasterises it at an angle and blurs it.) */
 .tilt{transition:transform .3s var(--calm-ease)}
 @media(hover:hover) and (min-width:760px){
-  .tilt:hover{transform:perspective(900px) rotateX(var(--ty,0deg)) rotateY(var(--tx,0deg)) translate3d(var(--px,0),var(--py,0),0)}
+  /* elastic PULL toward the cursor only — no 3D rotate. Rotating a backdrop-filter glass panel
+     re-rasterises it at an angle and softens the text/glass (the "blurry on hover" Danil saw). */
+  .tilt:hover{transform:translate3d(var(--px,0),var(--py,0),0)}
 }
 
 /* soft green inner-glow bloom (readiness gauge + final CTA), screen blend */
@@ -460,9 +459,13 @@ header.site .wrap{position:relative}
    HERO
    ============================================================ */
 .hero{position:relative;padding:40px 0 26px}
-/* light, BRIGHT mint glow behind the #sample lens so the glass picks up clean light colour (not gray) */
+/* CONCENTRATED light pool behind the #sample lens so the glass has structured colour to bend
+   (mint→sky→peach lobes, still pastel/light — never a dark patch). More to refract = glassier hero. */
 .hero::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
-  background:radial-gradient(22rem 18rem at 88% 24%, hsl(165 64% 86% / .32), transparent 60%)}
+  background:
+    radial-gradient(20rem 16rem at 86% 16%, hsl(165 66% 85% / .42), transparent 60%),
+    radial-gradient(22rem 20rem at 97% 42%, hsl(202 62% 85% / .30), transparent 62%),
+    radial-gradient(18rem 16rem at 68% 62%, hsl(28 64% 88% / .20), transparent 64%)}
 .hero-grid{position:relative;z-index:2;display:grid;gap:30px;align-items:center}
 .eyebrow{
   display:inline-flex;align-items:center;gap:8px;
@@ -474,7 +477,7 @@ header.site .wrap{position:relative}
 .eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--green-deep)}
 
 /* mascot greeting */
-.hero-mascot{display:flex;align-items:flex-start;gap:13px;margin-bottom:22px;max-width:520px}
+.hero-mascot{display:flex;align-items:flex-start;gap:13px;margin-top:26px;margin-bottom:22px;max-width:520px}
 .mascot-stage{
   flex:0 0 auto;width:104px;height:124px;border-radius:22px;
   display:grid;place-items:center;
@@ -655,6 +658,17 @@ section{position:relative}
    so the 3 cards read as one sequence on the zone pool; keep only the hairline tray-edge. */
 #how .glass.tray{background:transparent;box-shadow:none;border:0;padding:0}
 #how .glass.tray::before,#how .glass.tray::after{display:none}
+/* the #how zone pool is the ONLY background here, so it must clearly FRAME the 3-card row with a
+   tint margin (the previous faint off-centre wash was smaller than the row — outer cards overran it). */
+#how .zone::before{
+  inset:-13% -3.4%;
+  background:
+    radial-gradient(96% 90% at 50% 48%, hsl(var(--zone-hue,158 50% 80%) / .12), transparent 80%),
+    radial-gradient(46% 72% at 13% 26%, hsl(var(--zone-hue,158 50% 80%) / .07), transparent 72%),
+    radial-gradient(46% 72% at 87% 78%, hsl(28 60% 84% / .06), transparent 72%);
+  -webkit-mask-image:radial-gradient(118% 128% at 50% 50%, #000 82%, transparent 100%);
+          mask-image:radial-gradient(118% 128% at 50% 50%, #000 82%, transparent 100%);
+}
 
 /* ---------- gamification showcase (glass/opaque chrome) ---------- */
 .game-grid{display:grid;gap:18px}
@@ -885,21 +899,21 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   .nav,.nav.stuck{background:hsl(var(--glass-tint) / .98)}
   .cta-glass{background:hsl(152 50% 84%)}
   .glass::before,.glass::after,.cta-glass::after,.btn-ghost::before,.stat::before,.chip-glass::before,.format-chip::before,.nav{backdrop-filter:none;-webkit-backdrop-filter:none}
-  /* the Chromium chromatic lens out-specifies the generic rule above — kill it explicitly */
-  .refraction-ok .glass.lens::before,.refraction-ok .glass.lens.chroma::before{backdrop-filter:none;-webkit-backdrop-filter:none}
+  /* the Chromium refraction lens out-specifies the generic rule above — kill it explicitly */
+  .refraction-ok .glass.lens::before,.refraction-ok #sample.glass.lens::before{backdrop-filter:none;-webkit-backdrop-filter:none}
   header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none}
   footer.site{background:hsl(var(--glass-tint) / .98)}
-  .glass::after,.cta-glass::after,.sheen,.bg-detail,.drift,.zone::before,.ready-grid::after,.sweep,.bloom,.tray>.tray-edge,.lens-refract{display:none}
+  .glass::after,.cta-glass::after,.sheen,.bg-detail,.drift,.zone::before,.ready-grid::after,.bloom,.tray>.tray-edge,.lens-refract{display:none}
 }
 @media (prefers-contrast:more){
   .glass,.solid,.cta-glass,.btn-ghost,.eyebrow,.speech,.opt,.node,.bdg,.plan,.seg,.stat,.chip-glass,.format-chip{background:#fff;border-color:#1F2933;color:var(--ink)}
   .nav,.nav.stuck{background:#fff;border-color:#1F2933}
   .cta-glass{color:#0f2c22;border-color:#14463b}
   .glass::before,.glass::after,.cta-glass::before,.cta-glass::after,.btn-ghost::before,.seg::before,.stat::before,.chip-glass::before,.format-chip::before{backdrop-filter:none;-webkit-backdrop-filter:none}
-  .glass::after,.cta-glass::after,.sheen,.zone::before,.ready-grid::after,.sweep,.bloom,.lens-refract{display:none}
+  .glass::after,.cta-glass::after,.sheen,.zone::before,.ready-grid::after,.bloom,.lens-refract{display:none}
   .nav{backdrop-filter:none;-webkit-backdrop-filter:none}
   header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none;background:#fff;border-color:#1F2933}
-  .refraction-ok .glass.lens::before,.refraction-ok .glass.lens.chroma::before{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .refraction-ok .glass.lens::before,.refraction-ok #sample.glass.lens::before{backdrop-filter:none;-webkit-backdrop-filter:none}
   .nav-links a,.foot-cols a,.muted,.hero-sub,.stat .l,.feat p,.section-head p{color:#1F2933}
   .bg-detail,.drift{display:none}
 }
@@ -908,7 +922,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   .glass::before,.glass::after,.stat::before,.chip-glass::before,.format-chip::before{display:none}
   .cta-glass{background:hsl(152 50% 84%)}
   .cta-glass::before,.cta-glass::after{display:none}
-  .btn-ghost::before,.seg::before,.sheen,.sweep,.bloom{display:none}
+  .btn-ghost::before,.seg::before,.sheen,.bloom{display:none}
   .nav,.nav.stuck{background:hsl(var(--glass-tint) / .96)}
   header.site,footer.site{background:hsl(var(--glass-tint) / .96)}
 }
@@ -921,8 +935,8 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   .drift{animation:none!important;transform:none!important}
   .mbody{animation:none!important;transform:none!important}
   .msh{animation:none!important;transform:none!important;opacity:.12!important}
-  .sweep,.breathe-glass,.ripple{animation:none!important}
-  .sweep,.ripple{display:none}
+  .ripple{animation:none!important}
+  .ripple{display:none}
   .tilt:hover{transform:none}
   .ring .val,.xp-bar i,.meter i{transition:none!important}
   .reveal{opacity:1;transform:none;transition:opacity .15s linear}
@@ -940,27 +954,13 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 <span class="drift b3" aria-hidden="true"></span>
 <span class="bg-detail" aria-hidden="true"></span>
 
-<!-- LIQUID-GLASS SVG FILTERS — edge-concentrated displacement + 3-pass chromatic split (Chromium) -->
+<!-- LIQUID-GLASS SVG FILTER — single edge-concentrated displacement lens (Chromium) -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <!-- shared turbulence: higher baseFrequency → warp lives at the rim, scale 92 → clearly liquid -->
   <filter id="lg" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
     <feTurbulence type="fractalNoise" baseFrequency="0.012 0.014" numOctaves="2" seed="11" stitchTiles="stitch" result="n"/>
     <feGaussianBlur in="n" stdDeviation="1.4" result="sn"/>
     <feDisplacementMap in="SourceGraphic" in2="sn" scale="92" xChannelSelector="R" yChannelSelector="G"/>
-  </filter>
-
-  <!-- HERO: chromatic-aberration lens — R/G/B split at scales 104/92/80 (tasteful fringe, spread ~24) -->
-  <filter id="lg-chroma" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
-    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.014" numOctaves="2" seed="11" stitchTiles="stitch" result="n"/>
-    <feGaussianBlur in="n" stdDeviation="1.4" result="sn"/>
-    <feDisplacementMap in="SourceGraphic" in2="sn" scale="104" xChannelSelector="R" yChannelSelector="G" result="rdisp"/>
-    <feColorMatrix in="rdisp" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="r"/>
-    <feDisplacementMap in="SourceGraphic" in2="sn" scale="92"  xChannelSelector="R" yChannelSelector="G" result="gdisp"/>
-    <feColorMatrix in="gdisp" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="g"/>
-    <feDisplacementMap in="SourceGraphic" in2="sn" scale="80"  xChannelSelector="R" yChannelSelector="G" result="bdisp"/>
-    <feColorMatrix in="bdisp" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="b"/>
-    <feBlend in="r" in2="g" mode="screen" result="rg"/>
-    <feBlend in="rg" in2="b" mode="screen"/>
   </filter>
 </svg>
 
@@ -1059,11 +1059,10 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         </div>
       </div>
 
-      <!-- SAMPLE QUESTION — SIGNATURE #1 liquid-glass panel (chromatic SVG lens + sweep + breathe + tilt) -->
-      <div class="glass e3 lens reactive tilt quiz" id="sample" data-anim aria-labelledby="quiz-q">
+      <!-- SAMPLE QUESTION — SIGNATURE #1 liquid-glass panel (single #lg SVG lens + pointer sheen + tilt) -->
+      <div class="glass e3 lens reactive tilt quiz" id="sample" aria-labelledby="quiz-q">
         <span class="lens-refract" aria-hidden="true"></span>
         <span class="sheen" aria-hidden="true"></span>
-        <span class="sweep" aria-hidden="true"></span>
         <div class="quiz-head">
           <span class="kicker"><span aria-hidden="true">✨</span> Спробуй прямо зараз</span>
           <span class="quiz-helper">
@@ -1327,10 +1326,9 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 <section class="section-pad" id="readiness" aria-labelledby="ready-h">
   <div class="wrap">
     <div class="ready-grid zone" style="--zone-hue:158 50% 80%">
-      <div class="glass e3 lens reactive tilt ready-card reveal" data-anim style="--bd:1.2s">
+      <div class="glass e3 lens reactive tilt ready-card reveal" style="--bd:1.2s">
         <span class="lens-refract" aria-hidden="true"></span>
         <span class="sheen" aria-hidden="true"></span>
-        <span class="sweep" aria-hidden="true"></span>
         <span class="bloom" aria-hidden="true"></span>
         <svg class="ready-dial" viewBox="0 0 200 120" role="img" aria-label="Готовність до іспиту 78 відсотків — майже готовий">
           <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="hsl(158 30% 86%)" stroke-width="16" stroke-linecap="round"/>
@@ -1551,15 +1549,12 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
           el.style.setProperty('--mx', lx.toFixed(1)+'%');
           el.style.setProperty('--my', ly.toFixed(1)+'%');
           if(canTilt){
-            el.style.setProperty('--tx', ((lx-50)/50*2).toFixed(2)+'deg');
-            el.style.setProperty('--ty', ((50-ly)/50*2).toFixed(2)+'deg');
             el.style.setProperty('--px', ((lx-50)/50*4).toFixed(1)+'px');   /* elastic pull toward cursor */
             el.style.setProperty('--py', ((ly-50)/50*4).toFixed(1)+'px');
           }
         });
       });
       if(canTilt) el.addEventListener('pointerleave', function(){
-        el.style.setProperty('--tx','0deg'); el.style.setProperty('--ty','0deg');
         el.style.setProperty('--px','0px'); el.style.setProperty('--py','0px');
       });
     });
@@ -1594,14 +1589,6 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         dot.addEventListener('animationend', function(){ dot.remove(); });
       });
     });
-  }
-
-  /* ---------- Pause looping glass motion off-screen (sweep/breathe via .anim-run) ---------- */
-  if('IntersectionObserver' in window && !reduceMotion){
-    var animIo = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){ e.target.classList.toggle('anim-run', e.isIntersecting); });
-    }, {threshold:0});
-    document.querySelectorAll('[data-anim]').forEach(function(el){ animIo.observe(el); });
   }
 
   /* ---------- Segmented glass toggle — slide the .thumb under the active button ---------- */
