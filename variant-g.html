@@ -262,7 +262,8 @@ button{font-family:inherit;cursor:pointer}
   mix-blend-mode:screen;opacity:0;
   background:linear-gradient(105deg,transparent 30%,hsl(0 0% 100% / .50) 48%,transparent 66%);
   background-size:250% 100%;background-position:200% 0}
-.anim-run .sweep{animation:sweep 10s var(--calm-ease) infinite;animation-delay:1.5s}
+/* periodic light-sweep removed (Danil: distracting "glossy from time to time"); hover sweeps stay */
+.anim-run .sweep{animation:none}
 @keyframes sweep{0%{background-position:200% 0;opacity:0}
   12%{opacity:.85}40%{opacity:.85}55%{background-position:-60% 0;opacity:0}100%{opacity:0}}
 
@@ -1437,7 +1438,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 <!-- ============================ FINAL CTA ============================ -->
 <section class="section-pad final zone" id="final" aria-labelledby="final-h" style="--zone-hue:158 50% 80%">
   <div class="wrap">
-    <div class="solid final-card breathe-glass reveal" data-anim style="--bd:.6s">
+    <div class="solid final-card reveal" style="--bd:.6s">
       <span class="bloom" aria-hidden="true"></span>
       <svg class="final-mascot" viewBox="0 0 100 100" role="img" aria-label="Світлик — твій спокійний помічник"><use href="#svitlyk"/></svg>
       <h2 id="final-h">Твоє «склав» починається сьогодні.</h2>
