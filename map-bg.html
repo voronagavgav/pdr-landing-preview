@@ -1,0 +1,3267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ukraine Driving Practice Map — Final v6 Kyiv Zoom More Cars — local-v6-20260627-kyiv3x</title>
+<meta name="description" content="Final v6 branch: robust local cars preserved, with extra Kyiv street-zoom traffic density." />
+<link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin />
+<link rel="preconnect" href="https://unpkg.com" crossorigin />
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />
+<style>
+:root{
+  --radius:.625rem;
+  --background:oklch(97% .025 140);
+  --foreground:oklch(28% .05 150);
+  --card:oklch(100% 0 0);
+  --primary:oklch(62% .14 145);
+  --primary-foreground:oklch(98% .01 140);
+  --secondary:oklch(92% .05 145);
+  --secondary-foreground:oklch(30% .06 150);
+  --muted:oklch(94% .03 140);
+  --muted-foreground:oklch(45% .04 150);
+  --accent:oklch(85% .09 145);
+  --border:oklch(88% .04 145);
+  --pastel-sky:oklch(93% .04 220);
+  --pastel-mint:oklch(92% .06 160);
+  --pastel-sage:oklch(85% .08 145);
+  --pastel-cream:oklch(96% .03 95);
+  --map-land:oklch(88% .08 145);
+  --map-land-stroke:oklch(55% .13 145);
+  --map-water:oklch(90% .05 220);
+  --city-dot:oklch(55% .18 145);
+  --city-ring:oklch(55% .18 145/.3);
+  --gradient-sky:linear-gradient(180deg, var(--pastel-sky) 0%, var(--pastel-mint) 50%, var(--pastel-cream) 100%);
+}
+*{box-sizing:border-box}
+html{
+  min-height:100%;
+  background:var(--background);
+  scroll-behavior:auto;
+  scrollbar-width:none;            /* background-use: no scrollbar (host drives the journey) */
+}
+html::-webkit-scrollbar{display:none}
+body{
+  margin:0;
+  min-height:100%;
+  overflow-x:hidden;
+  background:var(--background);
+  color:var(--foreground);
+  font-family:Manrope,Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+.journey{
+  position:relative;
+  height:3150vh;
+  min-height:22000px;
+  background:var(--gradient-sky);
+}
+.stage{
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow:hidden;
+  isolation:isolate;
+  background:var(--gradient-sky);
+}
+#map{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  background:var(--pastel-mint);
+  outline:0;
+}
+#traffic{
+  position:absolute;
+  inset:0;
+  z-index:410;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+}
+.maplibregl-map,
+.maplibregl-canvas-container,
+.maplibregl-canvas{
+  width:100%!important;
+  height:100%!important;
+  outline:0!important;
+}
+.maplibregl-canvas{
+  filter:saturate(.55) hue-rotate(-12deg) brightness(1.04) contrast(.94);
+}
+.maplibregl-control-container{display:none!important}
+.tint,
+.veil,
+.depth,
+.grain{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+.tint{
+  z-index:400;
+  background:color-mix(in oklab, var(--pastel-sage) 18%, transparent);
+  mix-blend-mode:multiply;
+}
+.veil{
+  z-index:401;
+  background:radial-gradient(ellipse at center, transparent 55%, color-mix(in oklab, var(--pastel-mint) 45%, transparent) 100%);
+}
+.depth{display:none}
+.grain{display:none}
+
+
+.attribution{
+  position:absolute;
+  right:10px;
+  bottom:8px;
+  z-index:20;
+  font-size:10px;
+  line-height:1.2;
+  color:oklch(32% .025 150 / .44);
+  background:oklch(100% 0 0 / .52);
+  border:1px solid oklch(100% 0 0 / .65);
+  border-radius:999px;
+  padding:4px 8px;
+  backdrop-filter:blur(12px) saturate(140%);
+}
+.attribution a{color:inherit;text-decoration:none}
+
+.qa-metrics{
+  position:absolute;
+  left:10px;
+  top:10px;
+  z-index:560;
+  display:none;
+  width:min(410px, calc(100vw - 20px));
+  max-height:min(70vh, 560px);
+  overflow:auto;
+  padding:10px 12px;
+  border-radius:18px;
+  border:1px solid color-mix(in oklab, white 72%, transparent);
+  background:color-mix(in oklab, white 72%, transparent);
+  color:color-mix(in oklab, var(--foreground) 90%, transparent);
+  font:11px/1.36 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  box-shadow:0 14px 36px color-mix(in oklab, var(--foreground) 12%, transparent);
+  backdrop-filter:blur(14px) saturate(150%);
+  pointer-events:none;
+}
+.qa-metrics.is-visible{display:block}
+.qa-metrics b{font-weight:800}
+.qa-metrics .ok{color:#2f6842}
+.qa-metrics .warn{color:#a26116}
+.qa-metrics .bad{color:#9f1d1d}
+
+.focus-softener{
+  position:absolute;
+  inset:-1px;
+  z-index:402;
+  pointer-events:none;
+  opacity:var(--focus-opacity,.16);
+  transition:opacity .55s ease;
+  background:
+    radial-gradient(ellipse at 50% 48%,
+      transparent 0%,
+      transparent 48%,
+      color-mix(in oklab, var(--pastel-mint) 20%, transparent) 68%,
+      color-mix(in oklab, var(--pastel-mint) 48%, transparent) 100%);
+}
+.loading-card{
+  position:relative;
+  overflow:hidden;
+}
+.loading-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  transform:translateX(-100%);
+  background:linear-gradient(90deg, transparent, color-mix(in oklab, white 48%, transparent), transparent);
+  animation:loadingSweep 1.6s ease-in-out infinite;
+}
+.loading-route{
+  margin-top:12px;
+  height:4px;
+  border-radius:999px;
+  background:color-mix(in oklab, var(--pastel-sage) 26%, transparent);
+  overflow:hidden;
+}
+.loading-route::after{
+  content:"";
+  display:block;
+  width:42%;
+  height:100%;
+  border-radius:999px;
+  background:color-mix(in oklab, var(--primary) 64%, white 20%);
+  animation:loadingRoute 1.25s ease-in-out infinite;
+}
+@keyframes loadingSweep{
+  0%{transform:translateX(-100%)}
+  52%,100%{transform:translateX(100%)}
+}
+@keyframes loadingRoute{
+  0%{transform:translateX(-110%)}
+  100%{transform:translateX(245%)}
+}
+
+
+.loading{
+  position:absolute;
+  inset:0;
+  z-index:30;
+  display:grid;
+  place-items:center;
+  color:var(--muted);
+  background:linear-gradient(180deg,var(--pastel-sky),var(--pastel-mint));
+  transition:opacity .35s ease, visibility .35s ease;
+}
+.loading.is-hidden{opacity:0;visibility:hidden}
+.loading-card{
+  border:1px solid oklch(100% 0 0 / .72);
+  background:var(--glass);
+  border-radius:24px;
+  padding:18px 22px;
+  box-shadow:0 14px 34px oklch(42% .04 160 / .12);
+  backdrop-filter:blur(14px) saturate(150%);
+}
+.loading-title{font-weight:700;color:var(--foreground);font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.loading-sub{font-size:13px;margin-top:4px}
+@media(max-width:760px){
+  .journey{height:2850vh;min-height:14500px}
+  .maplibregl-canvas{filter:saturate(.50) hue-rotate(-10deg) brightness(1.08) contrast(.90)}
+  .tint{opacity:.62}
+  .veil{opacity:.30}
+  .focus-softener{opacity:var(--focus-opacity,.20)}
+  .story-chip{left:12px;bottom:18px;width:min(240px, calc(100vw - 24px));padding:10px 12px;border-radius:18px}
+  .story-title{font-size:15px}
+  .story-line{font-size:11px}
+
+.attribution{font-size:9px;right:8px;bottom:8px;max-width:88vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+@media(prefers-reduced-motion:reduce){
+  .journey{height:1000vh;min-height:7200px}
+}
+</style>
+</head>
+<body>
+<main class="journey" id="journey" aria-label="Ukraine scroll map journey using a reduced-detail MapLibre Positron basemap">
+  <section class="stage" aria-label="Map stage">
+    <div id="map" aria-hidden="true"></div>
+    <canvas id="traffic" aria-hidden="true"></canvas>
+    <div class="tint" aria-hidden="true"></div>
+    <div class="veil" aria-hidden="true"></div>
+    <div class="focus-softener" id="focusSoftener" aria-hidden="true"></div>
+    <div class="depth" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="loading" id="loading" aria-live="polite">
+      <div class="loading-card">
+        <div class="loading-title">Ukraine map</div>
+        <div class="loading-sub">Preparing roads, labels and traffic…</div>
+        <div class="loading-route" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="qa-metrics" id="qaMetrics" aria-hidden="true"></div>
+  </section>
+</main>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const journey = document.getElementById('journey');
+  const loading = document.getElementById('loading');
+  const qaMetrics = document.getElementById('qaMetrics');
+  const focusSoftener = document.getElementById('focusSoftener');
+  const storyChip = document.getElementById('storyChip');
+  const storyKicker = document.getElementById('storyKicker');
+  const storyTitle = document.getElementById('storyTitle');
+  const storyLine = document.getElementById('storyLine');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const cities = {
+    kyiv:    {lat:50.44765,lng:30.52295},  // Khreshchatyk / Maidan area
+    odesa:   {lat:46.48535,lng:30.73820},  // Deribasivska / city centre
+    lviv:    {lat:49.84185,lng:24.03155},  // Rynok / old town
+    kharkiv: {lat:50.00465,lng:36.23215},  // Sumska / Freedom Square
+    dnipro:  {lat:48.46490,lng:35.04690}   // Yavornytskoho avenue
+  };
+
+
+  const APP_CONFIG = {
+    camera:{
+      mobileStreetZoom:14.7,
+      desktopStreetZoom:15.35,
+      focusBase:.13,
+      focusStreet:.25
+    },
+    traffic:{
+      mobileDensity:.68,
+      desktopDensity:1,
+      mobileFrameDivisor:1.25
+    }
+  };
+
+  const PRODUCTION_PROFILE = {
+    trafficDensityLabel:'kyiv-odesa-extra-2x',
+    strictRoadOnly:true,
+    debugUi:false,
+    mobileBudgetScale:.78,
+    desktopBudgetScale:1,
+    fpsBudgetGuard:{
+      excellent:18,
+      good:22,
+      fair:28,
+      poor:34,
+      bad:42
+    }
+  };
+
+  const CITY_STORIES = {
+    kyiv:    {title:'Kyiv',    line:'Wide avenues, bridges and central driving scenarios around Khreshchatyk.',       range:[.090,.318]},
+    odesa:   {title:'Odesa',   line:'Coastal city streets, roundabouts and denser center traffic near Deribasivska.',   range:[.374,.584]},
+    lviv:    {title:'Lviv',    line:'Compact old-town streets with slower, tighter route movement.',                    range:[.648,.856]},
+    kharkiv: {title:'Kharkiv', line:'Longer avenues and broader intersections around the city center.',                 range:[.934,1.138]},
+    dnipro:  {title:'Dnipro',  line:'River-city driving with bridge approaches and main avenue traffic.',               range:[1.198,1.360]}
+  };
+
+  const CITY_TRAFFIC_PROFILES = {
+    kyiv:    {density:1.10, majorBias:1.22, localBias:.92, centerPull:1.18, majorSpeed:9.6, localSpeed:6.7},
+    odesa:   {density:1.00, majorBias:1.10, localBias:.96, centerPull:1.05, majorSpeed:8.8, localSpeed:6.2},
+    lviv:    {density:.88, majorBias:.96, localBias:1.08, centerPull:1.24, majorSpeed:7.6, localSpeed:5.7},
+    kharkiv: {density:1.04, majorBias:1.30, localBias:.86, centerPull:.98, majorSpeed:10.2, localSpeed:6.9},
+    dnipro:  {density:1.02, majorBias:1.24, localBias:.90, centerPull:1.05, majorSpeed:9.8, localSpeed:6.8}
+  };
+
+  function cityTrafficMultiplier(cityId){
+    // Background-use: calm, light traffic — roughly the same modest density in every city.
+    return 1;
+  };
+
+  function cityLaneCoverageMultiplier(cityId){
+    // More Kyiv road coverage in the zoomed street region, not just more cars on the same few lanes.
+    return cityId === 'kyiv' ? 1.35 : 1;
+  };
+
+  const stops = [
+    /* Ukraine overview, then Kyiv approach and street zoom */
+    [0.000,48.62,31.20,5.70], [0.060,48.62,31.20,5.70],
+    [0.112,cities.kyiv.lat,cities.kyiv.lng,6.70],
+    [0.150,cities.kyiv.lat,cities.kyiv.lng,10.60],
+    [0.215,cities.kyiv.lat,cities.kyiv.lng,15.35], [0.255,cities.kyiv.lat,cities.kyiv.lng,15.35],
+    [0.295,cities.kyiv.lat,cities.kyiv.lng,10.60], [0.325,cities.kyiv.lat,cities.kyiv.lng,6.70],
+
+    /* Kyiv → Odesa: pull back, travel wide, center, then zoom */
+    [0.356,48.74,30.22,6.70],
+    [0.392,cities.odesa.lat,cities.odesa.lng,6.70],
+    [0.430,cities.odesa.lat,cities.odesa.lng,10.55],
+    [0.492,cities.odesa.lat,cities.odesa.lng,15.30], [0.532,cities.odesa.lat,cities.odesa.lng,15.30],
+    [0.572,cities.odesa.lat,cities.odesa.lng,10.45], [0.602,cities.odesa.lat,cities.odesa.lng,6.70],
+
+    /* Odesa → Lviv: inland wide travel first, then street zoom */
+    [0.635,48.64,28.52,6.70],
+    [0.668,cities.lviv.lat,cities.lviv.lng,6.70],
+    [0.706,cities.lviv.lat,cities.lviv.lng,10.60],
+    [0.768,cities.lviv.lat,cities.lviv.lng,15.35], [0.807,cities.lviv.lat,cities.lviv.lng,15.35],
+    [0.846,cities.lviv.lat,cities.lviv.lng,10.45], [0.875,cities.lviv.lat,cities.lviv.lng,6.70],
+
+    /* Lviv → Kharkiv: cross-country at wide zoom, then approach and zoom */
+    [0.915,49.18,30.02,6.70],
+    [0.956,cities.kharkiv.lat,cities.kharkiv.lng,6.70],
+    [0.994,cities.kharkiv.lat,cities.kharkiv.lng,10.55],
+    [1.056,cities.kharkiv.lat,cities.kharkiv.lng,15.25], [1.095,cities.kharkiv.lat,cities.kharkiv.lng,15.25],
+    [1.132,cities.kharkiv.lat,cities.kharkiv.lng,10.40], [1.160,cities.kharkiv.lat,cities.kharkiv.lng,6.75],
+
+    /* Kharkiv → Dnipro: short wide transition, then final main street zoom */
+    [1.190,49.12,35.22,6.75],
+    [1.220,cities.dnipro.lat,cities.dnipro.lng,6.75],
+    [1.257,cities.dnipro.lat,cities.dnipro.lng,10.70],
+    [1.320,cities.dnipro.lat,cities.dnipro.lng,15.35], [1.360,cities.dnipro.lat,cities.dnipro.lng,15.35]
+  ].map(s => ({p:s[0], lat:s[1], lng:s[2], zoom:s[3]}));
+
+  const routeEnd = stops[stops.length - 1].p;
+  const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+  const lerp = (a,b,t) => a + (b-a) * t;
+  const smoothstep = t => t*t*t*(t*(t*6 - 15) + 10);
+  const stepToward = (current, target, maxStep) => Math.abs(target - current) <= maxStep ? target : current + Math.sign(target - current) * maxStep;
+
+  function targetFromProgress(progress){
+    const p = progress * routeEnd;
+    let idx = 0;
+    while(idx < stops.length - 2 && p > stops[idx + 1].p) idx++;
+    const a = stops[idx];
+    const b = stops[idx + 1];
+    const local = smoothstep(clamp((p - a.p) / Math.max(0.0001, b.p - a.p), 0, 1));
+    return {
+      lat: lerp(a.lat, b.lat, local),
+      lng: lerp(a.lng, b.lng, local),
+      zoom: lerp(a.zoom, b.zoom, local),
+      routeP:p,
+      segmentIndex:idx,
+      segmentLocal:local
+    };
+  }
+
+  function nativeProgress(){
+    // Background-use override: the host page drives the journey via window.__journeyProgress (0..1).
+    if(typeof window.__journeyProgress === 'number'){
+      return clamp(window.__journeyProgress, 0, 1);
+    }
+    const rect = journey.getBoundingClientRect();
+    const scrollable = Math.max(1, rect.height - window.innerHeight);
+    return clamp(-rect.top / scrollable, 0, 1);
+  }
+
+
+  function storyForProgress(routeP){
+    let best = null;
+    for(const [id, story] of Object.entries(CITY_STORIES)){
+      const [a,b] = story.range;
+      if(routeP >= a && routeP <= b){
+        const mid = (a + b) * .5;
+        const half = Math.max(.0001, (b - a) * .5);
+        const dist = Math.abs(routeP - mid) / half;
+        best = {id, ...story, strength:1 - clamp(dist, 0, 1)};
+        break;
+      }
+    }
+    return best;
+  }
+
+  function updateStoryAndHierarchy(targetState, cameraState, isMobileLike){
+    const routeP = targetState.routeP || 0;
+    const story = storyForProgress(routeP);
+    const currentZoom = cameraState ? cameraState.zoom : 0;
+    const streetness = clamp((currentZoom - 9.6) / 5.7, 0, 1);
+    const focusOpacity = lerp(APP_CONFIG.camera.focusBase, APP_CONFIG.camera.focusStreet, streetness);
+
+    if(focusSoftener){
+      focusSoftener.style.setProperty('--focus-opacity', (isMobileLike ? focusOpacity * 1.15 : focusOpacity).toFixed(3));
+    }
+
+    if(!storyChip || !story){
+      if(storyChip){
+        storyChip.style.setProperty('--story-opacity', '0');
+        storyChip.style.setProperty('--story-y', '10px');
+      }
+      return;
+    }
+
+    const zoomStrength = clamp((currentZoom - 7.2) / 5.0, 0, 1);
+    const opacity = clamp(story.strength * zoomStrength, 0, .66);
+
+    if(storyTitle.textContent !== story.title){
+      storyTitle.textContent = story.title;
+      storyLine.textContent = story.line;
+      storyKicker.textContent = 'City practice route';
+    }
+
+    storyChip.style.setProperty('--story-opacity', opacity.toFixed(3));
+    storyChip.style.setProperty('--story-y', `${(1 - opacity) * 10}px`);
+  }
+
+  function simplifyStyle(map){
+    const style = map.getStyle();
+    if(!style || !style.layers) return;
+    for(const layer of style.layers){
+      const id = String(layer.id || '').toLowerCase();
+      try{
+        // The goal: keep a calm basemap like the reference — roads, parks, water, city labels;
+        // remove noisy micro-labels and utility layers.
+        if(/poi|housenumber|house-number|address|shop|amenity|parking|bus|tram|subway|railway|station|airport|aeroway|barrier|fence|power|contour|hillshade|minor-label|path-label/.test(id)){
+          map.setLayoutProperty(layer.id, 'visibility', 'none');
+          continue;
+        }
+
+        if(layer.type === 'fill'){
+          if(/water/.test(id)){
+            map.setPaintProperty(layer.id, 'fill-color', '#d9ecf2');
+            map.setPaintProperty(layer.id, 'fill-opacity', .78);
+          }else if(/park|wood|forest|green|grass|landcover|nature|national/.test(id)){
+            map.setPaintProperty(layer.id, 'fill-color', '#d7e8cf');
+            map.setPaintProperty(layer.id, 'fill-opacity', .52);
+          }else if(/building/.test(id)){
+            map.setPaintProperty(layer.id, 'fill-color', '#e9e6d9');
+            map.setPaintProperty(layer.id, 'fill-opacity', .16);
+          }else if(/land|background|earth/.test(id)){
+            map.setPaintProperty(layer.id, 'fill-color', '#f3f6ee');
+          }
+        }
+
+        if(layer.type === 'line'){
+          if(/road|street|highway|motorway|trunk|primary|secondary|tertiary|minor/.test(id)){
+            const isMajor = /motorway|trunk|primary|secondary/.test(id);
+            const isSmall = /minor|service|track|path|footway|pedestrian/.test(id);
+            if('line-color' in (layer.paint || {}) || true){
+              map.setPaintProperty(layer.id, 'line-color', isMajor ? '#ffffff' : '#efeadd');
+            }
+            map.setPaintProperty(layer.id, 'line-opacity', isMajor ? .82 : (isSmall ? .32 : .52));
+            if(isSmall && map.getZoom && map.getZoom() < 13.5){
+              // Do not hide, just keep small lines quiet at city zoom.
+            }
+          }else if(/boundary/.test(id)){
+            map.setPaintProperty(layer.id, 'line-color', '#b7cbb7');
+            map.setPaintProperty(layer.id, 'line-opacity', .42);
+          }else if(/water|river|stream/.test(id)){
+            map.setPaintProperty(layer.id, 'line-color', '#cfe8ef');
+            map.setPaintProperty(layer.id, 'line-opacity', .64);
+          }
+        }
+
+        if(layer.type === 'symbol'){
+          if(/place|city|town|country|state|settlement/.test(id)){
+            if((layer.paint || {})['text-color'] !== undefined) map.setPaintProperty(layer.id, 'text-color', '#3e5149');
+            if((layer.paint || {})['text-halo-color'] !== undefined) map.setPaintProperty(layer.id, 'text-halo-color', '#f7fbf1');
+            if((layer.paint || {})['text-halo-width'] !== undefined) map.setPaintProperty(layer.id, 'text-halo-width', 1.4);
+          }else if(/road|street|highway/.test(id)){
+            if((layer.paint || {})['text-color'] !== undefined) map.setPaintProperty(layer.id, 'text-color', '#657168');
+            if((layer.paint || {})['text-halo-color'] !== undefined) map.setPaintProperty(layer.id, 'text-halo-color', '#f6faf1');
+            if((layer.paint || {})['text-opacity'] !== undefined) map.setPaintProperty(layer.id, 'text-opacity', .56);
+          }else if(/water/.test(id)){
+            if((layer.paint || {})['text-color'] !== undefined) map.setPaintProperty(layer.id, 'text-color', '#6e9aa5');
+            if((layer.paint || {})['text-opacity'] !== undefined) map.setPaintProperty(layer.id, 'text-opacity', .55);
+          }else{
+            if((layer.paint || {})['text-opacity'] !== undefined) map.setPaintProperty(layer.id, 'text-opacity', .28);
+            if((layer.paint || {})['icon-opacity'] !== undefined) map.setPaintProperty(layer.id, 'icon-opacity', .22);
+          }
+        }
+      }catch(e){
+        // Different style versions expose different layer properties; ignore unsupported edits.
+      }
+    }
+  }
+
+  function start(){
+    if(!window.maplibregl){
+      loading.querySelector('.loading-sub').textContent = 'Map library did not load. Check internet access.';
+      return;
+    }
+
+    maplibregl.setMaxParallelImageRequests(36);
+    // Loading speed: start directly at the host's resting view (passed as #p=<progress>) instead of
+    // the country overview — the hero paints the right city immediately and we skip loading a whole
+    // set of overview tiles that would only be thrown away on the fly-in.
+    const startP = (function(){
+      var m = /[#&]p=([0-9.]+)/.exec(location.hash || '');
+      return m ? Math.max(0, Math.min(1, parseFloat(m[1]))) : 0;
+    })();
+    if(window.__journeyProgress == null) window.__journeyProgress = startP;
+    const initial = targetFromProgress(startP);
+    const map = new maplibregl.Map({
+      container:'map',
+      style:'https://tiles.openfreemap.org/styles/positron',
+      center:[initial.lng, initial.lat],
+      zoom:initial.zoom,
+      minZoom:3,
+      maxZoom:18,
+      attributionControl:false,
+      interactive:false,
+      // Faster perceived rendering: snap tiles in (was an 800ms cross-fade that read as "slow to
+      // render" during the fly), don't render wrapped world copies, and skip MSAA (invisible behind
+      // the frosted glass, but a real GPU saving).
+      fadeDuration:140,
+      renderWorldCopies:false,
+      refreshExpiredTiles:false,
+      maxTileCacheSize:3000,
+      maxTileCacheZoomLevels:15,
+      cancelPendingTileRequestsWhileZooming:false,
+      pixelRatio:Math.min(window.devicePixelRatio || 1, 1.0), // background, blurred → 1x raster is plenty + fastest
+      canvasContextAttributes:{
+        antialias:false,
+        preserveDrawingBuffer:false,
+        powerPreference:'high-performance',
+        failIfMajorPerformanceCaveat:false
+      }
+    });
+    const trafficCanvas = document.getElementById('traffic');
+    const trafficCtx = trafficCanvas.getContext('2d', {alpha:true, desynchronized:true});
+    // "mobileLike" = the lighter traffic/quality profile. It now covers tablets & any touch device
+    // (the only non-desktop devices that load the map at all), not just narrow widths — fewer cars,
+    // fewer lanes, gentler frame rate, easier on the battery.
+    const mobileLike = window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(pointer: coarse)').matches;
+    const TRAFFIC = {
+      roadLayerIds: [],
+      networks: new Map(),
+      activeCityId: null,
+      lastVisibleNetwork: null,
+      lastRoadQuery: 0,
+      lastSourceRoadEnsure: 0,
+      lastRecoveryAttempt: 0,
+      lastFrame: 0,
+      smoothFrameMs: 16,
+      renderErrorCount: 0,
+      diagnostics: {reason:'init'},
+      stats: {drawn:0, cars:0, lanes:0, mode:'none'},
+      palette: ['#2f9e44','#1c7ed6','#f08c00','#e8590c','#12b886','#7950f2','#d6336c','#0b7285']
+    };
+
+    const CITY_ORDER = [
+      ['kyiv', cities.kyiv],
+      ['odesa', cities.odesa],
+      ['lviv', cities.lviv],
+      ['kharkiv', cities.kharkiv],
+      ['dnipro', cities.dnipro]
+    ];
+
+    function resizeTrafficCanvas(){
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25); // background-use: lighter fill-rate
+      const rect = trafficCanvas.getBoundingClientRect();
+      trafficCanvas.width = Math.max(1, Math.round(rect.width * dpr));
+      trafficCanvas.height = Math.max(1, Math.round(rect.height * dpr));
+      trafficCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // Actual Russia-name override for large displays.
+    // This changes MapLibre symbol-layer text-field expressions once after style load.
+    // It does not add overlay/mask layers.
+    // Ukraine names are not in these target lists.
+    const RUSSIA_PLACE_TEXT = 'путiн хуйло';
+    const RUSSIA_REGION_TEXT = 'Свинська область';
+
+    // Safe polygon covering visible Russian territory east/north of Ukraine.
+    // It intentionally follows a conservative line east of Ukrainian cities and excludes Crimea/Ukraine.
+    const RUSSIA_VISIBLE_POLYGON = {
+      type:'Polygon',
+      coordinates:[[
+        [31.60,57.20],
+        [51.20,57.20],
+        [51.20,50.55],
+        [50.25,49.55],
+        [49.70,48.50],
+        [49.30,46.65],
+        [48.35,45.40],
+        [46.10,44.65],
+        [43.10,43.55],
+        [40.60,42.90],
+        [38.10,42.80],
+        [37.40,44.70],
+        [38.40,46.15],
+        [39.35,47.40],
+        [39.80,48.75],
+        [38.75,49.72],
+        [37.25,50.18],
+        [36.35,50.78],
+        [35.55,51.55],
+        [34.30,52.72],
+        [31.60,53.85],
+        [31.60,57.20]
+      ]]
+    };
+
+    const RUSSIA_PLACE_NAMES = [
+      "Russia",
+      "Russian Federation",
+      "Россия",
+      "Российская Федерация",
+      "Belgorod",
+      "Belogorod",
+      "Белгород",
+      "Valuyki",
+      "Valuiki",
+      "Валуйки",
+      "Rakitnoye",
+      "Rakitnoe",
+      "Ракитное",
+      "Stary Oskol",
+      "Старый Оскол",
+      "Gubkin",
+      "Губкин",
+      "Alexeyevka",
+      "Alekseyevka",
+      "Алексеевка",
+      "Novy Oskol",
+      "Novyy Oskol",
+      "Новый Оскол",
+      "Shebekino",
+      "Шебекино",
+      "Grayvoron",
+      "Graivoron",
+      "Грайворон",
+      "Biryuch",
+      "Бирюч",
+      "Korocha",
+      "Короча",
+      "Prokhorovka",
+      "Прохоровка",
+      "Borisovka",
+      "Борисовка",
+      "Tomarovka",
+      "Томаровка",
+      "Ivnya",
+      "Ивня",
+      "Chernyanka",
+      "Чернянка",
+      "Volokonovka",
+      "Волоконовка",
+      "Krasnaya Yaruga",
+      "Красная Яруга",
+      "Veydelevka",
+      "Veidelevka",
+      "Вейделевка",
+      "Rovenki",
+      "Ровеньки",
+      "Krasnogvardeyskoye",
+      "Красногвардейское",
+      "Razumnoye",
+      "Разумное",
+      "Maiskiy",
+      "Mayskiy",
+      "Майский",
+      "Severnyy",
+      "Северный",
+      "Kursk",
+      "Курск",
+      "Zheleznogorsk",
+      "Железногорск",
+      "Kurchatov",
+      "Курчатов",
+      "Lgov",
+      "Льгов",
+      "Rylsk",
+      "Рыльск",
+      "Sudzha",
+      "Sudja",
+      "Суджа",
+      "Oboyan",
+      "Обоянь",
+      "Fatezh",
+      "Фатеж",
+      "Shchigry",
+      "Щигры",
+      "Dmitriev",
+      "Дмитриев",
+      "Korenево",
+      "Koreneво",
+      "Korenевo",
+      "Koreneвo",
+      "Korenеvo",
+      "Korenevo",
+      "Коренево",
+      "Glushkovo",
+      "Глушково",
+      "Belaya",
+      "Белая",
+      "Gorshechnoye",
+      "Горшечное",
+      "Tim",
+      "Тим",
+      "Kastornoye",
+      "Касторное",
+      "Pristen",
+      "Пристень",
+      "Medvenka",
+      "Медвенка",
+      "Bolshesoldatskoye",
+      "Большесолдатское",
+      "Ponyri",
+      "Поныри",
+      "Solntsevo",
+      "Солнцево",
+      "Cheremisinovo",
+      "Черемисиново",
+      "Manturovo",
+      "Мантурово",
+      "Konyshevka",
+      "Конышевка",
+      "Khomutovka",
+      "Хомутовка",
+      "Tetkino",
+      "Тёткино",
+      "Теткино",
+      "Voronezh",
+      "Воронеж",
+      "Borisoglebsk",
+      "Борисоглебск",
+      "Rossosh",
+      "Россошь",
+      "Liski",
+      "Лиски",
+      "Ostrogozhsk",
+      "Острогожск",
+      "Novovoronezh",
+      "Нововоронеж",
+      "Pavlovsk",
+      "Павловск",
+      "Buturlinovka",
+      "Бутурлиновка",
+      "Semiluki",
+      "Семилуки",
+      "Kalach",
+      "Калач",
+      "Boguchar",
+      "Богучар",
+      "Povorino",
+      "Поворино",
+      "Bobrov",
+      "Бобров",
+      "Ertil",
+      "Эртиль",
+      "Novokhopersk",
+      "Новохопёрск",
+      "Новохоперск",
+      "Talovaya",
+      "Таловая",
+      "Ramon",
+      "Рамонь",
+      "Khokholsky",
+      "Хохольский",
+      "Nizhnedevitsk",
+      "Нижнедевицк",
+      "Anna",
+      "Анна",
+      "Gribanovskiy",
+      "Грибановский",
+      "Panino",
+      "Панино",
+      "Verkhnyaya Khava",
+      "Верхняя Хава",
+      "Petropavlovka",
+      "Петропавловка",
+      "Kantemirovka",
+      "Кантемировка",
+      "Podgorenskiy",
+      "Подгоренский",
+      "Bryansk",
+      "Брянск",
+      "Klintsy",
+      "Клинцы",
+      "Novozybkov",
+      "Новозыбков",
+      "Starodub",
+      "Стародуб",
+      "Unecha",
+      "Унеча",
+      "Trubchevsk",
+      "Трубчевск",
+      "Sevsk",
+      "Севск",
+      "Pogar",
+      "Погар",
+      "Pochep",
+      "Почеп",
+      "Dyatkovo",
+      "Дятьково",
+      "Fokino",
+      "Фокино",
+      "Karachev",
+      "Карачев",
+      "Zhukovka",
+      "Жуковка",
+      "Mglin",
+      "Мглин",
+      "Seltso",
+      "Сельцо",
+      "Navlya",
+      "Навля",
+      "Suzemka",
+      "Суземка",
+      "Oryol",
+      "Orel",
+      "Орёл",
+      "Орел",
+      "Lipetsk",
+      "Липецк",
+      "Tambov",
+      "Тамбов",
+      "Yelets",
+      "Елец",
+      "Tula",
+      "Тула",
+      "Ryazan",
+      "Рязань",
+      "Kaluga",
+      "Калуга",
+      "Smolensk",
+      "Смоленск",
+      "Rostov",
+      "Rostov-on-Don",
+      "Ростов",
+      "Ростов-на-Дону",
+      "Taganrog",
+      "Таганрог",
+      "Shakhty",
+      "Шахты",
+      "Novocherkassk",
+      "Новочеркасск",
+      "Volgodonsk",
+      "Волгодонск",
+      "Bataysk",
+      "Батайск",
+      "Novoshakhtinsk",
+      "Новошахтинск",
+      "Kamensk-Shakhtinsky",
+      "Каменск-Шахтинский",
+      "Azov",
+      "Азов",
+      "Gukovo",
+      "Гуково",
+      "Salsk",
+      "Сальск",
+      "Belaya Kalitva",
+      "Белая Калитва",
+      "Millerovo",
+      "Миллерово",
+      "Morozovsk",
+      "Морозовск",
+      "Aksay",
+      "Аксай",
+      "Zernograd",
+      "Зерноград",
+      "Tsimlyansk",
+      "Цимлянск",
+      "Konstantinovsk",
+      "Константиновск",
+      "Semikarakorsk",
+      "Семикаракорск",
+      "Proletarsk",
+      "Пролетарск",
+      "Zverevo",
+      "Зверево",
+      "Krasny Sulin",
+      "Красный Сулин",
+      "Matveyev Kurgan",
+      "Матвеев Курган",
+      "Chertkovo",
+      "Чертково",
+      "Tarasovsky",
+      "Тарасовский",
+      "Bokovskaya",
+      "Боковская",
+      "Oblivskaya",
+      "Обливская",
+      "Tatsinskaya",
+      "Тацинская",
+      "Vesely",
+      "Весёлый",
+      "Веселый",
+      "Kagalnik",
+      "Кагальник",
+      "Krasnodar",
+      "Краснодар",
+      "Novorossiysk",
+      "Новороссийск",
+      "Sochi",
+      "Сочи",
+      "Anapa",
+      "Анапа",
+      "Gelendzhik",
+      "Геленджик",
+      "Armavir",
+      "Армавир",
+      "Yeisk",
+      "Yeysk",
+      "Ейск",
+      "Tikhoretsk",
+      "Тихорецк",
+      "Kropotkin",
+      "Кропоткин",
+      "Slavyansk-na-Kubani",
+      "Славянск-на-Кубани",
+      "Tuapse",
+      "Туапсе",
+      "Timashevsk",
+      "Тимашевск",
+      "Belorechensk",
+      "Белореченск",
+      "Labinsk",
+      "Лабинск",
+      "Apsheronsk",
+      "Апшеронск",
+      "Temryuk",
+      "Темрюк",
+      "Krymsk",
+      "Крымск",
+      "Gulkevichi",
+      "Гулькевичи",
+      "Ust-Labinsk",
+      "Усть-Лабинск",
+      "Korenovsk",
+      "Кореновск",
+      "Kushchyovskaya",
+      "Kushchevskaya",
+      "Кущёвская",
+      "Кущевская",
+      "Kanevskaya",
+      "Каневская",
+      "Leningradskaya",
+      "Ленинградская",
+      "Pavlovskaya",
+      "Павловская",
+      "Starominskaya",
+      "Староминская",
+      "Bryukhovetskaya",
+      "Брюховецкая",
+      "Primorsko-Akhtarsk",
+      "Приморско-Ахтарск",
+      "Stavropol",
+      "Ставрополь",
+      "Pyatigorsk",
+      "Пятигорск",
+      "Kislovodsk",
+      "Кисловодск",
+      "Nevinnomyssk",
+      "Невинномысск",
+      "Essentuki",
+      "Ессентуки",
+      "Mineralnye Vody",
+      "Минеральные Воды",
+      "Georgiyevsk",
+      "Георгиевск",
+      "Budyonnovsk",
+      "Будённовск",
+      "Буденновск",
+      "Izobilny",
+      "Изобильный",
+      "Svetlograd",
+      "Светлоград",
+      "Neftekumsk",
+      "Нефтекумск",
+      "Novoalexandrovsk",
+      "Новоалександровск",
+      "Zelenokumsk",
+      "Зеленокумск",
+      "Mikhaylovsk",
+      "Михайловск",
+      "Blagodarny",
+      "Благодарный",
+      "Ipatovo",
+      "Ипатово",
+      "Novopavlovsk",
+      "Новопавловск",
+      "Lermontov",
+      "Лермонтов",
+      "Maykop",
+      "Майкоп",
+      "Elista",
+      "Элиста",
+      "Cherkessk",
+      "CHERKESSK",
+      "Черкесск",
+      "ЧЕРКЕССК",
+      "Karachayevsk",
+      "KARACHAYEVSK",
+      "Karachaevsk",
+      "KARACHAEVSK",
+      "Карачаевск",
+      "КАРАЧАЕВСК",
+      "Ust-Dzheguta",
+      "UST-DZHEGUTA",
+      "Усть-Джегута",
+      "УСТЬ-ДЖЕГУТА",
+      "Teberda",
+      "TEBERDA",
+      "Теберда",
+      "ТЕБЕРДА",
+      "Zelenchukskaya",
+      "ZELENCHUKSKAYA",
+      "Зеленчукская",
+      "ЗЕЛЕНЧУКСКАЯ",
+      "Pregradnaya",
+      "PREGRADNAYA",
+      "Преградная",
+      "ПРЕГРАДНАЯ",
+      "Adyge-Khabl",
+      "ADYGE-KHABL",
+      "Адыге-Хабль",
+      "АДЫГЕ-ХАБЛЬ",
+      "Khabez",
+      "KHABEZ",
+      "Хабез",
+      "ХАБЕЗ",
+      "Uchkeken",
+      "UCHKEKEN",
+      "Учкекен",
+      "УЧКЕКЕН",
+      "Kavkazsky",
+      "KAVKAZSKY",
+      "Кавказский",
+      "КАВКАЗСКИЙ",
+      "Mednogorsky",
+      "MEDNOGORSKY",
+      "Медногорский",
+      "МЕДНОГОРСКИЙ",
+      "KISLOVODSK",
+      "КИСЛОВОДСК",
+      "PYATIGORSK",
+      "ПЯТИГОРСК",
+      "Yessentuki",
+      "YESSENTUKI",
+      "ESSENTUKI",
+      "ЕССЕНТУКИ",
+      "MINERALNYE VODY",
+      "Mineralnye-Vody",
+      "MINERALNYE-VODY",
+      "МИНЕРАЛЬНЫЕ ВОДЫ",
+      "GEORGIYEVSK",
+      "Georgievsk",
+      "GEORGIEVSK",
+      "ГЕОРГИЕВСК",
+      "Nalchik",
+      "NALCHIK",
+      "Нальчик",
+      "НАЛЬЧИК",
+      "Prokhladny",
+      "PROKHLADNY",
+      "Прохладный",
+      "ПРОХЛАДНЫЙ",
+      "Baksan",
+      "BAKSAN",
+      "Баксан",
+      "БАКСАН",
+      "Tyrnyauz",
+      "TYRNYAUZ",
+      "Тырныауз",
+      "ТЫРНЫАУЗ",
+      "Vladikavkaz",
+      "VLADIKAVKAZ",
+      "Владикавказ",
+      "ВЛАДИКАВКАЗ",
+      "Beslan",
+      "BESLAN",
+      "Беслан",
+      "БЕСЛАН",
+      "Grozny",
+      "GROZNY",
+      "Грозный",
+      "ГРОЗНЫЙ",
+      "Magas",
+      "MAGAS",
+      "Магас",
+      "МАГАС",
+      "Nazran",
+      "NAZRAN",
+      "Назрань",
+      "НАЗРАНЬ",
+      "Makhachkala",
+      "MAKHACHKALA",
+      "Махачкала",
+      "МАХАЧКАЛА",
+      "Saratov",
+      "SARATOV",
+      "Саратов",
+      "САРАТОВ",
+      "Volsk",
+      "VOLSK",
+      "Вольск",
+      "ВОЛЬСК",
+      "Balakovo",
+      "BALAKOVO",
+      "Балаково",
+      "БАЛАКОВО",
+      "Engels",
+      "ENGELS",
+      "Энгельс",
+      "ЭНГЕЛЬС",
+      "Pallasovka",
+      "PALLASOVKA",
+      "Палласовка",
+      "ПАЛЛАСОВКА",
+      "Balashov",
+      "BALASHOV",
+      "Балашов",
+      "БАЛАШОВ",
+      "Rtishchevo",
+      "RTISHCHEVO",
+      "Ртищево",
+      "РТИЩЕВО",
+      "Marks",
+      "MARKS",
+      "Маркс",
+      "МАРКС",
+      "Petrovsk",
+      "PETROVSK",
+      "Петровск",
+      "ПЕТРОВСК",
+      "Krasnoarmeysk",
+      "KRASNOARMEYSK",
+      "Красноармейск",
+      "КРАСНОАРМЕЙСК",
+      "Kamyshin",
+      "KAMYSHIN",
+      "Камышин",
+      "КАМЫШИН",
+      "Mikhaylovka",
+      "MIKHAYLOVKA",
+      "Михайловка",
+      "МИХАЙЛОВКА",
+      "Frolovo",
+      "FROLOVO",
+      "Фролово",
+      "ФРОЛОВО",
+      "Uryupinsk",
+      "URYUPINSK",
+      "Урюпинск",
+      "УРЮПИНСК",
+      "Volzhsky",
+      "VOLZHSKY",
+      "Волжский",
+      "ВОЛЖСКИЙ",
+      "Leninsk",
+      "LENINSK",
+      "Ленинск",
+      "ЛЕНИНСК",
+      "Surovikino",
+      "SUROVIKINO",
+      "Суровикино",
+      "СУРОВИКИНО",
+      "Kalach-na-Donu",
+      "KALACH-NA-DONU",
+      "Калач-на-Дону",
+      "КАЛАЧ-НА-ДОНУ",
+      "Kotovo",
+      "KOTOVO",
+      "Котово",
+      "КОТОВО",
+      "Zhirnovsk",
+      "ZHIRNOVSK",
+      "Жирновск",
+      "ЖИРНОВСК",
+      "Astrakhan",
+      "ASTRAKHAN",
+      "Астрахань",
+      "АСТРАХАНЬ",
+      "Akhtubinsk",
+      "AKHTUBINSK",
+      "Ахтубинск",
+      "АХТУБИНСК",
+      "Znamensk",
+      "ZNAMENSK",
+      "Знаменск",
+      "ЗНАМЕНСК",
+      "Kharabali",
+      "KHARABALI",
+      "Харабали",
+      "ХАРАБАЛИ",
+      "Narimanov",
+      "NARIMANOV",
+      "Нариманов",
+      "НАРИМАНОВ",
+      "Kamyzyak",
+      "KAMYZYAK",
+      "Камызяк",
+      "КАМЫЗЯК",
+      "Yenotayevka",
+      "YENOTAYEVKA",
+      "Енотаевка",
+      "ЕНОТАЕВКА",
+      "Liman",
+      "LIMAN",
+      "Лиман",
+      "ЛИМАН",
+      "Krasny Yar",
+      "KRASNY YAR",
+      "Красный Яр",
+      "КРАСНЫЙ ЯР",
+      "Cherny Yar",
+      "CHERNY YAR",
+      "Черный Яр",
+      "ЧЕРНЫЙ ЯР",
+      "Чёрный Яр",
+      "ЧЁРНЫЙ ЯР",
+      "Novouzensk",
+      "NOVOUZENSK",
+      "Новоузенск",
+      "НОВОУЗЕНСК",
+      "Ershov",
+      "ERSHOV",
+      "Ершов",
+      "ЕРШОВ",
+      "Krasny Kut",
+      "KRASNY KUT",
+      "Красный Кут",
+      "КРАСНЫЙ КУТ",
+      "Atkarsk",
+      "ATKARSK",
+      "Аткарск",
+      "АТКАРСК",
+      "Pugachev",
+      "PUGACHEV",
+      "Пугачёв",
+      "ПУГАЧЁВ",
+      "Пугачев",
+      "ПУГАЧЕВ",
+      "Khvalynsk",
+      "KHVALYNSK",
+      "Хвалынск",
+      "ХВАЛЫНСК",
+      "Bazarnyy Karabulak",
+      "BAZARNYY KARABULAK",
+      "Bazarniy Karabulak",
+      "BAZARNIY KARABULAK",
+      "Базарный Карабулак",
+      "БАЗАРНЫЙ КАРАБУЛАК",
+      "Stepnoye",
+      "STEPNOYE",
+      "Степное",
+      "СТЕПНОЕ",
+      "Rovnoye",
+      "ROVNOYE",
+      "Ровное",
+      "РОВНОЕ",
+      "Dergachi",
+      "DERGACHI",
+      "Дергачи",
+      "ДЕРГАЧИ",
+      "Ozinki",
+      "OZINKI",
+      "Озинки",
+      "ОЗИНКИ"
+];
+
+    const RUSSIA_REGION_NAMES = [
+      "Belgorod Oblast",
+      "Belgorod Region",
+      "Voronezh Oblast",
+      "Voronezh Region",
+      "Kursk Oblast",
+      "Kursk Region",
+      "Oryol Oblast",
+      "Oryol Region",
+      "Orel Oblast",
+      "Orel Region",
+      "Lipetsk Oblast",
+      "Lipetsk Region",
+      "Tambov Oblast",
+      "Tambov Region",
+      "Rostov Oblast",
+      "Rostov Region",
+      "Bryansk Oblast",
+      "Bryansk Region",
+      "Krasnodar Krai",
+      "Stavropol Krai",
+      "Republic of Adygea",
+      "Adygea",
+      "Volgograd Oblast",
+      "Volgograd Region",
+      "Karachay-Cherkess Republic",
+      "Karachay-Cherkessia",
+      "Republic of Kalmykia",
+      "Kalmykia",
+      "Tula Oblast",
+      "Tula Region",
+      "Ryazan Oblast",
+      "Ryazan Region",
+      "Kaluga Oblast",
+      "Kaluga Region",
+      "Smolensk Oblast",
+      "Smolensk Region",
+      "Белгородская область",
+      "Воронежская область",
+      "Курская область",
+      "Орловская область",
+      "Липецкая область",
+      "Тамбовская область",
+      "Ростовская область",
+      "Брянская область",
+      "Краснодарский край",
+      "Ставропольский край",
+      "Республика Адыгея",
+      "Адыгея",
+      "Волгоградская область",
+      "Карачаево-Черкесская Республика",
+      "Республика Калмыкия",
+      "Калмыкия",
+      "Тульская область",
+      "Рязанская область",
+      "Калужская область",
+      "Смоленская область",
+      "Бєлгородська область",
+      "Воронезька область",
+      "Курська область",
+      "Орловська область",
+      "Липецька область",
+      "Тамбовська область",
+      "Ростовська область",
+      "Брянська область",
+      "Краснодарський край",
+      "Ставропольський край",
+      "Республіка Адигея",
+      "Волгоградська область",
+      "KARACHAY-CHERKESSIA",
+      "Karachay Cherkessia",
+      "KARACHAY CHERKESSIA",
+      "Karachay–Cherkessia",
+      "KARACHAY–CHERKESSIA",
+      "KARACHAY-CHERKESS REPUBLIC",
+      "Karachay–Cherkess Republic",
+      "KARACHAY–CHERKESS REPUBLIC",
+      "Karachayevo-Cherkessia",
+      "KARACHAYEVO-CHERKESSIA",
+      "Karachayevo-Cherkesiya",
+      "KARACHAYEVO-CHERKESIYA",
+      "Karachaevo-Cherkessia",
+      "KARACHAEVO-CHERKESSIA",
+      "Karachay-Cherkesskaya Republic",
+      "KARACHAY-CHERKESSKAYA REPUBLIC",
+      "Karachay-Cherkess Autonomous Oblast",
+      "KARACHAY-CHERKESS AUTONOMOUS OBLAST",
+      "Карачаево-Черкесия",
+      "КАРАЧАЕВО-ЧЕРКЕСИЯ",
+      "Карачаево-Черкессия",
+      "КАРАЧАЕВО-ЧЕРКЕССИЯ",
+      "КАРАЧАЕВО-ЧЕРКЕССКАЯ РЕСПУБЛИКА",
+      "Карачаєво-Черкесія",
+      "КАРАЧАЄВО-ЧЕРКЕСІЯ",
+      "Карачаєво-Черкеська Республіка",
+      "КАРАЧАЄВО-ЧЕРКЕСЬКА РЕСПУБЛІКА",
+      "Kabardino-Balkaria",
+      "KABARDINO-BALKARIA",
+      "Kabardino-Balkar Republic",
+      "KABARDINO-BALKAR REPUBLIC",
+      "Кабардино-Балкария",
+      "КАБАРДИНО-БАЛКАРИЯ",
+      "Кабардино-Балкарская Республика",
+      "КАБАРДИНО-БАЛКАРСКАЯ РЕСПУБЛИКА",
+      "North Ossetia-Alania",
+      "NORTH OSSETIA-ALANIA",
+      "North Ossetia–Alania",
+      "NORTH OSSETIA–ALANIA",
+      "Republic of North Ossetia-Alania",
+      "REPUBLIC OF NORTH OSSETIA-ALANIA",
+      "Северная Осетия",
+      "СЕВЕРНАЯ ОСЕТИЯ",
+      "Северная Осетия — Алания",
+      "СЕВЕРНАЯ ОСЕТИЯ — АЛАНИЯ",
+      "Республика Северная Осетия — Алания",
+      "РЕСПУБЛИКА СЕВЕРНАЯ ОСЕТИЯ — АЛАНИЯ",
+      "Chechen Republic",
+      "CHECHEN REPUBLIC",
+      "Chechnya",
+      "CHECHNYA",
+      "Чеченская Республика",
+      "ЧЕЧЕНСКАЯ РЕСПУБЛИКА",
+      "Чечня",
+      "ЧЕЧНЯ",
+      "Republic of Ingushetia",
+      "REPUBLIC OF INGUSHETIA",
+      "Ingushetia",
+      "INGUSHETIA",
+      "Республика Ингушетия",
+      "РЕСПУБЛИКА ИНГУШЕТИЯ",
+      "Ингушетия",
+      "ИНГУШЕТИЯ",
+      "Dagestan",
+      "DAGESTAN",
+      "Republic of Dagestan",
+      "REPUBLIC OF DAGESTAN",
+      "Республика Дагестан",
+      "РЕСПУБЛИКА ДАГЕСТАН",
+      "Дагестан",
+      "ДАГЕСТАН",
+      "Saratov Oblast",
+      "SARATOV OBLAST",
+      "Saratov Region",
+      "SARATOV REGION",
+      "Саратовская область",
+      "САРАТОВСКАЯ ОБЛАСТЬ",
+      "Саратовська область",
+      "САРАТОВСЬКА ОБЛАСТЬ",
+      "Astrakhan Oblast",
+      "ASTRAKHAN OBLAST",
+      "Astrakhan Region",
+      "ASTRAKHAN REGION",
+      "Астраханская область",
+      "АСТРАХАНСКАЯ ОБЛАСТЬ",
+      "Астраханська область",
+      "АСТРАХАНСЬКА ОБЛАСТЬ",
+      "VOLGOGRAD OBLAST",
+      "VOLGOGRAD REGION",
+      "ВОЛГОГРАДСКАЯ ОБЛАСТЬ",
+      "Penza Oblast",
+      "PENZA OBLAST",
+      "Penza Region",
+      "PENZA REGION",
+      "Пензенская область",
+      "ПЕНЗЕНСКАЯ ОБЛАСТЬ",
+      "Samara Oblast",
+      "SAMARA OBLAST",
+      "Samara Region",
+      "SAMARA REGION",
+      "Самарская область",
+      "САМАРСКАЯ ОБЛАСТЬ",
+      "Ulyanovsk Oblast",
+      "ULYANOVSK OBLAST",
+      "Ulyanovsk Region",
+      "ULYANOVSK REGION",
+      "Ульяновская область",
+      "УЛЬЯНОВСКАЯ ОБЛАСТЬ",
+      "Orenburg Oblast",
+      "ORENBURG OBLAST",
+      "Orenburg Region",
+      "ORENBURG REGION",
+      "Оренбургская область",
+      "ОРЕНБУРГСКАЯ ОБЛАСТЬ",
+      "Republic of Tatarstan",
+      "REPUBLIC OF TATARSTAN",
+      "Tatarstan",
+      "TATARSTAN",
+      "Республика Татарстан",
+      "РЕСПУБЛИКА ТАТАРСТАН",
+      "Татарстан",
+      "ТАТАРСТАН",
+      "Republic of Bashkortostan",
+      "REPUBLIC OF BASHKORTOSTAN",
+      "Bashkortostan",
+      "BASHKORTOSTAN",
+      "Республика Башкортостан",
+      "РЕСПУБЛИКА БАШКОРТОСТАН",
+      "Башкортостан",
+      "БАШКОРТОСТАН"
+];
+
+    const KAZAKHSTAN_LABEL_NAMES = [
+      "Kazakhstan",
+      "Republic of Kazakhstan",
+      "KAZAKHSTAN",
+      "West Kazakhstan Region",
+      "West Kazakhstan Oblast",
+      "Batys Kazakhstan Region",
+      "Batys Qazaqstan Region",
+      "Atyrau Region",
+      "Atyrau Oblast",
+      "Aktobe Region",
+      "Aktobe Oblast",
+      "Mangystau Region",
+      "Mangystau Oblast",
+      "Батыс-Казахстанская область",
+      "Западно-Казахстанская область",
+      "Батыс Қазақстан облысы",
+      "Атырауская область",
+      "Атырау облысы",
+      "Актюбинская область",
+      "Актобе область",
+      "Ақтөбе облысы",
+      "Мангистауская область",
+      "Маңғыстау облысы",
+      "Казахстан",
+      "Республика Казахстан",
+      "Қазақстан",
+      "Қазақстан Республикасы",
+      "Oral",
+      "Uralsk",
+      "Орал",
+      "Уральск",
+      "Atyrau",
+      "Атырау",
+      "Aktobe",
+      "Актобе",
+      "Ақтөбе",
+      "Aktau",
+      "Актау",
+      "Ақтау",
+      "Kulsary",
+      "Кульсары",
+      "Aksay",
+      "Аксай",
+      "Khromtau",
+      "Хромтау"
+];
+
+    function kazakhstanFeatureCondition(){
+      return ['any',
+        ['==', ['get','iso_a2'], 'KZ'],
+        ['==', ['get','iso_3166_1'], 'KZ'],
+        ['==', ['get','country_code'], 'kz'],
+        ['==', ['get','country_code'], 'KZ'],
+        ['==', ['get','adm0_a3'], 'KAZ'],
+        ['==', ['get','adm0_a3_us'], 'KAZ'],
+        ['==', ['get','iso_a3'], 'KAZ'],
+        ['==', ['get','admin'], 'Kazakhstan'],
+        ['==', ['get','admin'], 'Republic of Kazakhstan'],
+        anyFeatureNameMatches(KAZAKHSTAN_LABEL_NAMES)
+      ];
+    }
+
+
+    function anyFeatureNameMatches(names){
+      return ['any',
+        ['match', ['get','name'], names, true, false],
+        ['match', ['get','name:en'], names, true, false],
+        ['match', ['get','name_en'], names, true, false],
+        ['match', ['get','name:ru'], names, true, false],
+        ['match', ['get','name:uk'], names, true, false],
+        ['match', ['get','name:latin'], names, true, false],
+        ['match', ['get','name:nonlatin'], names, true, false],
+        ['match', ['get','name_int'], names, true, false]
+      ];
+    }
+
+    function russiaPropertyCondition(){
+      return ['any',
+        ['==', ['get','iso_a2'], 'RU'],
+        ['==', ['get','iso_3166_1'], 'RU'],
+        ['==', ['get','country_code'], 'ru'],
+        ['==', ['get','country_code'], 'RU'],
+        ['==', ['get','adm0_a3'], 'RUS'],
+        ['==', ['get','adm0_a3_us'], 'RUS'],
+        ['==', ['get','iso_a3'], 'RUS'],
+        ['==', ['get','admin'], 'Russia'],
+        ['==', ['get','admin'], 'Russian Federation']
+      ];
+    }
+
+    function russiaSpatialCondition(){
+      return ['within', RUSSIA_VISIBLE_POLYGON];
+    }
+
+    let actualRussiaNameOverrideApplied = false;
+
+    function applyActualRussiaNameOverride(){
+      if(actualRussiaNameOverrideApplied || !map || !map.getStyle || !map.isStyleLoaded()) return;
+
+      const style = map.getStyle();
+      if(!style || !style.layers) return;
+
+      const regionByName = anyFeatureNameMatches(RUSSIA_REGION_NAMES);
+      const placeByName = anyFeatureNameMatches(RUSSIA_PLACE_NAMES);
+      const byRussiaProperty = russiaPropertyCondition();
+      const byRussiaSpatial = russiaSpatialCondition();
+
+      let changed = 0;
+
+      for(const layer of style.layers){
+        if(!layer || layer.type !== 'symbol') continue;
+
+        const id = String(layer.id || '').toLowerCase();
+        const regionLike = /region|state|province|oblast|admin-1|admin1|boundary-admin|territory/.test(id);
+        const placeLike = /place|country|settlement|city|town|village|suburb|neighbourhood|neighborhood|poi|label|name/.test(id);
+
+        if(!regionLike && !placeLike) continue;
+
+        let originalTextField;
+        try{
+          originalTextField = map.getLayoutProperty(layer.id, 'text-field');
+        }catch(err){
+          originalTextField = undefined;
+        }
+
+        if(originalTextField === undefined || originalTextField === null) continue;
+
+        // For region-like label layers: region names -> region replacement.
+        // For place-like label layers: city/place names -> place replacement.
+        // Spatial/property fallback catches Russian labels on large screens whose exact property name varies by tile/style.
+        const notKazakhstan = ['!', kazakhstanFeatureCondition()];
+
+        // Kazakhstan safety:
+        // Region labels must never use the broad spatial fallback, because large Russia-side
+        // polygons can cross nearby Kazakhstan oblast labels on 4K/65-inch screens.
+        // Russian regions are still caught by explicit region names and Russia feature properties.
+        const regionCondition = regionLike
+          ? ['all', ['any', regionByName, byRussiaProperty], notKazakhstan]
+          : ['all', regionByName, notKazakhstan];
+
+        // Places can still use the Russia-side spatial fallback for broad coverage, but Kazakhstan
+        // labels are explicitly excluded by country/admin/name checks.
+        const placeCondition = placeLike
+          ? ['all', ['any', placeByName, byRussiaProperty, byRussiaSpatial], notKazakhstan]
+          : ['all', placeByName, notKazakhstan];
+
+        try{
+          map.setLayoutProperty(layer.id, 'text-field', [
+            'case',
+            regionCondition, RUSSIA_REGION_TEXT,
+            placeCondition, RUSSIA_PLACE_TEXT,
+            originalTextField
+          ]);
+          changed++;
+        }catch(err){
+          // Some older MapLibre expression combinations may reject `within`.
+          // Fallback to property/name-only matching for that layer.
+          try{
+            const notKazakhstanFallback = ['!', kazakhstanFeatureCondition()];
+            map.setLayoutProperty(layer.id, 'text-field', [
+              'case',
+              ['all', regionByName, notKazakhstanFallback], RUSSIA_REGION_TEXT,
+              ['all', placeByName, notKazakhstanFallback], RUSSIA_PLACE_TEXT,
+              originalTextField
+            ]);
+            changed++;
+          }catch(e){}
+        }
+      }
+
+      if(changed > 0) actualRussiaNameOverrideApplied = true;
+    }
+
+
+
+    function cityDistance(a, b){
+      const x = (a.lng - b.lng) * Math.cos(((a.lat + b.lat) * .5) * Math.PI / 180);
+      const y = a.lat - b.lat;
+      return Math.hypot(x, y);
+    }
+
+    function activeCityId(){
+      const current = {lat: camera.lat, lng: camera.lng};
+      let bestId = CITY_ORDER[0][0];
+      let bestDistance = Infinity;
+      for(const [id, city] of CITY_ORDER){
+        const d = cityDistance(current, city);
+        if(d < bestDistance){
+          bestDistance = d;
+          bestId = id;
+        }
+      }
+      return bestId;
+    }
+
+    function geoDistanceMeters(a, b){
+      const lat1 = a.lat * Math.PI / 180;
+      const lat2 = b.lat * Math.PI / 180;
+      const dLat = (b.lat - a.lat) * Math.PI / 180;
+      const dLng = (b.lng - a.lng) * Math.PI / 180;
+      const x = dLng * Math.cos((lat1 + lat2) * .5);
+      const y = dLat;
+      return Math.sqrt(x*x + y*y) * 6371000;
+    }
+
+    function roadLayerIdsFromStyle(){
+      const ids = [];
+      const style = map.getStyle();
+      if(!style || !style.layers) return ids;
+
+      for(const layer of style.layers){
+        const id = String(layer.id || '').toLowerCase();
+        if(layer.type !== 'line') continue;
+
+        // Robust local/production road discovery:
+        // OpenFreeMap/OpenMapTiles line layers are often named "transportation",
+        // not "road". Missing this layer makes cars disappear completely.
+        if(/transportation|transport|road|street|highway|motorway|trunk|primary|secondary|tertiary|minor/.test(id)){
+          ids.push(layer.id);
+        }
+      }
+
+      return [...new Set(ids)];
+    }
+
+    function useRoadFeature(feature){
+      if(!feature || !feature.geometry) return false;
+      const type = feature.geometry.type;
+      if(type !== 'LineString' && type !== 'MultiLineString') return false;
+
+      const layerId = String(feature.layer && feature.layer.id || '').toLowerCase();
+      const props = feature.properties || {};
+      const cls = String(props.class || props.type || props.kind || props.brunnel || props.subclass || '').toLowerCase();
+      const subclass = String(props.subclass || '').toLowerCase();
+      const all = `${layerId} ${cls} ${subclass}`;
+
+      if(!/transportation|transport|road|street|highway|motorway|trunk|primary|secondary|tertiary|minor|residential|service|living_street/.test(all)){
+        return false;
+      }
+
+      if(/rail|ferry|aerial|runway|taxiway|path|footway|cycleway|pedestrian|steps|track|boundary|water|river|admin/.test(all)){
+        return false;
+      }
+
+      return true;
+    }
+
+    function lineStrings(feature){
+      const g = feature.geometry;
+      if(!g) return [];
+      if(g.type === 'LineString') return [g.coordinates];
+      if(g.type === 'MultiLineString') return g.coordinates;
+      return [];
+    }
+
+    function buildLane(points, cityId, props, direction){
+      if(points.length < 2) return null;
+      const cumulative = [0];
+      let length = 0;
+      for(let i=1; i<points.length; i++){
+        length += geoDistanceMeters(points[i-1], points[i]);
+        cumulative.push(length);
+      }
+      if(length < 28) return null;
+
+      const roadClass = String(props.class || props.type || props.kind || '').toLowerCase();
+      return {
+        cityId,
+        points,
+        cumulative,
+        length,
+        direction,
+        major:/motorway|trunk|primary|secondary/.test(roadClass),
+        roadClass
+      };
+    }
+
+
+
+    let smoothMapApplied = false;
+
+    function opacityBase(value, fallback=1){
+      if(value === undefined || value === null) return fallback;
+      if(typeof value === 'number') return value;
+      if(Array.isArray(value)) return value;
+      return fallback;
+    }
+
+    function zoomFadeExpression(minzoom, maxzoom, spanIn, spanOut){
+      const min = Math.max(0, Number(minzoom || 0));
+      const start = Math.max(0, min - spanIn);
+      const full = Math.max(start + .05, min + spanIn * .28);
+
+      const stops = [start, 0, full, 1];
+
+      if(Number.isFinite(maxzoom) && maxzoom > full + .45 && maxzoom < 23.5){
+        const outStart = Math.max(full + .10, maxzoom - spanOut);
+        stops.push(outStart, 1, maxzoom, 0);
+      }
+
+      return ['interpolate', ['linear'], ['zoom'], ...stops];
+    }
+
+    function combineOpacityWithFade(base, fade){
+      const normalized = opacityBase(base, 1);
+      if(typeof normalized === 'number') return ['*', normalized, fade];
+      return ['*', normalized, fade];
+    }
+
+    function setLayerSmoothOpacity(layer, paintProperty, fadeExpression, duration){
+      try{
+        const base = map.getPaintProperty(layer.id, paintProperty);
+        map.setPaintProperty(layer.id, paintProperty, combineOpacityWithFade(base, fadeExpression));
+        map.setPaintProperty(layer.id, `${paintProperty}-transition`, {
+          duration: duration,
+          delay:0
+        });
+      }catch(err){}
+    }
+
+
+    function explicitBuildingFadeExpression(){
+      // Aggressive workaround: buildings are kept nearly invisible at their first available
+      // tile zoom, then fade in slowly. This reduces the perceptual "pop".
+      return ['interpolate', ['linear'], ['zoom'],
+        11.80, 0,
+        12.80, .00,
+        13.45, .035,
+        14.05, .12,
+        14.65, .38,
+        15.25, .78,
+        15.85, 1
+      ];
+    }
+
+    function explicitDetailFadeExpression(){
+      return ['interpolate', ['linear'], ['zoom'],
+        11.20, 0,
+        11.85, .18,
+        12.55, .58,
+        13.25, 1
+      ];
+    }
+
+    function explicitPoiFadeExpression(){
+      return ['interpolate', ['linear'], ['zoom'],
+        12.00, 0,
+        12.65, .14,
+        13.35, .55,
+        14.05, 1
+      ];
+    }
+
+    function getLayerSmoothProfile(layer){
+      const id = String(layer.id || '').toLowerCase();
+      const type = layer.type;
+      const minzoom = Number(layer.minzoom || 0);
+
+      const isBuilding = /building|house|structure/.test(id);
+      const isPoi = /poi|amenity|shop|tourism|museum|food|cafe|restaurant|hotel/.test(id);
+      const isPlace = /place|settlement|city|town|village|suburb|neighbourhood|neighborhood/.test(id);
+      const isRoadDetail = /road|street|highway|motorway|trunk|primary|secondary|tertiary|transport/.test(id);
+      const isParkLanduse = /park|landuse|green|forest|grass|area/.test(id);
+
+      let fadeIn = .75;
+      let fadeOut = .65;
+      let duration = mobileLike ? 420 : 680;
+
+      if(type === 'symbol'){
+        fadeIn = isPlace ? 1.25 : isPoi ? 1.15 : 1.0;
+        fadeOut = isPlace ? 1.0 : .85;
+        duration = mobileLike ? 440 : 720;
+      }
+
+      if(isBuilding){
+        fadeIn = 1.6;
+        fadeOut = .95;
+        duration = mobileLike ? 460 : 820;
+      }else if(isRoadDetail){
+        fadeIn = minzoom >= 10 ? 1.2 : .8;
+        fadeOut = .85;
+      }else if(isPoi){
+        fadeIn = 1.25;
+        fadeOut = .9;
+      }else if(isParkLanduse){
+        fadeIn = .95;
+        fadeOut = .7;
+      }
+
+      return {isBuilding, isPoi, isPlace, isRoadDetail, isParkLanduse, fadeIn, fadeOut, duration};
+    }
+
+    function applySmoothMapLayerTransitions(){
+      if(smoothMapApplied || !map || !map.getStyle || !map.isStyleLoaded()) return;
+      const style = map.getStyle();
+      if(!style || !style.layers) return;
+
+      smoothMapApplied = true;
+
+      for(const layer of style.layers){
+        if(!layer || !layer.id || layer.type === 'background') continue;
+
+        const id = String(layer.id || '').toLowerCase();
+        const sourceLayer = String(layer['source-layer'] || '').toLowerCase();
+        const minzoom = Number(layer.minzoom || 0);
+        const maxzoom = layer.maxzoom === undefined ? Infinity : Number(layer.maxzoom);
+        const profile = getLayerSmoothProfile(layer);
+
+        const isBuildingLayer =
+          /building|buildings|house|structure/.test(id) ||
+          /building|buildings|house|structure/.test(sourceLayer);
+
+        const isPoiLayer =
+          /poi|amenity|shop|tourism|museum|food|cafe|restaurant|hotel/.test(id) ||
+          /poi|amenity|shop|tourism/.test(sourceLayer);
+
+        const isDetailRoadLayer =
+          /minor|service|path|street|road_name|road-name|road label|transportation_name|transportation-name/.test(id) ||
+          (/transport|road/.test(sourceLayer) && minzoom >= 10);
+
+        let fade = zoomFadeExpression(minzoom, maxzoom, profile.fadeIn, profile.fadeOut);
+
+        if(isBuildingLayer){
+          fade = explicitBuildingFadeExpression();
+
+          // Critical part: if the style layer itself has minzoom 14/15, opacity expressions
+          // cannot help because MapLibre refuses to render the layer before minzoom.
+          // Lower the layer minzoom so the fade curve can begin earlier whenever the vector
+          // tile already contains building features.
+          try{
+            map.setLayerZoomRange(layer.id, 11.75, Number.isFinite(maxzoom) ? maxzoom : 24);
+          }catch(err){}
+        }else if(isPoiLayer){
+          fade = explicitPoiFadeExpression();
+          try{
+            if(minzoom > 11.6) map.setLayerZoomRange(layer.id, Math.max(10.8, minzoom - 1.2), Number.isFinite(maxzoom) ? maxzoom : 24);
+          }catch(err){}
+        }else if(isDetailRoadLayer){
+          fade = explicitDetailFadeExpression();
+          try{
+            if(minzoom > 10.8) map.setLayerZoomRange(layer.id, Math.max(9.8, minzoom - 1.0), Number.isFinite(maxzoom) ? maxzoom : 24);
+          }catch(err){}
+        }
+
+        if(layer.type === 'symbol'){
+          const layout = layer.layout || {};
+          if(layout['text-field'] !== undefined || map.getPaintProperty(layer.id, 'text-opacity') !== undefined){
+            setLayerSmoothOpacity(layer, 'text-opacity', fade, profile.duration);
+          }
+          if(layout['icon-image'] !== undefined || map.getPaintProperty(layer.id, 'icon-opacity') !== undefined){
+            setLayerSmoothOpacity(layer, 'icon-opacity', fade, profile.duration);
+          }
+        }else if(layer.type === 'line'){
+          setLayerSmoothOpacity(layer, 'line-opacity', fade, profile.duration);
+        }else if(layer.type === 'fill'){
+          if(minzoom >= 4.5 || isBuildingLayer || isPoiLayer || isDetailRoadLayer || profile.isParkLanduse || profile.isPlace){
+            setLayerSmoothOpacity(layer, 'fill-opacity', fade, profile.duration);
+          }
+        }else if(layer.type === 'circle'){
+          setLayerSmoothOpacity(layer, 'circle-opacity', fade, profile.duration);
+        }else if(layer.type === 'fill-extrusion'){
+          setLayerSmoothOpacity(layer, 'fill-extrusion-opacity', fade, profile.duration);
+        }else if(layer.type === 'raster'){
+          setLayerSmoothOpacity(layer, 'raster-opacity', fade, profile.duration);
+        }
+      }
+    }
+
+    function angleBetween(a, b){
+      let d = b - a;
+      while(d > Math.PI) d -= Math.PI * 2;
+      while(d < -Math.PI) d += Math.PI * 2;
+      return d;
+    }
+
+    function bearingBetween(a, b){
+      const p1 = map.project([a.lng, a.lat]);
+      const p2 = map.project([b.lng, b.lat]);
+      return Math.atan2(p2.y - p1.y, p2.x - p1.x);
+    }
+
+    function connectLaneGraph(lanes){
+      const starts = lanes.map((lane, index) => ({
+        index,
+        point: lane.points[0],
+        angle: lane.points.length > 1 ? bearingBetween(lane.points[0], lane.points[1]) : 0
+      }));
+
+      lanes.forEach((lane, index) => {
+        lane.index = index;
+        lane.connections = [];
+        lane.deadEndUturn = false;
+
+        const end = lane.points[lane.points.length - 1];
+        const endAngle = bearingBetween(lane.points[Math.max(0, lane.points.length - 2)], end);
+        const nearby = [];
+        const uturns = [];
+
+        for(const start of starts){
+          if(start.index === index) continue;
+
+          const distance = geoDistanceMeters(end, start.point);
+          if(distance > 52) continue;
+
+          const turn = angleBetween(endAngle, start.angle);
+
+          if(Math.abs(turn) <= 2.65){
+            nearby.push({
+              index:start.index,
+              turn,
+              distance,
+              score: Math.abs(turn) * 15 + distance
+            });
+          }else if(distance <= 18){
+            // Dead-end continuity: use the reverse lane instead of wrapping to lane start.
+            uturns.push({
+              index:start.index,
+              turn,
+              distance,
+              score: 120 + distance
+            });
+          }
+        }
+
+        nearby.sort((a,b) => a.score - b.score);
+        uturns.sort((a,b) => a.score - b.score);
+
+        lane.connections = nearby.slice(0, 6);
+        if(!lane.connections.length && uturns.length){
+          lane.connections = uturns.slice(0, 2);
+          lane.deadEndUturn = true;
+        }
+      });
+
+      return lanes;
+    }
+
+    function chooseNextLane(lane, car){
+      if(!lane || !lane.connections || !lane.connections.length) return null;
+
+      const options = lane.connections;
+      const r = (Math.sin((car.seed || 1) * 997 + car.progress * .013) + 1) / 2;
+
+      let pool;
+      if(r < .60){
+        // Mostly go straight or take the softest bend.
+        pool = options.slice(0, Math.min(2, options.length));
+      }else if(r < .86){
+        // Sometimes turn.
+        pool = options.filter(o => Math.abs(o.turn) > .28 && Math.abs(o.turn) < 1.72);
+        if(!pool.length) pool = options;
+      }else{
+        // Rarely take any legal-feeling exit.
+        pool = options;
+      }
+
+      const choice = pool[Math.floor(((r * 997) % 1) * pool.length)] || options[0];
+      return choice || null;
+    }
+
+    function turnSignalFromTurn(turn){
+      if(Math.abs(turn) < .32) return null;
+      return turn > 0 ? 'right' : 'left';
+    }
+
+    function smoothstep(edge0, edge1, x){
+      const t = clamp((x - edge0) / Math.max(.0001, edge1 - edge0), 0, 1);
+      return t * t * (3 - 2 * t);
+    }
+
+    function lodBlend(zoom){
+      // Wide/city view: dots. Mid street view: capsules. Close street view: cars.
+      // This avoids colored dash/capsule cars at zoomed-out Kyiv views.
+      const dotOut = 1 - smoothstep(13.15, 13.85, zoom);
+      const capsuleIn = smoothstep(13.15, 13.85, zoom);
+      const capsuleOut = 1 - smoothstep(14.25, 14.75, zoom);
+      const carIn = smoothstep(14.25, 14.75, zoom);
+
+      return {
+        dot: dotOut,
+        capsule: capsuleIn * capsuleOut,
+        car: carIn
+      };
+    }
+
+    function sampleRoadLanes(cityId){
+      if(!TRAFFIC.roadLayerIds.length || camera.zoom >= 10.8){
+        // Refresh layer IDs at city zoom in case style layers became available after first load.
+        const discovered = roadLayerIdsFromStyle();
+        if(discovered.length) TRAFFIC.roadLayerIds = discovered;
+      }
+      if(!TRAFFIC.roadLayerIds.length){
+        TRAFFIC.diagnostics.reason = 'waiting-road-layers';
+        return [];
+      }
+
+      const w = map.getCanvas().clientWidth;
+      const h = map.getCanvas().clientHeight;
+      let features = [];
+      try{
+        features = map.queryRenderedFeatures([[0,0],[w,h]], {layers: TRAFFIC.roadLayerIds});
+      }catch(err){
+        return [];
+      }
+
+      const lanes = [];
+      const seen = new Set();
+
+      for(const feature of features){
+        if(!useRoadFeature(feature)) continue;
+        const props = feature.properties || {};
+        const oneWayRaw = String(props.oneway || props.one_way || '').toLowerCase();
+        const oneWay = oneWayRaw === 'true' || oneWayRaw === 'yes' || oneWayRaw === '1';
+        const reverseOnly = oneWayRaw === '-1' || oneWayRaw === 'reverse';
+
+        for(const coords of lineStrings(feature)){
+          if(!coords || coords.length < 2) continue;
+
+          const points = [];
+          for(const coord of coords){
+            if(!Array.isArray(coord) || coord.length < 2) continue;
+            const pt = {lng:+coord[0], lat:+coord[1]};
+            const px = map.project([pt.lng, pt.lat]);
+            if(px.x < -320 || px.y < -320 || px.x > w + 320 || px.y > h + 320) continue;
+            const prev = points[points.length - 1];
+            if(!prev || geoDistanceMeters(prev, pt) > 4) points.push(pt);
+          }
+
+          if(points.length < 2) continue;
+
+          const key = points.slice(0, 6).map(p => `${p.lng.toFixed(5)},${p.lat.toFixed(5)}`).join('|');
+          if(seen.has(key)) continue;
+          seen.add(key);
+
+          const forward = buildLane(points, cityId, props, 1);
+          if(forward && !reverseOnly) lanes.push(forward);
+
+          if(!oneWay || reverseOnly){
+            const reverse = buildLane([...points].reverse(), cityId, props, -1);
+            if(reverse) lanes.push(reverse);
+          }
+        }
+      }
+
+      const maxLanes = Math.round((mobileLike ? 220 : 340) * cityLaneCoverageMultiplier(cityId));
+      const selected = [];
+      const selectedSet = new Set();
+      const grid = new Map();
+      const canvas = map.getCanvas();
+      const cell = mobileLike ? 120 : 145;
+
+      lanes.forEach((lane, index) => {
+        const mid = lane.points[Math.floor(lane.points.length / 2)];
+        const px = map.project([mid.lng, mid.lat]);
+        const gx = Math.floor(px.x / cell);
+        const gy = Math.floor(px.y / cell);
+        const key = `${gx}:${gy}`;
+        if(!grid.has(key)) grid.set(key, []);
+        grid.get(key).push(index);
+      });
+
+      // Pass 1: one good representative per screen cell, so cars are not concentrated in one blob.
+      for(const list of grid.values()){
+        list.sort((ia, ib) => (lanes[ib].major - lanes[ia].major) || (lanes[ib].length - lanes[ia].length));
+        const index = list[0];
+        if(index !== undefined && !selectedSet.has(index)){
+          selected.push(index);
+          selectedSet.add(index);
+        }
+      }
+
+      // Pass 2: add major roads across the whole visible city.
+      const major = lanes
+        .map((lane, index) => ({lane, index}))
+        .filter(item => item.lane.major)
+        .sort((a,b) => b.lane.length - a.lane.length);
+      for(const item of major){
+        if(selected.length >= maxLanes) break;
+        if(!selectedSet.has(item.index)){
+          selected.push(item.index);
+          selectedSet.add(item.index);
+        }
+      }
+
+      // Pass 3: fill remaining capacity with a mix of local streets and long roads.
+      const rest = lanes
+        .map((lane, index) => ({lane, index}))
+        .sort((a,b) => b.lane.length - a.lane.length);
+      for(const item of rest){
+        if(selected.length >= maxLanes) break;
+        if(!selectedSet.has(item.index)){
+          selected.push(item.index);
+          selectedSet.add(item.index);
+        }
+      }
+
+      return connectLaneGraph(selected.map(index => lanes[index]));
+    }
+
+    function createCarsForLanes(cityId, lanes, previousCars=[], targetOverride, keepLanes=false){
+      const cars = [];
+      if(!lanes.length) return cars;
+
+      const now = performance.now();
+      const profile = CITY_TRAFFIC_PROFILES[cityId] || CITY_TRAFFIC_PROFILES.kyiv;
+      const densityScale = profile.density * (mobileLike ? APP_CONFIG.traffic.mobileDensity : APP_CONFIG.traffic.desktopDensity);
+      const cityCenter = cities[cityId] || {lat:0, lng:0};
+      const weightedLaneIndices = [];
+      let weightedLength = 0;
+
+      lanes.forEach((lane, index) => {
+        const mid = lane.points[Math.floor(lane.points.length / 2)] || lane.points[0];
+        const dist = cityDistance(mid, cityCenter);
+        const centrality = Math.max(0.42, 1.20 - dist * 12.0 * profile.centerPull);
+        const classWeight = lane.major ? profile.majorBias : profile.localBias;
+        const riverBridgeBoost = /bridge|trunk|primary|secondary/.test(lane.roadClass || '') ? 1.08 : 1;
+        const weight = lane.length * classWeight * centrality * riverBridgeBoost;
+        weightedLength += weight;
+
+        const repeats = Math.max(
+          1,
+          Math.min(lane.major ? 9 : 5, Math.round(weight / (lane.major ? 158 : 225)))
+        ) + (lane.major ? 1 : 0);
+
+        for(let r = 0; r < repeats; r++) weightedLaneIndices.push(index);
+      });
+
+      const dynamicCount = Math.round(weightedLength / (mobileLike ? 192 : 118) * densityScale);
+      const cityMultiplier = cityTrafficMultiplier(cityId);
+      // Background-use: light traffic (~60 cars in frame at city zoom) — a calm living texture
+      // behind the glass, not a full rush-hour grid.
+      const baseMinCars = mobileLike ? 40 : 64;
+      const baseMaxCars = mobileLike ? 64 : 104;
+      // The adaptive controller (ensureTrafficNetwork) passes a per-city total tuned to land
+      // ~60-70 cars *visible* in frame; without it, fall back to the road-density estimate.
+      const count = (typeof targetOverride === 'number')
+        ? Math.max(40, Math.min(440, Math.round(targetOverride)))
+        : Math.max(
+            Math.round(baseMinCars * cityMultiplier),
+            Math.min(
+              Math.round(baseMaxCars * cityMultiplier),
+              Math.round(dynamicCount * 2.80 * cityMultiplier)
+            )
+          );
+
+      const coverageCount = Math.min(count, lanes.length);
+      const chosenLaneIndices = [];
+
+      for(let i=0; i<coverageCount; i++){
+        const laneIndex = Math.floor(i * lanes.length / coverageCount);
+        chosenLaneIndices.push(laneIndex);
+      }
+
+      for(let i=coverageCount; i<count; i++){
+        chosenLaneIndices.push(weightedLaneIndices[(i - coverageCount) % weightedLaneIndices.length] ?? (i % lanes.length));
+      }
+
+      const laneLoadMap = new Map();
+      chosenLaneIndices.forEach(idx => laneLoadMap.set(idx, (laneLoadMap.get(idx) || 0) + 1));
+
+      for(let i=0; i<count; i++){
+        const previous = previousCars && i < previousCars.length ? previousCars[i] : null;
+
+        // Continuity: when re-populating the SAME lanes (a density top-up), keep each existing car
+        // exactly where it is so nothing visibly jumps — only brand-new cars are placed + fade in.
+        let laneIndex, keptInPlace = false;
+        if(keepLanes && previous && Number.isFinite(previous.laneIndex) && previous.laneIndex < lanes.length && lanes[previous.laneIndex]){
+          laneIndex = previous.laneIndex;
+          keptInPlace = true;
+        }else{
+          laneIndex = chosenLaneIndices[i] ?? (i % lanes.length);
+        }
+        const lane = lanes[laneIndex];
+        const laneLoad = laneLoadMap.get(laneIndex) || 1;
+        const sameBefore = chosenLaneIndices.slice(0, i).filter(v => v === laneIndex).length;
+
+        const seed = previous ? previous.seed : (i + 1) * 0.61803398875 + cityId.length * .137;
+        const stagger = ((sameBefore + 0.16 + ((i * .071) % .22)) / laneLoad) % 1;
+        const baseSpeed = lane.major ? profile.majorSpeed : profile.localSpeed;
+        const speedJitter = ((i * 17) % 8) * .25;
+
+        const chosenColor = previous && previous.color
+          ? previous.color
+          : TRAFFIC.palette[(i + Math.floor(profile.density * 10)) % TRAFFIC.palette.length];
+        const flowColor = hexToRgb(chosenColor);
+        const previousRatio = previous && previous.laneLength ? ((previous.progress / Math.max(1, previous.laneLength)) % 1) : null;
+        const isNewCar = !previous;
+
+        cars.push({
+          cityId,
+          laneIndex,
+          nextLaneIndex:null,
+          turnSignal:previous ? previous.turnSignal : null,
+          turnSignalUntil:previous ? previous.turnSignalUntil : 0,
+          progress: keptInPlace
+            ? (((previous.progress % lane.length) + lane.length) % lane.length)
+            : ((previousRatio !== null ? previousRatio : stagger) * lane.length),
+          speed:previous ? Math.min(previous.speed || baseSpeed, baseSpeed + speedJitter) : baseSpeed + speedJitter,
+          desiredSpeed:baseSpeed + speedJitter,
+          baseDesiredSpeed:baseSpeed + speedJitter,
+          color:chosenColor,
+          colorRgb:hexToRgb(chosenColor),
+          flowRgb:flowColor,
+          length:previous ? previous.length : 8 + (i % 4),
+          width:previous ? previous.width : 4.2 + (i % 3) * .35,
+          laneLength:lane.length,
+          stopTimer:0,
+          stopBias:previous ? previous.stopBias : ((i * 19) % 100) / 100,
+          blinkPhase:previous ? previous.blinkPhase : (i * .31) % 1,
+          braking:false,
+          seed,
+          visualAlpha:previous && Number.isFinite(previous.visualAlpha) ? previous.visualAlpha : 0,
+          bornAt:previous && previous.bornAt ? previous.bornAt : now,
+          spawnDelay:previous ? 0 : (Math.floor(i / 12) * 38 + (i % 12) * 16),
+          spawnDuration:previous ? 1 : (mobileLike ? 620 : 760)
+        });
+      }
+
+      return cars;
+    }
+
+    function ensureTrafficNetwork(){
+      // Robust local/production traffic:
+      // Do not require map.isStyleLoaded(); it can remain false while tiles continue loading,
+      // even though rendered road features are already queryable. Requiring it caused zero
+      // cars in local downloaded builds.
+      if(!map || !map.getStyle || !map.getStyle() || !map.getCanvas) return TRAFFIC.lastVisibleNetwork || null;
+
+      const cityId = activeCityId();
+      TRAFFIC.activeCityId = cityId;
+
+      let network = TRAFFIC.networks.get(cityId);
+      const now = performance.now();
+
+      const city = cities[cityId];
+      const distanceToCity = city ? cityDistance({lat:camera.lat, lng:camera.lng}, city) : 999;
+
+      // Build only once the camera is actually approaching/centered on the city.
+      // The previous "fast load" could build too early from country-level roads,
+      // leaving no cars on Kyiv streets.
+      // Build a touch earlier on approach (lower zoom gate) so the destination city has time to
+      // populate before you arrive — the quality re-sample refines it to street geometry on arrival.
+      const cityIsActuallyVisible = camera.zoom >= 8.8 && distanceToCity < .80;
+
+      const shouldInitialBuild =
+        !network &&
+        cityIsActuallyVisible &&
+        now - TRAFFIC.lastRoadQuery > 160;
+
+      // Upgrade once at closer zoom, replacing early/coarse road geometry with actual city streets.
+      // Also re-sample once we're truly centred (the approach build samples a wide area, which makes
+      // the on-screen car fraction read too low and the density controller overshoot).
+      const shouldQualityRebuild =
+        !!network &&
+        camera.zoom >= 11.35 &&
+        distanceToCity < .45 &&
+        now - TRAFFIC.lastRoadQuery > 620 &&
+        (!network.qualityPass || network.buildZoom < 11.25 ||
+         ((network.buildDist || 0) > .15 && distanceToCity < .12));
+
+      // Adaptive density controller: keep ~60-70 cars visible in every city. Because each city has a
+      // different on-screen fraction (road layout), a flat total can't do this. When parked & centred
+      // we measure how many actually drew and, if too few, TOP UP the network — adding cars that fade
+      // in while every existing car keeps driving in place. It only ever adds (never wipes/respawns),
+      // reuses the current lanes for continuity, and is capped per city so it settles and stays put.
+      if(!TRAFFIC.cityTargetCars) TRAFFIC.cityTargetCars = {};
+      if(!TRAFFIC.cityAdjusts) TRAFFIC.cityAdjusts = {};
+      const cameraParked = scrollVelocity < 0.00016;
+      const parkedCentred = !!network && cameraParked && camera.zoom >= 14.0 && distanceToCity < .12;
+      // Dwell gate: the visible-car count is only trustworthy once the view has actually settled
+      // (camera centred + cars eased in). Adjusting on a transient low reading mid-settle caused
+      // runaway over-adding. So require it to have been parked-centred on THIS city for a moment.
+      if(TRAFFIC.parkedCity !== cityId){ TRAFFIC.parkedCity = cityId; TRAFFIC.parkedSince = 0; }
+      if(parkedCentred){ if(!TRAFFIC.parkedSince) TRAFFIC.parkedSince = now; }
+      else TRAFFIC.parkedSince = 0;
+      const settledMs = TRAFFIC.parkedSince ? now - TRAFFIC.parkedSince : 0;
+      const drawnNow = TRAFFIC.stats.drawn || 0;
+      const starved = drawnNow < 12;     // network's cars are off-screen → need a fresh viewport
+      let adjustTarget = null;
+      const adjustsDone = TRAFFIC.cityAdjusts[cityId] || 0;
+      const canAdjust =
+        parkedCentred && network.qualityPass &&
+        settledMs > 1600 &&
+        adjustsDone < 5 &&
+        now - TRAFFIC.lastRoadQuery > 850 &&
+        now - (TRAFFIC.lastCountAdjust || 0) > 1500;
+      if(canAdjust && drawnNow < 58){
+        const cur = network.cars.length;
+        // Step toward ~63 visible, but cap per-step growth so it re-measures the true centred
+        // fraction each time and can't overshoot in a single jump.
+        adjustTarget = Math.min(360, cur + 44, Math.round(cur * 63 / Math.max(10, drawnNow)));
+        if(adjustTarget - cur < 6) adjustTarget = null;   // already close enough
+      }
+      const shouldAdjustRebuild = adjustTarget != null;
+
+      if(shouldInitialBuild || shouldQualityRebuild || shouldAdjustRebuild){
+        const adjustOnly = shouldAdjustRebuild && !shouldInitialBuild && !shouldQualityRebuild;
+        // Reuse the current lanes for a continuity-preserving top-up (no pop); resample only when we
+        // need a fresh viewport (initial/quality build, or a starved network whose cars are off-screen).
+        const reuseLanes = adjustOnly && !starved && network.lanes && network.lanes.length >= 6;
+        TRAFFIC.lastRoadQuery = now;
+        const lanes = reuseLanes ? network.lanes : sampleRoadLanes(cityId);
+
+        const enoughForInitial = shouldInitialBuild && lanes.length >= 4;
+        const enoughForUpgrade =
+          shouldQualityRebuild &&
+          lanes.length >= 8 &&
+          (network.buildZoom < 11.25 || lanes.length >= Math.round(network.lanes.length * .72));
+        const enoughForAdjust = shouldAdjustRebuild && lanes.length >= 6;
+
+        if(enoughForInitial || enoughForUpgrade || enoughForAdjust){
+          const doAdjust = enoughForAdjust && !enoughForInitial && !enoughForUpgrade;
+          // A centred quality re-sample gives an accurate on-screen fraction — drop any stored target
+          // from the earlier wide-area estimate so the controller re-converges cleanly.
+          if(enoughForUpgrade){ TRAFFIC.cityAdjusts[cityId] = 0; delete TRAFFIC.cityTargetCars[cityId]; }
+          if(doAdjust){
+            TRAFFIC.lastCountAdjust = now;
+            TRAFFIC.cityAdjusts[cityId] = adjustsDone + 1;
+            TRAFFIC.cityTargetCars[cityId] = adjustTarget;
+          }
+          const target = TRAFFIC.cityTargetCars[cityId];
+          network = {
+            cityId,
+            lanes,
+            // Always carry existing cars forward; on a same-lane top-up keep them exactly in place.
+            cars: createCarsForLanes(cityId, lanes, network ? network.cars : [], target, reuseLanes),
+            createdAt: network ? network.createdAt : now,
+            buildZoom: camera.zoom,
+            buildDist: distanceToCity,
+            qualityPass: camera.zoom >= 11.35
+          };
+          if(!reuseLanes) warmTrafficNetwork(network, network.createdAt === now ? .9 : .35);
+          TRAFFIC.networks.set(cityId, network);
+          TRAFFIC.diagnostics.reason = doAdjust ? 'density-tuned' : 'real-road-network';
+        }
+      }
+
+      if(network){
+        TRAFFIC.lastVisibleNetwork = network;
+        return network;
+      }
+
+      return TRAFFIC.lastVisibleNetwork || null;
+    }
+
+    function laneSample(lane, distance){
+      const d = ((distance % lane.length) + lane.length) % lane.length;
+      let idx = 1;
+      while(idx < lane.cumulative.length && lane.cumulative[idx] < d) idx++;
+      const i1 = Math.min(idx, lane.points.length - 1);
+      const i0 = Math.max(0, i1 - 1);
+      const segLen = Math.max(.0001, lane.cumulative[i1] - lane.cumulative[i0]);
+      const t = clamp((d - lane.cumulative[i0]) / segLen, 0, 1);
+
+      const a = lane.points[i0];
+      const b = lane.points[i1];
+
+      const lng = lerp(a.lng, b.lng, t);
+      const lat = lerp(a.lat, b.lat, t);
+
+      const aPx = map.project([a.lng, a.lat]);
+      const bPx = map.project([b.lng, b.lat]);
+      const x = lerp(aPx.x, bPx.x, t);
+      const y = lerp(aPx.y, bPx.y, t);
+      const dx = bPx.x - aPx.x;
+      const dy = bPx.y - aPx.y;
+      const screenLen = Math.hypot(dx, dy) || 1;
+
+      return {lng, lat, x, y, dx:dx/screenLen, dy:dy/screenLen, vertexIndex:i1};
+    }
+
+    function trafficOpacity(zoom, network){
+      if(!network) return 0;
+
+      // Faint early flow appears before close zoom; it should no longer feel like cars load late.
+      // Softened curve: traffic stays more present through the mid zooms so that pulling out of a
+      // city fades the cars gradually (as small dots) instead of dropping them abruptly.
+      if(zoom < 6.4) return 0;
+      if(zoom < 8.5) return (zoom - 6.4) / 2.1 * .26;
+      if(zoom < 11.0) return .26 + (zoom - 8.5) / 2.5 * .18;
+      if(zoom < 13.0) return .44 + (zoom - 11.0) / 2.0 * .14;
+      if(zoom < 14.4) return .58 + (zoom - 13.0) / 1.4 * .10;
+      return .68;
+    }
+
+    function trafficVisibleDensity(zoom){
+      // 2x city traffic version: much fuller cities while keeping the same smooth reveal logic.
+      if(zoom < 6.9) return 0;
+      if(zoom < 8.8) return smoothstep(6.9, 8.8, zoom) * .30;
+      if(zoom < 10.4) return .30 + smoothstep(8.8, 10.4, zoom) * .28;
+      if(zoom < 12.8) return .58 + smoothstep(10.4, 12.8, zoom) * .24;
+      if(zoom < 13.8) return .82 + smoothstep(12.8, 13.8, zoom) * .12;
+      if(zoom < 14.75) return .94 + smoothstep(13.8, 14.75, zoom) * .06;
+      return 1.0;
+    }
+
+    function trafficMinimumCarFade(zoom){
+      // Higher minimum fade so the 2x version stays visibly denser through city zooms.
+      if(zoom < 9.4) return 0;
+      if(zoom < 11.8) return smoothstep(9.4, 11.8, zoom) * .095;
+      if(zoom < 13.2) return .095 + smoothstep(11.8, 13.2, zoom) * .085;
+      if(zoom < 14.5) return .180 + smoothstep(13.2, 14.5, zoom) * .080;
+      return .26;
+    }
+
+    function trafficRenderBudget(zoom){
+      // Continuous budget to avoid sudden mass appearance at zoom thresholds.
+      const mobileBudget =
+        56 +
+        smoothstep(8.4, 11.4, zoom) * 68 +
+        smoothstep(11.4, 13.2, zoom) * 84 +
+        smoothstep(13.2, 14.75, zoom) * 60;
+
+      const desktopBudget =
+        100 +
+        smoothstep(8.4, 11.4, zoom) * 136 +
+        smoothstep(11.4, 13.2, zoom) * 156 +
+        smoothstep(13.2, 14.75, zoom) * 104;
+
+      return Math.max(mobileLike ? 14 : 24, Math.round((mobileLike ? mobileBudget : desktopBudget) * trafficAdaptiveBudgetScale()));
+    }
+
+    function stableUnit(value){
+      const x = Math.sin((value || 1) * 12.9898) * 43758.5453123;
+      return x - Math.floor(x);
+    }
+
+    function carDensityFade(car, density){
+      // Stable-cars v4:
+      // At street zoom, every generated car should stay visible. Density fade is only for
+      // wide/transition views, otherwise cars look like they randomly disappear.
+      if(camera.zoom >= 12.85) return 1;
+      const reveal = stableUnit((car.seed || 1) * 91.7 + (car.laneIndex || 0) * .37);
+      return smoothstep(reveal - .42, reveal + .18, density);
+    }
+
+    function carSpawnFade(car){
+      if(!car || !car.bornAt) return 1;
+      const elapsed = performance.now() - car.bornAt - (car.spawnDelay || 0);
+      if(elapsed <= 0) return 0;
+      return smoothstep(0, car.spawnDuration || 1000, elapsed);
+    }
+
+    function carBudgetFade(car, budget, total){
+      // Stable-cars v4:
+      // Do not hide cars at street zoom because of adaptive render budget.
+      // Budget fade remains active only while zoomed out, where density should be softer.
+      if(camera.zoom >= 12.85) return 1;
+      if(!total || budget >= total) return 1;
+      const ratio = clamp(budget / Math.max(1, total), 0, 1);
+      const reveal = stableUnit((car.seed || 1) * 43.91 + (car.laneIndex || 0) * .13);
+      return smoothstep(reveal - .14, reveal + .20, ratio);
+    }
+
+    function smoothCarAlpha(car, targetAlpha){
+      const current = Number.isFinite(car.visualAlpha) ? car.visualAlpha : 0;
+      const frameMs = TRAFFIC.smoothFrameMs || 16.7;
+      const base = targetAlpha > current ? .075 : .115;
+      const k = 1 - Math.pow(1 - base, frameMs / 16.7);
+      car.visualAlpha = current + (targetAlpha - current) * clamp(k, .035, .24);
+
+      if(car.visualAlpha < .001 && targetAlpha <= .001) car.visualAlpha = 0;
+      if(car.visualAlpha > .995 && targetAlpha >= .995) car.visualAlpha = 1;
+      return car.visualAlpha;
+    }
+
+    function trafficVisualMode(zoom){
+      if(zoom < 13.15) return 'dots';
+      if(zoom < 13.85) return 'dots→capsules';
+      if(zoom < 14.25) return 'capsules';
+      if(zoom < 14.75) return 'capsules→cars';
+      return 'cars';
+    }
+
+    function trafficZoomScale(zoom){
+      if(zoom < 9.0) return .56;
+      if(zoom < 10.8) return .64;
+      if(zoom < 12.7) return .76;
+      if(zoom < 14.15) return .92;
+      return 1.08;
+    }
+
+    function trafficZoomAlphaMultiplier(zoom){
+      if(zoom < 10.2) return .48;
+      if(zoom < 11.8) return .58;
+      if(zoom < 12.7) return .68;
+      if(zoom < 13.8) return .84;
+      return 1;
+    }
+
+    function cityLabelFadeFactor(network, x, y){
+      // Car continuity fix:
+      // The old native-label protection fade made cars look like they disappeared at a fixed point.
+      // Keep all traffic visible; map label collisions are less important than continuity.
+      return 1;
+    }
+
+    function laneOffsetPixels(zoom){
+      if(zoom < 9.5) return .28;
+      if(zoom < 11.5) return .62;
+      if(zoom < 13.5) return 1.24;
+      return 2.15;
+    }
+
+    function updateTrafficCars(network, dt){
+      if(!network) return;
+      const laneGroups = new Map();
+
+      for(const car of network.cars){
+        if(!laneGroups.has(car.laneIndex)) laneGroups.set(car.laneIndex, []);
+        laneGroups.get(car.laneIndex).push(car);
+      }
+
+      for(const [laneIndex, cars] of laneGroups){
+        const lane = network.lanes[laneIndex];
+        if(!lane) continue;
+
+        cars.sort((a,b) => a.progress - b.progress);
+
+        for(let i=0; i<cars.length; i++){
+          const car = cars[i];
+          const ahead = cars[(i + 1) % cars.length];
+          let gap = ahead.progress - car.progress;
+          if(gap <= 0) gap += lane.length;
+          const safeGap = lane.major ? 30 : 24;
+
+          if(!Number.isFinite(car.speed)) car.speed = car.baseDesiredSpeed || car.desiredSpeed || 6;
+          if(!Number.isFinite(car.progress)) car.progress = 0;
+          car.desiredSpeed = car.baseDesiredSpeed || car.desiredSpeed || 6;
+
+          if(car.stopTimer > 0){
+            car.stopTimer = Math.max(0, car.stopTimer - dt);
+            car.speed = Math.max(0, car.speed - 20 * dt);
+          }else{
+            car.speed += (car.desiredSpeed - car.speed) * Math.min(1, dt * 1.8);
+          }
+
+          if(gap < safeGap){
+            car.speed = Math.min(car.speed, Math.max(0, ahead.speed - 1.4));
+            if(gap < safeGap * .70) car.speed = Math.max(0, car.speed - 20 * dt);
+          }
+
+          const distToEnd = lane.length - car.progress;
+          if(distToEnd < 42 && car.nextLaneIndex == null){
+            const nextChoice = chooseNextLane(lane, car);
+            if(nextChoice){
+              car.nextLaneIndex = nextChoice.index;
+              const signal = turnSignalFromTurn(nextChoice.turn);
+              if(signal){
+                car.turnSignal = signal;
+                car.turnSignalUntil = performance.now() + 1400;
+              }
+            }
+          }
+
+          const sample = laneSample(lane, car.progress);
+          const vertexDist = lane.cumulative[sample.vertexIndex] || lane.length;
+          const distToVertex = Math.abs(vertexDist - (car.progress % lane.length));
+          const hasIntersection = lane.connections && lane.connections.length > 1;
+
+          if(distToVertex < 10 && hasIntersection && car.stopBias < .13 && Math.random() < dt * .26){
+            car.stopTimer = .16 + car.stopBias * 1.0;
+          }
+
+          car.braking = car.stopTimer > 0 || car.speed < car.desiredSpeed * .56;
+          car.progress += car.speed * dt;
+
+          if(car.progress >= lane.length){
+            const overflow = car.progress - lane.length;
+            if(car.nextLaneIndex != null && network.lanes[car.nextLaneIndex]){
+              car.laneIndex = car.nextLaneIndex;
+              car.progress = overflow;
+              car.nextLaneIndex = null;
+            }else if(lane.connections && lane.connections.length){
+              const nextChoice = chooseNextLane(lane, car);
+              if(nextChoice && network.lanes[nextChoice.index]){
+                car.laneIndex = nextChoice.index;
+                car.progress = overflow;
+              }else{
+                car.progress = overflow % lane.length;
+              }
+            }else{
+              car.progress = overflow % lane.length;
+            }
+          }
+
+          if(car.turnSignalUntil && performance.now() > car.turnSignalUntil){
+            car.turnSignal = null;
+            car.turnSignalUntil = 0;
+          }
+        }
+      }
+    }
+
+    function roundedRect(ctx, x, y, w, h, r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr,y);
+      ctx.lineTo(x+w-rr,y);
+      ctx.quadraticCurveTo(x+w,y,x+w,y+rr);
+      ctx.lineTo(x+w,y+h-rr);
+      ctx.quadraticCurveTo(x+w,y+h,x+w-rr,y+h);
+      ctx.lineTo(x+rr,y+h);
+      ctx.quadraticCurveTo(x,y+h,x,y+h-rr);
+      ctx.lineTo(x,y+rr);
+      ctx.quadraticCurveTo(x,y,x+rr,y);
+      ctx.closePath();
+    }
+
+    function hexToRgb(hex){
+      const raw = String(hex || '').replace('#','').trim();
+      const full = raw.length === 3 ? raw.split('').map(ch => ch + ch).join('') : raw;
+      const n = Number.parseInt(full || '6fa487', 16);
+      return {
+        r:(n >> 16) & 255,
+        g:(n >> 8) & 255,
+        b:n & 255
+      };
+    }
+
+    function mixRgb(a, b, t){
+      const k = clamp(t, 0, 1);
+      return {
+        r:Math.round(lerp(a.r, b.r, k)),
+        g:Math.round(lerp(a.g, b.g, k)),
+        b:Math.round(lerp(a.b, b.b, k))
+      };
+    }
+
+    function rgbCss(rgb){
+      return `rgb(${rgb.r},${rgb.g},${rgb.b})`;
+    }
+
+    function trafficColorProgress(zoom){
+      // No gray/green tint anymore: preserve actual car colors at every zoom.
+      return 1;
+    }
+
+    function trafficColorForZoom(car, zoom){
+      const flow = car.flowRgb || {r:135,g:172,b:151};
+      const body = car.colorRgb || hexToRgb(car.color);
+      return mixRgb(flow, body, trafficColorProgress(zoom));
+    }
+
+
+    function drawTrafficCar(x, y, angle, car, opacity){
+      const blend = lodBlend(camera.zoom);
+      const scale = trafficZoomScale(camera.zoom);
+      const len = car.length * scale;
+      const wid = car.width * scale;
+      const bodyColor = rgbCss(trafficColorForZoom(car, camera.zoom));
+
+      trafficCtx.save();
+      trafficCtx.translate(x, y);
+      trafficCtx.rotate(angle);
+
+      if(blend.dot > .01){
+        const radius = Math.max(1.05, wid * (camera.zoom < 12.4 ? .24 : .30));
+        trafficCtx.globalAlpha = opacity * blend.dot;
+
+        // Dot mode only: no dash/trail. This keeps zoomed-out traffic light and readable.
+        trafficCtx.fillStyle = bodyColor;
+        trafficCtx.beginPath();
+        trafficCtx.arc(0, 0, radius, 0, Math.PI * 2);
+        trafficCtx.fill();
+
+        if(camera.zoom >= 12.45){
+          trafficCtx.globalAlpha = opacity * blend.dot * .28;
+          trafficCtx.fillStyle = 'rgba(255,255,255,.42)';
+          trafficCtx.beginPath();
+          trafficCtx.arc(-radius * .28, -radius * .24, radius * .32, 0, Math.PI * 2);
+          trafficCtx.fill();
+        }
+      }
+
+      if(blend.capsule > .01){
+        trafficCtx.globalAlpha = opacity * blend.capsule;
+
+        trafficCtx.fillStyle = 'rgba(33,65,45,.075)';
+        roundedRect(trafficCtx, -len*.35, -wid*.18 + 1.0, len*.70, wid*.38, 1.3);
+        trafficCtx.fill();
+
+        trafficCtx.fillStyle = bodyColor;
+        roundedRect(trafficCtx, -len*.44, -wid*.32, len*.88, wid*.64, Math.min(2.0, wid*.44));
+        trafficCtx.fill();
+
+        trafficCtx.globalAlpha = opacity * blend.capsule * .54;
+        trafficCtx.fillStyle = 'rgba(255,255,255,.42)';
+        roundedRect(trafficCtx, -len*.10, -wid*.22, len*.28, wid*.44, 1.0);
+        trafficCtx.fill();
+
+        if(car.braking && camera.zoom >= 13.0){
+          trafficCtx.globalAlpha = opacity * blend.capsule * .75;
+          trafficCtx.fillStyle = 'rgba(210,88,88,.85)';
+          trafficCtx.fillRect(len*.34, -wid*.16, 1.0, wid*.12);
+          trafficCtx.fillRect(len*.34, wid*.04, 1.0, wid*.12);
+        }
+      }
+
+      if(blend.car > .01){
+        trafficCtx.globalAlpha = opacity * blend.car;
+
+        trafficCtx.fillStyle = 'rgba(33,65,45,.12)';
+        roundedRect(trafficCtx, -len*.45, -wid*.26 + 1.6, len*.90, wid*.56, 1.8);
+        trafficCtx.fill();
+
+        trafficCtx.fillStyle = bodyColor;
+        roundedRect(trafficCtx, -len/2, -wid/2, len, wid, Math.min(2.5, wid*.52));
+        trafficCtx.fill();
+
+        trafficCtx.fillStyle = 'rgba(255,255,255,.54)';
+        roundedRect(trafficCtx, -len*.18, -wid*.30, len*.44, wid*.60, 1.4);
+        trafficCtx.fill();
+
+        trafficCtx.fillStyle = 'rgba(255,255,255,.18)';
+        roundedRect(trafficCtx, -len*.42, -wid*.22, len*.18, wid*.44, 1.0);
+        trafficCtx.fill();
+
+        if(camera.zoom >= 14.0){
+          trafficCtx.fillStyle = car.braking ? 'rgba(220,80,80,.88)' : 'rgba(190,90,90,.50)';
+          trafficCtx.fillRect(len*.31, -wid*.18, 1.2, wid*.12);
+          trafficCtx.fillRect(len*.31,  wid*.06, 1.2, wid*.12);
+
+          const blinkOn = car.turnSignal && Math.floor((performance.now() + car.blinkPhase * 400) / 260) % 2 === 0;
+          if(blinkOn){
+            trafficCtx.fillStyle = 'rgba(223,164,70,.95)';
+            const sideY = car.turnSignal === 'right' ? -wid*.30 : wid*.18;
+            trafficCtx.fillRect(len*.31, sideY, 1.3, wid*.12);
+            trafficCtx.fillRect(-len*.39, sideY, 1.2, wid*.12);
+          }
+        }
+      }
+
+      trafficCtx.restore();
+    }
+
+    function cityTrafficFade(network){
+      if(!network) return 0;
+      const city = cities[network.cityId];
+      if(!city) return 1;
+      const d = cityDistance({lat:camera.lat, lng:camera.lng}, city);
+      if(camera.zoom < 7.8) return .28;
+      if(d < .18) return 1;
+      if(d < .52) return 1 - (d - .18) / .34 * .45;
+      if(camera.zoom < 9.2) return .42;
+      return Math.max(.10, 1 - (d - .52) / .88);
+    }
+
+
+    function recoverVisibleRoadNetwork(currentNetwork){
+      if(camera.zoom < 10.85) return null;
+
+      const now = performance.now();
+      if(now - TRAFFIC.lastRecoveryAttempt < 900) return null;
+      TRAFFIC.lastRecoveryAttempt = now;
+
+      const cityId = activeCityId();
+      let lanes = [];
+
+      try{
+        lanes = sampleRoadLanes(cityId);
+      }catch(e){
+        lanes = [];
+      }
+
+      // Recovery is now logic-only: rebuild from real road lanes, but do not force cars
+      // onto the visible viewport. Forced reseeding made cars look fake and laggy.
+      if(lanes.length >= 6){
+        const recovered = {
+          cityId,
+          lanes,
+          cars:createCarsForLanes(cityId, lanes, currentNetwork ? currentNetwork.cars : []),
+          createdAt:currentNetwork ? currentNetwork.createdAt : now,
+          buildZoom:camera.zoom,
+          qualityPass:camera.zoom >= 11.0,
+          recovered:true
+        };
+
+        warmTrafficNetwork(recovered, .8);
+        TRAFFIC.networks.set(cityId, recovered);
+        TRAFFIC.lastVisibleNetwork = recovered;
+        TRAFFIC.diagnostics.reason = 'road-logic-recovered';
+        return recovered;
+      }
+
+      TRAFFIC.diagnostics.reason = 'waiting-real-road-geometry';
+      return currentNetwork || null;
+    }
+
+
+
+    function warmTrafficNetwork(network, seconds=.6){
+      if(!network || !network.cars || !network.cars.length) return;
+      // Warm a newly rebuilt network very lightly so spacing / speeds settle before the cars fade in.
+      // This runs only on rebuild, not every frame.
+      const steps = Math.min(14, Math.max(4, Math.round(seconds / .08)));
+      for(let i=0; i<steps; i++){
+        updateTrafficCars(network, .06);
+      }
+    }
+
+    function validateTrafficNetwork(network){
+      if(!network || !Array.isArray(network.lanes) || !Array.isArray(network.cars)) return false;
+      if(!network.lanes.length || !network.cars.length) return false;
+
+      let validCars = 0;
+      for(const car of network.cars){
+        if(!car) continue;
+        if(!Number.isFinite(car.laneIndex) || car.laneIndex < 0 || car.laneIndex >= network.lanes.length) continue;
+        const lane = network.lanes[car.laneIndex];
+        if(!lane || !lane.length || !Array.isArray(lane.points) || lane.points.length < 2) continue;
+        if(!Number.isFinite(car.progress)) car.progress = 0;
+        if(!Number.isFinite(car.speed)) car.speed = car.desiredSpeed || 6;
+        validCars++;
+      }
+
+      return validCars > 0;
+    }
+
+    function trafficAdaptiveBudgetScale(){
+      const ms = TRAFFIC.realFrameMs || TRAFFIC.smoothFrameMs || 16;
+      const guard = PRODUCTION_PROFILE.fpsBudgetGuard;
+      let scale = 1;
+
+      if(ms > guard.bad) scale = .38;
+      else if(ms > guard.poor) scale = .50;
+      else if(ms > guard.fair) scale = .66;
+      else if(ms > guard.good) scale = .82;
+      else if(ms > guard.excellent) scale = .94;
+
+      return scale * (mobileLike ? PRODUCTION_PROFILE.mobileBudgetScale : PRODUCTION_PROFILE.desktopBudgetScale);
+    }
+
+    function trafficAdaptiveDensityScale(){
+      const ms = TRAFFIC.realFrameMs || TRAFFIC.smoothFrameMs || 16;
+      const guard = PRODUCTION_PROFILE.fpsBudgetGuard;
+      if(ms > guard.bad) return .72;
+      if(ms > guard.poor) return .80;
+      if(ms > guard.fair) return .88;
+      if(ms > guard.good) return .94;
+      return 1;
+    }
+
+    function renderTraffic(network, allowRecovery=true){
+      const w = trafficCanvas.clientWidth;
+      const h = trafficCanvas.clientHeight;
+      trafficCtx.clearRect(0, 0, w, h);
+
+      if(network && !validateTrafficNetwork(network)){
+        TRAFFIC.diagnostics.reason = 'invalid-network';
+        network = null;
+      }
+
+      const opacity = trafficOpacity(camera.zoom, network);
+      if((opacity <= .01 || !network) && allowRecovery && camera.zoom >= 10.85){
+        const recovered = recoverVisibleRoadNetwork(network);
+        if(recovered){
+          updateTrafficCars(recovered, 0);
+          renderTraffic(recovered, false);
+          return;
+        }
+      }
+
+      if(opacity <= .01 || !network){
+        TRAFFIC.stats = {drawn:0, cars:0, lanes:network ? network.lanes.length : 0, mode:'none'};
+        updateTrafficDebug(network);
+        return;
+      }
+
+      const offset = laneOffsetPixels(camera.zoom);
+      const margin = 72;
+      const visibleDensity = clamp(trafficVisibleDensity(camera.zoom) * trafficAdaptiveDensityScale(), .035, 1);
+      const minimumCarFade = trafficMinimumCarFade(camera.zoom);
+      const baseRenderBudget = Math.round(trafficRenderBudget(camera.zoom) * cityTrafficMultiplier(network.cityId));
+      const renderBudget = camera.zoom >= 12.85 ? network.cars.length : baseRenderBudget;
+      const zoomAlpha = trafficZoomAlphaMultiplier(camera.zoom);
+      const cityFade = cityTrafficFade(network);
+      let drawn = 0;
+
+      for(let i = 0; i < network.cars.length; i++){
+        const car = network.cars[i];
+        const densityFade = Math.max(carDensityFade(car, visibleDensity), minimumCarFade);
+        const budgetFade = carBudgetFade(car, renderBudget, network.cars.length);
+        const lane = network.lanes[car.laneIndex];
+        if(!lane) continue;
+        const sample = laneSample(lane, car.progress);
+        const x = sample.x + sample.dy * offset;
+        const y = sample.y - sample.dx * offset;
+
+        if(x < -margin || y < -margin || x > w + margin || y > h + margin) continue;
+
+        const labelFactor = cityLabelFadeFactor(network, x, y);
+        if(labelFactor <= .01) continue;
+
+        const spawnFade = carSpawnFade(car);
+        const targetAlpha = opacity * zoomAlpha * labelFactor * cityFade * densityFade * spawnFade * budgetFade;
+        const localOpacity = smoothCarAlpha(car, targetAlpha);
+
+        if(localOpacity <= .006) continue;
+        drawTrafficCar(x, y, Math.atan2(sample.dy, sample.dx), car, localOpacity);
+        drawn++;
+      }
+
+      TRAFFIC.stats = {drawn, cars:network.cars.length, lanes:network.lanes.length, mode:trafficVisualMode(camera.zoom)};
+
+      if(drawn < 3 && camera.zoom >= 11.2 && performance.now() - TRAFFIC.lastRoadQuery > 1100){
+        // Stable-cars v4:
+        // Do not reset lastRoadQuery here. Resetting it can trigger repeated network rebuilds,
+        // which makes many cars vanish/reappear. Keep the existing real-road network stable.
+        TRAFFIC.diagnostics.reason = 'low-visible-keep-existing-network';
+      }
+
+      updateTrafficDebug(network);
+    }
+
+    function updateTrafficDebug(){
+      // Production build: debug UI removed.
+    }
+
+    resizeTrafficCanvas();
+
+
+    let didStyle = false;
+    function hideLoading(){
+      if(loading) loading.classList.add('is-hidden');
+    }
+
+
+    const QA_METRICS_ENABLED = /[?&]qa=1/.test(location.search);
+    let lastQaMetricsUpdate = 0;
+    let qaWorstFrameMs = 0;
+    let qaFrameSamples = 0;
+    let qaFrameSum = 0;
+
+    function qaStatus(value, good, warn){
+      if(value <= good) return 'ok';
+      if(value <= warn) return 'warn';
+      return 'bad';
+    }
+
+    function updateQaMetricsPanel(){
+      if(!QA_METRICS_ENABLED || !qaMetrics) return;
+      const now = performance.now();
+      qaWorstFrameMs = Math.max(qaWorstFrameMs, TRAFFIC.smoothFrameMs || 0);
+      qaFrameSamples++;
+      qaFrameSum += TRAFFIC.smoothFrameMs || 0;
+      if(now - lastQaMetricsUpdate < 260) return;
+      lastQaMetricsUpdate = now;
+
+      const network = TRAFFIC.lastVisibleNetwork;
+      const active = TRAFFIC.activeCityId || activeCityId();
+      const stats = TRAFFIC.stats || {};
+      const frameMs = TRAFFIC.smoothFrameMs || 16.7;
+      const fps = 1000 / Math.max(1, frameMs);
+      const avgFrame = qaFrameSamples ? qaFrameSum / qaFrameSamples : frameMs;
+      const multiplier = cityTrafficMultiplier(active);
+      const roadQueryAge = now - (TRAFFIC.lastRoadQuery || 0);
+      const sourceEnsureAge = now - (TRAFFIC.lastSourceRoadEnsure || 0);
+      const frameClass = qaStatus(frameMs, 22, 34);
+
+      qaMetrics.classList.add('is-visible');
+      qaMetrics.innerHTML =
+        `<b>QA metrics</b> <span class="${frameClass}">${fps.toFixed(1)} fps / ${frameMs.toFixed(1)}ms</span><br>` +
+        `build: ${window.__UKRAINE_MAP_BUILD_ID__ || 'unknown'}<br>` +
+        `avg: ${avgFrame.toFixed(1)}ms · worst: ${qaWorstFrameMs.toFixed(1)}ms<br>` +
+        `city: ${active || 'none'} · car multiplier: ${multiplier}x · lane coverage: ${cityLaneCoverageMultiplier(active).toFixed(2)}x · zoom: ${camera.zoom.toFixed(2)}<br>` +
+        `cars drawn: ${stats.drawn || 0} / ${stats.cars || (network ? network.cars.length : 0)}<br>` +
+        `lanes: ${stats.lanes || (network ? network.lanes.length : 0)} · road layers: ${TRAFFIC.roadLayerIds.length} · mode: ${stats.mode || 'n/a'}<br>` +
+        `network city: ${network ? network.cityId : 'none'} · quality: ${network && network.qualityPass ? 'yes' : 'no'}<br>` +
+        `traffic reason: ${(TRAFFIC.diagnostics && TRAFFIC.diagnostics.reason) || 'n/a'}<br>` +
+        `road query age: ${Math.round(roadQueryAge)}ms · sourcedata age: ${Math.round(sourceEnsureAge)}ms<br>` +
+        `Russia override applied: ${actualRussiaNameOverrideApplied ? '<span class="ok">yes</span>' : '<span class="warn">not yet</span>'}<br>` +
+        `checks: strict roads <span class="ok">on</span>, fake fallback <span class="ok">off</span>, styledata relabel <span class="ok">off</span>`;
+    }
+
+
+    map.on('load', () => {
+      map.resize();
+      resizeTrafficCanvas();
+      didStyle = true;
+      try { applyActualRussiaNameOverride(); } catch(e) {}
+      applySmoothMapLayerTransitions();
+      setTimeout(() => { try { ensureTrafficNetwork(); } catch(e) {} }, 160);
+      setTimeout(() => { try { ensureTrafficNetwork(); } catch(e) {} }, 420);
+      setTimeout(() => { try { ensureTrafficNetwork(); } catch(e) {} }, 980);
+      setTimeout(() => { try { ensureTrafficNetwork(); } catch(e) {} }, 1650);
+      setTimeout(hideLoading, 1500);
+      map.on('sourcedata', () => {
+        try{
+          const cityId = activeCityId();
+          const city = cities[cityId];
+          const nearCity = city && cityDistance({lat:camera.lat, lng:camera.lng}, city) < .72;
+          if(camera && camera.zoom >= 9.45 && nearCity){
+            // Safe optimization: tile/source updates can fire many times while MapLibre loads.
+            // Do not reset lastRoadQuery here; that bypasses ensureTrafficNetwork's throttle
+            // and can make traffic feel laggy during city approaches.
+            const now = performance.now();
+            if(now - (TRAFFIC.lastSourceRoadEnsure || 0) > 520){
+              TRAFFIC.lastSourceRoadEnsure = now;
+              ensureTrafficNetwork();
+            }
+          }
+        }catch(e){}
+      });
+      map.once('idle', () => {
+        try { applyActualRussiaNameOverride(); } catch(e) {}
+        try { applySmoothMapLayerTransitions(); } catch(e) {}
+        try { ensureTrafficNetwork(); } catch(e) {}
+        setTimeout(hideLoading, 180);
+      });
+    });
+    map.on('styledata', () => {
+      // Exact Lovable map style is CSS/filter-based. Layer opacity smoothing is applied once after load.
+      try { applySmoothMapLayerTransitions(); } catch(e) {}
+    });
+
+    let target = {...initial};
+    let camera = {...initial};
+    let last = {...initial};
+    let lastProgress = 0;
+    let lastProgressTime = performance.now();
+    let scrollVelocity = 0;
+    let scheduled = false;
+
+    function updateTarget(){
+      scheduled = false;
+      const now = performance.now();
+      const progress = nativeProgress();
+      const dt = Math.max(16, now - lastProgressTime);
+      scrollVelocity = Math.abs(progress - lastProgress) / dt;
+      lastProgress = progress;
+      lastProgressTime = now;
+      target = targetFromProgress(progress);
+    }
+
+    function requestTarget(){
+      if(!scheduled){
+        scheduled = true;
+        requestAnimationFrame(updateTarget);
+      }
+    }
+
+    function render(){
+      // Background-use: when the host pauses the map (tweak off / reduced-motion), do no work.
+      if(window.__mapPaused){ requestAnimationFrame(render); return; }
+
+      // GPU load signal: the real full-rate frame cadence (includes the page's glass compositing).
+      const _raf = performance.now();
+      if(TRAFFIC.lastRaf){
+        const d = Math.min(120, _raf - TRAFFIC.lastRaf);
+        TRAFFIC.realFrameMs = TRAFFIC.realFrameMs ? TRAFFIC.realFrameMs * 0.9 + d * 0.1 : d;
+      }
+      TRAFFIC.lastRaf = _raf;
+
+      // When the host drives progress, poll it every frame so the camera tracks
+      // even without internal scroll events.
+      if(typeof window.__journeyProgress === 'number') updateTarget();
+
+      const dLat = target.lat - camera.lat;
+      const dLng = target.lng - camera.lng;
+      const dZoom = target.zoom - camera.zoom;
+      const distance = Math.hypot(dLat, dLng);
+
+      // Restored reliable zoom engine from the last stable map version:
+      // travel wide first, then zoom in only when centered.
+      // The scroll-velocity cap now decays after scrolling stops, so zoom cannot get stuck.
+      const idleMs = performance.now() - lastProgressTime;
+      const effectiveScrollVelocity = idleMs > 90
+        ? scrollVelocity * Math.exp(-(idleMs - 90) / 180)
+        : scrollVelocity;
+
+      if(idleMs > 520) scrollVelocity = 0;
+
+      // "Zoom out a bit less" between cities: keep a higher floor zoom during the fly so the camera
+      // crosses fewer zoom levels (shorter zoom-in on arrival → renders sooner) and traffic stays
+      // partly visible instead of dropping to the bare country overview.
+      const travelZoomCap = distance > 2.4 ? 8.2 : distance > 1.2 ? 8.9 : distance > .48 ? 10.2 : distance > .16 ? 11.8 : 18;
+      const fastScrollCap = effectiveScrollVelocity > 0.00024 ? 11.7 : 18;
+      const effectiveZoom = Math.min(target.zoom, travelZoomCap, fastScrollCap);
+
+      const zDelta = effectiveZoom - camera.zoom;
+      // Gentler camera easing → the fly + zoom take more wall-clock time, so MapLibre has room to
+      // stream tiles and the new city renders before the camera settles (no fast blur/blank).
+      camera.lat = stepToward(camera.lat, target.lat, Math.min(Math.max(Math.abs(dLat) * .044, 0.000008), 0.034));
+      camera.lng = stepToward(camera.lng, target.lng, Math.min(Math.max(Math.abs(dLng) * .044, 0.000008), 0.044));
+      camera.zoom = stepToward(camera.zoom, effectiveZoom, Math.min(Math.max(Math.abs(zDelta) * .055, 0.00040), reduced ? 0.016 : 0.026));
+
+      if(Math.abs(camera.lat - target.lat) < 0.00001) camera.lat = target.lat;
+      if(Math.abs(camera.lng - target.lng) < 0.00001) camera.lng = target.lng;
+      if(Math.abs(camera.zoom - effectiveZoom) < 0.001) camera.zoom = effectiveZoom;
+
+      if(Math.abs(camera.lat-last.lat) > 0.00001 || Math.abs(camera.lng-last.lng) > 0.00001 || Math.abs(camera.zoom-last.zoom) > 0.0001){
+        map.jumpTo({center:[camera.lng, camera.lat], zoom:camera.zoom});
+        last = {...camera};
+      }
+
+      // Background-use throttle: the traffic sim + canvas draw is the expensive part, so run it at
+      // a GPU-adaptive rate — ~30fps with headroom, stepping down to ~15fps when real frames are slow
+      // (weak GPU, or the page's glass is heavy). Camera easing above stays full-rate.
+      const trafficNow = performance.now();
+      if(!TRAFFIC.lastFrame) TRAFFIC.lastFrame = trafficNow;
+      const rfm = TRAFFIC.realFrameMs || 16;
+      const baseInterval = mobileLike ? 42 : 32;   // ~24fps on tablets/touch (battery), ~30fps desktop
+      const TRAFFIC_INTERVAL = reduced ? 90 : (rfm > 40 ? 72 : rfm > 28 ? 52 : rfm > 22 ? 40 : baseInterval);
+      if(trafficNow - TRAFFIC.lastFrame >= TRAFFIC_INTERVAL - 2){
+        const rawFrameMs = Math.max(8, trafficNow - TRAFFIC.lastFrame);
+        const trafficDt = Math.min(.080, rawFrameMs / 1000);
+        TRAFFIC.smoothFrameMs = TRAFFIC.smoothFrameMs
+          ? lerp(TRAFFIC.smoothFrameMs, rawFrameMs, .08)
+          : rawFrameMs;
+        TRAFFIC.lastFrame = trafficNow;
+
+        if(!document.hidden){
+          try{
+            const network = ensureTrafficNetwork();
+            updateTrafficCars(network, reduced ? trafficDt * .5 : (mobileLike ? trafficDt * .82 : trafficDt));
+            renderTraffic(network);
+          }catch(err){
+            TRAFFIC.renderErrorCount++;
+            TRAFFIC.diagnostics.reason = 'traffic-render-error';
+            if(TRAFFIC.debug) console.warn('Traffic render error', err);
+          }
+          updateQaMetricsPanel();
+        }
+      }
+
+      updateStoryAndHierarchy(target, camera, mobileLike);
+      requestAnimationFrame(render);
+    }
+
+    window.addEventListener('scroll', requestTarget, {passive:true});
+    window.addEventListener('resize', () => { map.resize(); resizeTrafficCanvas(); requestTarget(); }, {passive:true});
+    window.__mapState = function(){
+      return {
+        zoom:+camera.zoom.toFixed(2), lat:+camera.lat.toFixed(3), lng:+camera.lng.toFixed(3),
+        targetZoom:+target.zoom.toFixed(2),
+        drawn:TRAFFIC.stats.drawn, cars:TRAFFIC.stats.cars, lanes:TRAFFIC.stats.lanes,
+        roadLayers:TRAFFIC.roadLayerIds.length, reason:TRAFFIC.diagnostics.reason,
+        city:TRAFFIC.activeCityId, progress:window.__journeyProgress,
+        realFrameMs:+(TRAFFIC.realFrameMs || 0).toFixed(1),
+        fps:+(1000 / Math.max(1, TRAFFIC.realFrameMs || 16)).toFixed(0)
+      };
+    };
+    updateTarget();
+    requestAnimationFrame(render);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start, {once:true});
+  }else{
+    start();
+  }
+})();
+</script>
+</body>
+</html>

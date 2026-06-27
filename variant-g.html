@@ -9,6 +9,11 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Warm the living-map background's origins during idle so the iframe's first tiles arrive sooner -->
+<link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
+<link rel="dns-prefetch" href="https://tiles.openfreemap.org">
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="dns-prefetch" href="https://unpkg.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Nunito:wght@600;700&display=swap&subset=cyrillic,cyrillic-ext,latin" rel="stylesheet">
 
 <style>
@@ -84,7 +89,7 @@
 }
 
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;overflow-x:clip}
 body{
   margin:0;
   color:var(--ink);
@@ -137,6 +142,32 @@ button{font-family:inherit;cursor:pointer}
     repeating-linear-gradient(90deg, hsl(208 24% 46% / .5) 0 1px, transparent 1px 40px);
   -webkit-mask-image:radial-gradient(44rem 32rem at 80% 26%, #000 8%, transparent 72%);
           mask-image:radial-gradient(44rem 32rem at 80% 26%, #000 8%, transparent 72%);
+}
+
+/* ===== LIVING MAP BACKGROUND ============================================================
+   A real Ukraine map + canvas traffic sim (map-bg.html) sits at the very back, driven by page
+   scroll. The pastel field (-3) and drift blobs (-1) tint it; the glass backdrop-filter refracts
+   the moving city → the liquid-glass effect becomes alive. Gated to desktop + non-reduced-motion. */
+.mapbg{
+  position:fixed; inset:0; z-index:-10; overflow:hidden; pointer-events:none;
+  opacity:0; transition:opacity 1.2s var(--calm-ease);
+}
+.mapbg.is-on{ opacity:1; }
+.mapbg-frame{
+  position:absolute; inset:-2vh -2vw; width:104vw; height:104vh; border:0; display:block;
+  filter:saturate(.84) brightness(1.03);
+  pointer-events:none;
+  transform:translateZ(0); backface-visibility:hidden;   /* own compositor layer → cheaper backdrop sampling */
+}
+/* veil keeps the map calm + text legible; tinted toward the page's pastel glass field.
+   --mapbg-veil (0=clear, ~.62=very soft) is driven by the Tweaks panel. */
+.mapbg-veil{
+  position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(58% 48% at 50% 32%, hsl(var(--glass-tint) / calc(var(--mapbg-veil,.46) * .4)), transparent 70%),
+    linear-gradient(180deg,
+      hsl(var(--glass-tint) / var(--mapbg-veil,.46)),
+      hsl(28 40% 96% / calc(var(--mapbg-veil,.46) * .9)));
 }
 @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(3vw,4vh) scale(1.06)}}
 @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-3vw,3vh) scale(1.05)}}
@@ -948,7 +979,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   .refraction-ok .glass.lens::before,.refraction-ok #sample.glass.lens::before{backdrop-filter:none;-webkit-backdrop-filter:none}
   header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none}
   footer.site{background:hsl(var(--glass-tint) / .98)}
-  .glass::after,.cta-glass::after,.sheen,.glass-sweep,.bg-detail,.drift,.zone::before,.ready-grid::after,.bloom,.tray>.tray-edge,.lens-refract{display:none}
+  .glass::after,.cta-glass::after,.sheen,.glass-sweep,.bg-detail,.drift,.zone::before,.ready-grid::after,.bloom,.tray>.tray-edge,.lens-refract,.mapbg{display:none}
 }
 @media (prefers-contrast:more){
   .glass,.solid,.cta-glass,.btn-ghost,.eyebrow,.speech,.opt,.node,.bdg,.plan,.seg,.stat,.chip-glass,.format-chip{background:#fff;border-color:#1F2933;color:var(--ink)}
@@ -960,7 +991,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none;background:#fff;border-color:#1F2933}
   .refraction-ok .glass.lens::before,.refraction-ok #sample.glass.lens::before{backdrop-filter:none;-webkit-backdrop-filter:none}
   .nav-links a,.foot-cols a,.muted,.hero-sub,.stat .l,.feat p,.section-head p{color:#1F2933}
-  .bg-detail,.drift{display:none}
+  .bg-detail,.drift,.mapbg{display:none}
 }
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   .glass,.stat,.chip-glass,.format-chip{background:hsl(var(--glass-tint) / .96)}
@@ -991,6 +1022,12 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 </style>
 </head>
 <body class="lg-everywhere">
+
+<!-- LIVING MAP BACKGROUND — Ukraine map + traffic, driven by page scroll, refracted by the glass -->
+<div class="mapbg" id="mapbg" aria-hidden="true">
+  <iframe class="mapbg-frame" id="mapbgFrame" data-src="map-bg.html" title="" tabindex="-1" scrolling="no"></iframe>
+  <span class="mapbg-veil" aria-hidden="true"></span>
+</div>
 
 <!-- pastel drifting blobs + masked grid the glass refracts -->
 <span class="drift b1" aria-hidden="true"></span>
@@ -1830,6 +1867,144 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     }, {rootMargin:'-45% 0px -50% 0px', threshold:0});
     ids.forEach(function(id){ spy.observe(document.getElementById(id)); });
   })();
+})();
+</script>
+
+<!-- LIVING MAP BACKGROUND — gating + scroll→journey sync -->
+<script>
+(function(){
+  var mapbg = document.getElementById('mapbg');
+  var frame = document.getElementById('mapbgFrame');
+  if(!mapbg || !frame) return;
+
+  var mqReduce = matchMedia('(prefers-reduced-motion: reduce)');
+  // The living map (WebGL + traffic sim + blur-heavy glass) only runs where it stays smooth: a real
+  // screen with enough room AND power. Phones, short landscape phones, data-saver, reduced-motion,
+  // and low-memory / low-core devices all get the lighter pastel-glass fallback instead — and never
+  // even download MapLibre. (min-height guards phones held sideways; deviceMemory/cores guard weak
+  // tablets & laptops where exposed.)
+  var mqDevice = matchMedia('(min-width: 760px) and (min-height: 600px)');
+  function saveData(){ try{ return !!(navigator.connection && navigator.connection.saveData); }catch(e){ return false; } }
+  function lowPower(){
+    try{
+      if(typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory < 4) return true;
+      if(typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency < 4) return true;
+    }catch(e){}
+    return false;
+  }
+  function allowed(){ return mqDevice.matches && !mqReduce.matches && !saveData() && !lowPower(); }
+
+  var syncing = false, loaded = false, mapPref = true;
+
+  // Calibration: anchor each city's MAX zoom to a block of interest. While that block is centered
+  // the camera holds at street zoom (a hold band); in the gaps it pulls back, travels and zooms
+  // into the next city. Fast scrolling stays at altitude (the map's own scroll-velocity cap);
+  // settling on a block lets the zoom rush in. jp = journey progress fed to the map (0..1).
+  var MAP_ANCHORS = [
+    { sel:'#hero',     jp:0.173 },  // Kyiv    — hero
+    { sel:'#game',     jp:0.376 },  // Odesa   — "Як це працює" interactive demo
+    { sel:'#features', jp:0.579 },  // Lviv    — features
+    { sel:'#pricing',  jp:0.791 },  // Kharkiv — pricing
+    { sel:'#final',    jp:0.985 }   // Dnipro  — final CTA
+  ];
+  function smoother(t){ t = t < 0 ? 0 : t > 1 ? 1 : t; return t*t*t*(t*(t*6 - 15) + 10); }
+  function curScroll(){
+    var se = document.scrollingElement || document.documentElement;
+    return window.scrollY || window.pageYOffset || se.scrollTop || 0;
+  }
+  function readProgress(){
+    var y = curScroll(), vh = window.innerHeight, baseHold = vh * 0.20;
+    var pts = [];
+    for(var i = 0; i < MAP_ANCHORS.length; i++){
+      var el = document.querySelector(MAP_ANCHORS[i].sel);
+      if(!el) continue;
+      var r = el.getBoundingClientRect();
+      // scrollY at which this section sits centered in the viewport
+      pts.push({ c: r.top + y + r.height / 2 - vh / 2, jp: MAP_ANCHORS[i].jp });
+    }
+    if(!pts.length) return 0.173;
+    pts.sort(function(a, b){ return a.c - b.c; });
+    if(y <= pts[0].c) return pts[0].jp;
+    if(y >= pts[pts.length - 1].c) return pts[pts.length - 1].jp;
+    for(var k = 0; k < pts.length - 1; k++){
+      var a = pts[k], b = pts[k + 1];
+      if(y >= a.c && y <= b.c){
+        var h = Math.min(baseHold, (b.c - a.c) * 0.14);   // shorter max-zoom dwell, much longer fly
+                                                          // between cities so the camera + map tiles
+                                                          // have time to render (no fast blink)
+        var aEnd = a.c + h, bStart = b.c - h;
+        if(y <= aEnd) return a.jp;                         // holding at city A max zoom
+        if(y >= bStart) return b.jp;                       // holding at city B max zoom
+        return a.jp + (b.jp - a.jp) * smoother((y - aEnd) / Math.max(1, bStart - aEnd));
+      }
+    }
+    return pts[pts.length - 1].jp;
+  }
+  // Scroll-driven sync (no perpetual rAF): write the journey progress only when the page actually
+  // scrolls/resizes, coalesced to one write per frame. The map's own loop eases the camera from
+  // there, so when the user is still we do zero work here.
+  var queued = false;
+  function writeProgress(){
+    queued = false;
+    if(!syncing) return;
+    try{ var w = frame.contentWindow; if(w) w.__journeyProgress = readProgress(); }catch(e){}
+  }
+  function onScroll(){ if(syncing && !queued){ queued = true; requestAnimationFrame(writeProgress); } }
+  function startSync(){
+    if(syncing) return; syncing = true;
+    window.addEventListener('scroll', onScroll, {passive:true});
+    window.addEventListener('resize', onScroll, {passive:true});
+    onScroll();
+    // Re-prime while the iframe boots (its contentWindow is replaced on navigation) and as fonts/
+    // layout settle, so the first camera position is correct without needing a scroll.
+    [120, 400, 900, 1800, 3000].forEach(function(ms){ setTimeout(onScroll, ms); });
+  }
+  function stopSync(){
+    syncing = false;
+    window.removeEventListener('scroll', onScroll);
+    window.removeEventListener('resize', onScroll);
+  }
+  function setPaused(p){ try{ var w = frame.contentWindow; if(w) w.__mapPaused = p; }catch(e){} }
+
+  function loadFrameOnce(){
+    if(loaded) return;
+    loaded = true;
+    frame.addEventListener('load', function(){ setPaused(false); onScroll(); });
+    // Start the map already at the hero city (first anchor) so it skips overview tiles.
+    var startHash = '#p=' + (MAP_ANCHORS[0] ? MAP_ANCHORS[0].jp : 0.173);
+    var src = frame.getAttribute('data-src') + startHash;
+    // Loading speed: let the page's own hero paint first, then load the map during idle time.
+    var go = function(){ frame.src = src; };
+    if('requestIdleCallback' in window){
+      requestIdleCallback(go, { timeout: 1600 });
+    }else{
+      setTimeout(go, document.readyState === 'complete' ? 60 : 400);
+    }
+  }
+
+  // Public hook the Tweaks panel calls.
+  window.__setMapBg = function(on){
+    mapPref = !!on;
+    if(on && allowed()){
+      mapbg.hidden = false;
+      loadFrameOnce();
+      setPaused(false);
+      requestAnimationFrame(function(){ mapbg.classList.add('is-on'); });
+      startSync();
+    }else{
+      mapbg.classList.remove('is-on');
+      stopSync();
+      setPaused(true);   // freeze the iframe's render loop while hidden — no GPU/CPU cost
+    }
+  };
+
+  // Auto-enable on capable devices so the map starts loading immediately; the Tweaks effect
+  // reconciles to the persisted preference shortly after.
+  if(allowed()) window.__setMapBg(true);
+  // Re-evaluate when the device context changes (rotate, resize across the threshold, reduced-motion
+  // toggle) so the map switches on/off to match capability without a reload.
+  function onEnv(){ window.__setMapBg(mapPref); }
+  if(mqReduce.addEventListener){ mqReduce.addEventListener('change', onEnv); mqDevice.addEventListener('change', onEnv); }
 })();
 </script>
 </body>
