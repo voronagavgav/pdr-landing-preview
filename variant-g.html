@@ -4,8 +4,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- progressive-enhancement flag: set BEFORE paint so reveal content is only JS-hidden when JS runs -->
+<script>document.documentElement.classList.add('js')</script>
 <title>Drivers School — Рідке скло / Liquid Glass</title>
 <meta name="description" content="Підготовка до теоретичного іспиту з ПДР. Усі офіційні питання, реальні дорожні ситуації та розумні тренування — спокійно, крок за кроком.">
+
+<!-- canonical + social + favicon -->
+<link rel="canonical" href="https://voronagavgav.github.io/pdr-landing-preview/variant-g.html">
+<meta name="theme-color" content="#FBFAF7">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Drivers School — Рідке скло / Liquid Glass">
+<meta property="og:description" content="Підготовка до теоретичного іспиту з ПДР. Усі офіційні питання, реальні дорожні ситуації та розумні тренування — спокійно, крок за кроком.">
+<meta property="og:url" content="https://voronagavgav.github.io/pdr-landing-preview/variant-g.html">
+<meta property="og:locale" content="uk_UA">
+<meta property="og:image" content="https://voronagavgav.github.io/pdr-landing-preview/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Drivers School — Рідке скло / Liquid Glass">
+<meta name="twitter:description" content="Підготовка до теоретичного іспиту з ПДР. Усі офіційні питання, реальні дорожні ситуації та розумні тренування — спокійно, крок за кроком.">
+<meta name="twitter:image" content="https://voronagavgav.github.io/pdr-landing-preview/og-image.png">
+<!-- inline on-brand favicon: «Світлик» traffic-light mark on a rounded slate tile -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='16'%20fill='%233a4a52'/%3E%3Ccircle%20cx='32'%20cy='18'%20r='8'%20fill='%23FFB89A'/%3E%3Ccircle%20cx='32'%20cy='34'%20r='8'%20fill='%23FFE08A'/%3E%3Ccircle%20cx='32'%20cy='50'%20r='8'%20fill='%239AD9B8'/%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,7 +55,7 @@
   --green-ink:#173B30;     /* dark slate-green text used on green glass CTA */
   --warn:#B4532E;          /* calm clear "wrong" (icon+label, never color alone) */
   --warm-ink:#6a4a28;      /* tokenised warm text (format-chip, peach icon strokes) */
-  --amber:#B07A12;         /* tokenised rating amber — darkened to clear 3:1 (was #C98A1E) */
+  --amber:#8A5E0E;         /* tokenised rating amber — darkened for ≥4.5:1 on light cards (was #B07A12 / #C98A1E) */
 
   /* glass tint (HSL parts so opacity is tunable) */
   --glass-tint:200 50% 97%;          /* soft cool-white */
@@ -126,6 +146,12 @@ button{font-family:inherit;cursor:pointer}
 
 .wrap{width:100%;max-width:1160px;margin:0 auto;padding:0 22px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* skip-to-content — offscreen until focused, then slides into the top-left */
+.skip{position:fixed;left:12px;top:12px;z-index:200;transform:translateY(-160%);
+  background:hsl(152 50% 84%);color:var(--green-ink);font-family:var(--font-display);font-weight:700;font-size:.95rem;
+  padding:.6em 1.1em;border-radius:var(--radius-pill);border:1px solid hsl(152 50% 70%);box-shadow:var(--float);
+  transition:transform .2s var(--calm-ease)}
+.skip:focus{transform:none}
 
 /* drifting blobs ON TOP of the gradient give the glass moving color to refract */
 /* very soft, low-opacity pastel drift — gentle moving color for the glass, stays calm */
@@ -169,6 +195,23 @@ button{font-family:inherit;cursor:pointer}
       hsl(var(--glass-tint) / var(--mapbg-veil,.46)),
       hsl(28 40% 96% / calc(var(--mapbg-veil,.46) * .9)));
 }
+/* WCAG 2.2.2 — stop/start the background motion. Small pastel-glass pill, bottom-right, shown ONLY
+   once the living map is capable (JS adds .show); keyboard-focusable; honours reduced-motion implicitly
+   (the map never loads there, so the control never appears). */
+.mapbg-toggle{
+  position:fixed; right:18px; bottom:18px; z-index:50; display:none; align-items:center; justify-content:center;
+  width:42px; height:42px; padding:0; border-radius:var(--radius-pill);
+  background:hsl(152 47% 83% / .92); color:var(--green-ink);
+  border:1px solid hsl(152 50% 99% / .7);
+  -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur);
+  box-shadow:var(--e1-shadow), var(--rim-pill);
+}
+.mapbg-toggle.show{ display:inline-flex; }
+.mapbg-toggle:hover{ background:hsl(152 50% 80% / .95); }
+.mapbg-toggle svg{ width:18px; height:18px; display:block; }
+.mapbg-toggle .ic-play{ display:none; }
+.mapbg-toggle.is-paused .ic-pause{ display:none; }
+.mapbg-toggle.is-paused .ic-play{ display:block; }
 @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(3vw,4vh) scale(1.06)}}
 @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-3vw,3vh) scale(1.05)}}
 @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(2vw,-3vh) scale(1.07)}}
@@ -194,9 +237,11 @@ button{font-family:inherit;cursor:pointer}
 .glass.e1::before{ -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur); }
 .glass.e3{ background:var(--e3-fill); box-shadow:var(--e3-shadow), var(--rim); }
 .glass.e3::before{ -webkit-backdrop-filter:var(--e3-blur); backdrop-filter:var(--e3-blur); }
-/* Apple SUPERELLIPSE (squircle) corners on panels + reading cards where supported (Chrome 139+);
-   gracefully ignored elsewhere → plain rounded fallback. superellipse(2) = the premium squircle. */
-.glass,.solid{ corner-shape:superellipse(2); }
+/* Rounded corners on panels + reading cards. (The squircle — corner-shape:superellipse(2) — was
+   dropped here: Chrome renders NO border on a bordered box with a superellipse corner-shape, so every
+   .glass/.solid panel lost its rim. `round` keeps the border continuous cross-browser; the squircle is
+   only safe on borderless surfaces, and none of these are.) */
+.glass,.solid{ corner-shape:round; }
 /* TRAY — biggest squircle + a 1px white→transparent top rim-light (section-edge treatment) */
 .tray{ border-radius:var(--radius-lg); padding:22px; }
 .tray>.tray-edge{ position:absolute; left:8%; right:8%; top:0; height:1px; z-index:4; pointer-events:none;
@@ -271,7 +316,8 @@ button{font-family:inherit;cursor:pointer}
 /* single #lg displacement + BRIGHT settings = clean light liquid glass.
    (A 3-pass chromatic filter was tried and dropped — it rendered dark/muddy in Chrome.) */
 .refraction-ok .glass.lens::before{
-  backdrop-filter:url(#lg) blur(6px) saturate(168%) brightness(133%);
+  -webkit-backdrop-filter:url(#lg) blur(6px) saturate(168%) brightness(133%);
+          backdrop-filter:url(#lg) blur(6px) saturate(168%) brightness(133%);
 }
 /* HERO panel pushed glassier than the shared default: brighter top dome + a lower-blur,
    higher-vibrancy LIVE refraction so the warp actually reads. The readiness card keeps the
@@ -438,7 +484,7 @@ header.site{
 }
 /* PROMOTE the nav capsule to a real refraction lens in Chromium — the iconic liquid-glass toolbar
    (refracts the content scrolling beneath it). Safari/FF keep the frosted -webkit fallback. */
-.refraction-ok .nav{ backdrop-filter:url(#lg) var(--e1-blur); }
+.refraction-ok .nav{ -webkit-backdrop-filter:url(#lg) var(--e1-blur); backdrop-filter:url(#lg) var(--e1-blur); }
 .nav>*{position:relative;z-index:3}
 /* nav sheen: tighter radius + centred default (the bar is only 62px tall) */
 .nav .sheen{z-index:2;background:radial-gradient(10rem 7rem at var(--mx,50%) var(--my,50%),
@@ -472,7 +518,7 @@ header.site .wrap{position:relative}
 .nav-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 .mobile-menu{display:none;position:absolute;left:22px;right:22px;top:80px;z-index:55;flex-direction:column;
   background:hsl(var(--glass-tint) / .95);-webkit-backdrop-filter:var(--e1-blur);backdrop-filter:var(--e1-blur);
-  border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--e2-shadow),var(--rim);border-radius:var(--radius-md);padding:8px;corner-shape:superellipse(2)}
+  border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--e2-shadow),var(--rim);border-radius:var(--radius-md);padding:8px;corner-shape:round}
 .mobile-menu.open{display:flex;animation:fadeUp .25s var(--calm-ease)}
 .mobile-menu a{padding:13px 14px;border-radius:12px;color:var(--ink);font-family:var(--font-display);font-weight:600;font-size:1.02rem}
 .mobile-menu a:hover{background:hsl(var(--glass-tint) / .7)}
@@ -645,7 +691,7 @@ h1.hero-title .soft{color:var(--green-deep)}
 /* stat blocks = e1 chip look — DEMOTED to flat fill (no blur) to keep the trust viewport
    inside the ≤5 backdrop-filter budget (tray + nav already use blur here) */
 .stat{position:relative;border-radius:var(--radius-sm);padding:12px 8px;
-  background:hsl(var(--glass-tint) / .60);border:1px solid hsl(0 0% 100% / .6);
+  background:hsl(var(--glass-tint) / .82);border:1px solid hsl(0 0% 100% / .6);
   box-shadow:var(--e1-shadow), var(--rim-pill)}
 .stat .n{font-family:var(--font-display);font-weight:700;font-size:1.5rem;color:var(--ink)}
 .stat .l{color:var(--muted);font-size:.82rem;font-weight:500;line-height:1.3;min-height:2.2em;display:flex;align-items:center;justify-content:center}
@@ -688,7 +734,7 @@ section{position:relative}
 }
 .step:nth-child(1) .num{background:linear-gradient(150deg,hsl(158 42% 56%),hsl(158 44% 46%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5), var(--rim-pill)}
 .step:nth-child(2) .num{background:linear-gradient(150deg,hsl(205 46% 60%),hsl(205 48% 50%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5), var(--rim-pill)}
-.step:nth-child(3) .num{background:linear-gradient(150deg,hsl(28 50% 62%),hsl(28 52% 52%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5), var(--rim-pill)}
+.step:nth-child(3) .num{background:linear-gradient(150deg,hsl(28 52% 48%),hsl(28 54% 40%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5), var(--rim-pill)}
 .step h3{font-size:1.24rem;margin-bottom:.55em;color:var(--ink)}
 .step p{color:var(--muted)}
 @media(min-width:860px){.steps{grid-template-columns:repeat(3,1fr)}}
@@ -728,11 +774,20 @@ section{position:relative}
 .step .step-ic svg{width:100%;height:100%;display:block}
 
 /* ===== Liquid-glass TWEAKS — applied when toggles are on (panel-driven) ===== */
-/* "Скло всюди": every frosted panel refracts like the hero lens + gains the dome gloss */
-.lg-everywhere.refraction-ok .glass::before{ backdrop-filter:url(#lg) var(--e2-blur); }
-.lg-everywhere.refraction-ok .glass.e1::before{ backdrop-filter:url(#lg) var(--e1-blur); }
-.lg-everywhere.refraction-ok .glass.e3::before{ backdrop-filter:url(#lg) var(--e3-blur); }
-.lg-everywhere.refraction-ok .nav{ backdrop-filter:url(#lg) var(--e1-blur); }
+/* "Скло всюди": every frosted panel gains the dome gloss + Fresnel rim.
+   PERF: the SVG edge-lens (backdrop-filter:url(#lg)) is RE-COMPUTED every frame over the animated map,
+   so it stays ONLY on the signature surfaces (#sample, #readiness, .nav). Every OTHER glass panel keeps
+   PLAIN blur — still frosted glass, just without the expensive url(#lg) displacement.
+   The plain-blur broad rules are gated to ≥761px so the mobile blur-flatten (tray/game-card, above)
+   still wins on small screens. */
+@media(min-width:761px){
+  .lg-everywhere.refraction-ok .glass::before{ -webkit-backdrop-filter:var(--e2-blur); backdrop-filter:var(--e2-blur); }
+  .lg-everywhere.refraction-ok .glass.e1::before{ -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur); }
+  .lg-everywhere.refraction-ok .glass.e3::before{ -webkit-backdrop-filter:var(--e3-blur); backdrop-filter:var(--e3-blur); }
+}
+/* signature lenses keep the live refraction: #sample via its own ID rule above; restore #readiness here */
+.lg-everywhere.refraction-ok #readiness .glass.lens::before{ -webkit-backdrop-filter:url(#lg) var(--e3-blur); backdrop-filter:url(#lg) var(--e3-blur); }
+.lg-everywhere.refraction-ok .nav{ -webkit-backdrop-filter:url(#lg) var(--e1-blur); backdrop-filter:url(#lg) var(--e1-blur); }
 .lg-everywhere .glass{ box-shadow:var(--e3-shadow), var(--rim), inset 0 0 0 1px hsl(0 0% 100% / .26); }
 .lg-everywhere .glass::after{
   background:
@@ -750,7 +805,10 @@ section{position:relative}
 .game-grid{display:grid;gap:18px}
 .game-card{padding:24px 22px}
 .game-card h4{font-family:var(--font-display);font-weight:700;font-size:1.05rem;margin-bottom:4px;color:var(--ink)}
-.game-card .muted{color:var(--muted);font-size:.9rem}
+/* local near-opaque scrim so the muted caption stays >=4.5:1 over the live moving map */
+.game-card .muted{color:var(--muted);font-size:.9rem;
+  display:inline-block;background:hsl(var(--glass-tint) / .82);border-radius:8px;padding:1px 8px;
+  box-shadow:inset 0 0 0 1px hsl(0 0% 100% / .4)}
 
 /* streak */
 .streak-top{display:flex;align-items:center;gap:14px}
@@ -763,7 +821,9 @@ section{position:relative}
 .flame svg{width:26px;height:26px}
 .streak-days{display:flex;gap:6px;margin-top:16px}
 .streak-days span{flex:1;height:9px;border-radius:6px;background:hsl(34 28% 91%);border:1px solid hsl(30 26% 84%)}
-.streak-days span.on{background:linear-gradient(90deg,hsl(34 50% 70%),hsl(24 50% 64%));border-color:hsl(24 38% 64%)}
+/* NOTE: the filled-gradient .on state lives under `.reveal.in .streak-days span.on` (and the
+   reduced-motion block) so the cells start UNFILLED and animate on reveal. A duplicate filled base
+   rule used to sit here and override that start — removed so the staggered fill-on-reveal works. */
 
 /* daily goal ring */
 .goal{display:flex;align-items:center;gap:18px}
@@ -860,7 +920,10 @@ section{position:relative}
 /* clean numeral — no tinted plate (that was glass-on-glass on the e3 card) */
 .ready-num{position:relative;z-index:1;font-family:var(--font-display);font-weight:700;font-size:3.3rem;color:var(--ink);line-height:1;display:inline-block;margin-bottom:2px}
 .ready-state{position:relative;z-index:1;color:var(--green-deep);font-weight:700;font-size:1.04rem;margin-top:7px;font-family:var(--font-display)}
-.ready-cap{position:relative;z-index:1;color:var(--muted);font-size:.86rem;margin-top:6px}
+/* local near-opaque scrim so the caption stays >=4.5:1 over the live map behind the e3 lens */
+.ready-cap{position:relative;z-index:1;color:var(--muted);font-size:.86rem;margin-top:6px;
+  display:inline-block;background:hsl(var(--glass-tint) / .82);border-radius:var(--radius-pill);padding:3px 12px;
+  box-shadow:inset 0 0 0 1px hsl(0 0% 100% / .45)}
 .ready-text h2{font-size:clamp(1.7rem,4.2vw,2.35rem);margin-bottom:.5em;color:var(--ink)}
 .ready-text p{color:var(--muted);font-size:1.08rem;line-height:1.6}
 .ready-reassure{margin-top:14px;color:var(--green-deep);font-weight:600;font-size:.96rem;display:flex;align-items:center;gap:8px}
@@ -950,7 +1013,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 .foot-brand{max-width:330px}
 .foot-brand p{color:var(--muted);font-size:.92rem;margin-top:14px;line-height:1.6}
 .foot-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.foot-cols h4{font-family:var(--font-display);font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;color:var(--ink)}
+.foot-cols h3{font-family:var(--font-display);font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;color:var(--ink)}
 .foot-cols a{display:block;width:fit-content;color:var(--muted);font-size:.92rem;padding:8px 0}
 .foot-cols a:hover{color:var(--green-deep)}
 .disclaimer{margin-top:38px;padding-top:24px;border-top:1px solid hsl(0 0% 100% / .5);box-shadow:0 -1px 0 hsl(210 16% 88% / .6);color:var(--muted);font-size:.85rem;line-height:1.6;display:flex;flex-direction:column;gap:12px}
@@ -962,8 +1025,10 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   .disclaimer .copy{white-space:nowrap}
 }
 
-/* reveal-on-scroll — opacity + small translateY, calm ease */
-.reveal{opacity:0;transform:translateY(12px);transition:opacity .4s var(--calm-ease), transform .4s var(--calm-ease)}
+/* reveal-on-scroll — opacity + small translateY, calm ease.
+   Scoped to .js so that with JS DISABLED nothing is hidden (the IntersectionObserver that adds .in
+   never runs there) — all content stays visible. */
+.js .reveal{opacity:0;transform:translateY(12px);transition:opacity .4s var(--calm-ease), transform .4s var(--calm-ease)}
 .reveal.in{opacity:1;transform:none}
 
 /* ============================================================
@@ -1013,8 +1078,8 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   .msh{animation:none!important;transform:none!important;opacity:.12!important}
   .ripple{animation:none!important}
   .ripple{display:none}
-  .ring .val,.xp-bar i,.meter i{transition:none!important}
-  .reveal{opacity:1;transform:none;transition:opacity .15s linear}
+  .ring .val,.xp-bar i,.meter i,.seg .thumb{transition:none!important}
+  .js .reveal{opacity:1;transform:none;transition:opacity .15s linear}
   .btn:hover,.lift:hover,.opt:hover{transform:none}
   .lift{transition:none}
   .reactive .sheen{display:none}
@@ -1023,11 +1088,19 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 </head>
 <body class="lg-everywhere">
 
+<a class="skip" href="#top">До основного вмісту</a>
+
 <!-- LIVING MAP BACKGROUND — Ukraine map + traffic, driven by page scroll, refracted by the glass -->
 <div class="mapbg" id="mapbg" aria-hidden="true">
-  <iframe class="mapbg-frame" id="mapbgFrame" data-src="map-bg.html" title="" tabindex="-1" scrolling="no"></iframe>
+  <iframe class="mapbg-frame" id="mapbgFrame" data-src="map-bg.html" title="" tabindex="-1" scrolling="no" referrerpolicy="no-referrer" loading="lazy"></iframe>
   <span class="mapbg-veil" aria-hidden="true"></span>
 </div>
+
+<!-- WCAG 2.2.2 stop-motion control — revealed by JS only when the living map is active -->
+<button id="mapbg-toggle" class="mapbg-toggle" type="button" aria-label="Зупинити фоновий рух">
+  <svg class="ic-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
+  <svg class="ic-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+</button>
 
 <!-- pastel drifting blobs + masked grid the glass refracts -->
 <span class="drift b1" aria-hidden="true"></span>
@@ -1405,7 +1478,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 <section class="section-pad" id="readiness" aria-labelledby="ready-h">
   <div class="wrap">
     <div class="ready-grid zone" style="--zone-hue:158 50% 80%">
-      <div class="glass e3 lens reactive ready-card reveal" style="--bd:1.2s">
+      <div class="glass e3 lens reactive ready-card reveal">
         <span class="lens-refract" aria-hidden="true"></span>
         <span class="sheen" aria-hidden="true"></span>
         <span class="bloom" aria-hidden="true"></span>
@@ -1540,7 +1613,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 <!-- ============================ FINAL CTA ============================ -->
 <section class="section-pad final zone" id="final" aria-labelledby="final-h" style="--zone-hue:158 50% 80%">
   <div class="wrap">
-    <div class="solid final-card reveal" style="--bd:.6s">
+    <div class="solid final-card reveal">
       <span class="bloom" aria-hidden="true"></span>
       <svg class="final-mascot" viewBox="0 0 100 100" role="img" aria-label="Світлик — твій спокійний помічник"><use href="#svitlyk"/></svg>
       <h2 id="final-h">Твоє «склав» починається сьогодні.</h2>
@@ -1566,18 +1639,18 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       </div>
       <nav class="foot-cols" aria-label="Навігація у футері">
         <div>
-          <h4>Продукт</h4>
+          <h3>Продукт</h3>
           <a href="#features">Можливості</a>
           <a href="#pricing">Тарифи</a>
           <a href="#game">Пробний іспит</a>
         </div>
         <div>
-          <h4>Підтримка</h4>
+          <h3>Підтримка</h3>
           <a href="#faq">Питання</a>
           <a href="#top">Контакти</a>
         </div>
         <div>
-          <h4>Правове</h4>
+          <h3>Правове</h3>
           <a href="#top">Умови</a>
           <a href="#top">Конфіденційність</a>
         </div>
@@ -1877,6 +1950,17 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   var frame = document.getElementById('mapbgFrame');
   if(!mapbg || !frame) return;
 
+  // WCAG 2.2.2 — stop/start the background motion (the pill is revealed by __setMapBg when capable).
+  var toggleBtn = document.getElementById('mapbg-toggle');
+  function reflectToggle(on){
+    if(!toggleBtn) return;
+    toggleBtn.classList.toggle('is-paused', !on);
+    toggleBtn.setAttribute('aria-label', on ? 'Зупинити фоновий рух' : 'Увімкнути фоновий рух');
+  }
+  if(toggleBtn){
+    toggleBtn.addEventListener('click', function(){ window.__setMapBg(!mapPref); });
+  }
+
   var mqReduce = matchMedia('(prefers-reduced-motion: reduce)');
   // The living map (WebGL + traffic sim + blur-heavy glass) only runs where it stays smooth: a real
   // screen with enough room AND power. Phones, short landscape phones, data-saver, reduced-motion,
@@ -1884,15 +1968,21 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   // even download MapLibre. (min-height guards phones held sideways; deviceMemory/cores guard weak
   // tablets & laptops where exposed.)
   var mqDevice = matchMedia('(min-width: 760px) and (min-height: 600px)');
-  function saveData(){ try{ return !!(navigator.connection && navigator.connection.saveData); }catch(e){ return false; } }
+  var mqReduceData = matchMedia('(prefers-reduced-data: reduce)');
+  var mqReduceTransp = matchMedia('(prefers-reduced-transparency: reduce)');
+  function saveData(){ try{ return !!(navigator.connection && navigator.connection.saveData) || mqReduceData.matches; }catch(e){ return mqReduceData.matches; } }
   function lowPower(){
     try{
       if(typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory < 4) return true;
       if(typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency < 4) return true;
+      // slow link → treat as low-power and skip the map
+      var ct = navigator.connection && navigator.connection.effectiveType;
+      if(ct === 'slow-2g' || ct === '2g' || ct === '3g') return true;
     }catch(e){}
     return false;
   }
-  function allowed(){ return mqDevice.matches && !mqReduce.matches && !saveData() && !lowPower(); }
+  // never load/run the WebGL map under reduced-transparency (glass refraction is the whole point) either.
+  function allowed(){ return mqDevice.matches && !mqReduce.matches && !mqReduceTransp.matches && !saveData() && !lowPower(); }
 
   var syncing = false, loaded = false, mapPref = true;
 
@@ -1966,15 +2056,37 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   }
   function setPaused(p){ try{ var w = frame.contentWindow; if(w) w.__mapPaused = p; }catch(e){} }
 
+  // If the map errors or simply never loads, tear the background down so no blank/broken frame shows.
+  function mapFailed(){
+    mapbg.classList.remove('is-on');
+    stopSync();
+    if(toggleBtn) toggleBtn.classList.remove('show');
+  }
+
   function loadFrameOnce(){
     if(loaded) return;
     loaded = true;
-    frame.addEventListener('load', function(){ setPaused(false); onScroll(); });
+    var settled = false, watchdog = 0;
+    frame.addEventListener('load', function(){
+      settled = true;
+      if(watchdog){ clearTimeout(watchdog); watchdog = 0; }
+      setPaused(false); onScroll();
+    });
+    frame.addEventListener('error', function(){
+      if(settled) return;
+      settled = true;
+      if(watchdog){ clearTimeout(watchdog); watchdog = 0; }
+      mapFailed();
+    });
     // Start the map already at the hero city (first anchor) so it skips overview tiles.
     var startHash = '#p=' + (MAP_ANCHORS[0] ? MAP_ANCHORS[0].jp : 0.173);
     var src = frame.getAttribute('data-src') + startHash;
     // Loading speed: let the page's own hero paint first, then load the map during idle time.
-    var go = function(){ frame.src = src; };
+    var go = function(){
+      frame.src = src;
+      // watchdog: if the iframe never fires `load` (missing file, hung network), fall back gracefully.
+      watchdog = setTimeout(function(){ if(!settled){ settled = true; mapFailed(); } }, 9000);
+    };
     if('requestIdleCallback' in window){
       requestIdleCallback(go, { timeout: 1600 });
     }else{
@@ -1996,6 +2108,11 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       stopSync();
       setPaused(true);   // freeze the iframe's render loop while hidden — no GPU/CPU cost
     }
+    if(toggleBtn){
+      // show the control whenever the map is capable on this device, so it can pause AND resume
+      toggleBtn.classList.toggle('show', allowed());
+      reflectToggle(mapPref && allowed());
+    }
   };
 
   // Auto-enable on capable devices so the map starts loading immediately; the Tweaks effect
@@ -2004,7 +2121,12 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   // Re-evaluate when the device context changes (rotate, resize across the threshold, reduced-motion
   // toggle) so the map switches on/off to match capability without a reload.
   function onEnv(){ window.__setMapBg(mapPref); }
-  if(mqReduce.addEventListener){ mqReduce.addEventListener('change', onEnv); mqDevice.addEventListener('change', onEnv); }
+  if(mqReduce.addEventListener){
+    mqReduce.addEventListener('change', onEnv);
+    mqDevice.addEventListener('change', onEnv);
+    mqReduceTransp.addEventListener('change', onEnv);
+    mqReduceData.addEventListener('change', onEnv);
+  }
 })();
 </script>
 </body>
