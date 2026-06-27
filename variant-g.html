@@ -780,7 +780,7 @@ section{position:relative}
 .bdg .ic svg{width:15px;height:15px}
 
 @media(min-width:760px){.game-grid{grid-template-columns:repeat(2,1fr)}}
-@media(min-width:1040px){.game-grid{grid-template-columns:repeat(3,1fr)}.game-card.span2{grid-column:span 2}}
+@media(min-width:1040px){.game-grid{grid-template-columns:repeat(3,1fr)}.game-card.span2{grid-column:span 2}.game-card.span3{grid-column:1/-1}}
 /* keep co-visible blur layers ≤5: the two wide span2 cards (path + badges, chip-heavy)
    step to a flat tinted fill instead of a 3rd/4th blur plane — visually near-identical */
 .glass.game-card.span2::before{ -webkit-backdrop-filter:none; backdrop-filter:none; }
@@ -1090,7 +1090,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
           <a class="btn btn-ghost btn-lg" href="#sample">Спробувати без реєстрації</a>
         </div>
 
-        <p class="micro-trust"><span style="white-space:nowrap"><b>1691</b> офіційне питання</span> · без картки · українською</p>
+        <p class="micro-trust"><span style="white-space:nowrap"><b>2322</b> офіційні питання</span> · без картки · українською</p>
 
         <div class="hero-mascot">
           <!-- MASCOT "Світлик" — original first-version buddy (shared #svitlyk symbol) -->
@@ -1161,9 +1161,9 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       </div>
 
       <div class="stats">
-        <div class="stat"><div class="n">1691</div><div class="l">офіційне питання</div></div>
+        <div class="stat"><div class="n">2322</div><div class="l">офіційні питання</div></div>
         <div class="stat"><div class="n">734</div><div class="l">фото реальних ситуацій</div></div>
-        <div class="stat"><div class="n">8 · 70</div><div class="l">тем · підтем</div></div>
+        <div class="stat"><div class="n">8 · 65</div><div class="l">категорій · тем</div></div>
         <div class="stat"><div class="n"><span class="star">★</span> 4.9</div><div class="l">у відгуках</div></div>
       </div>
 
@@ -1263,7 +1263,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       </div>
 
       <!-- topic path -->
-      <div class="glass game-card span2 lift reveal">
+      <div class="glass game-card span3 lift reveal">
         <h4 style="margin-bottom:14px">Твій маршрут по темах</h4>
         <div class="path" aria-label="Маршрут навчання по темах">
           <span class="node done">Знаки <span aria-hidden="true">✓</span></span>
@@ -1832,6 +1832,5 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   })();
 })();
 </script>
-
 </body>
 </html>
