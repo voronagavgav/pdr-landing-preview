@@ -3258,11 +3258,11 @@ body{
       //   • bigger TAU = slower / calmer follow.  • zoom has its own (gentler) TAU than the pan.
       //   • PACE_LOADING stretches the time-constant while tiles stream so the camera can't outrun
       //     tile loading (and blank the map); 1.0 = full speed.
-      const PAN_TAU_MS   = 1300;   // fly (pan) follow time-constant
+      const PAN_TAU_MS   = 800;    // fly (pan) follow time-constant
       // Zoom follows MUCH slower than the pan on purpose → "fly first, then zoom in": the camera reaches
       // the city at a wide zoom and only creeps toward max detail if you linger, so the journey is mostly
       // flown at mid zoom (not maxed). Bigger = enters max even slower / spends even less time maxed.
-      const ZOOM_TAU_MS  = 1500;   // zoom follow time-constant (slightly lags pan for fly-then-zoom; responsive enough to reach the street-level peak. Gentleness now comes from the spread-out keyframe ramp, not lag.)
+      const ZOOM_TAU_MS  = 1000;   // zoom follow time-constant — responsive so the camera actually REACHES the street-level keyframes (heavy lag was the bug: it never caught up). Calm/gentle now comes from the spread-out keyframe ramp + wide travel keyframes, NOT from lag. Still slightly > pan so zoom trails the fly a touch (fly-then-zoom).
       const PACE_LOADING = 0.40;   // ease multiplier while tiles are still streaming
       // ───────────────────────────────────────────────────────────────────────────────────────
 
