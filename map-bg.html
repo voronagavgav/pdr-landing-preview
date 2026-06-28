@@ -384,6 +384,16 @@ body{
     [1.320,cities.dnipro.lat,cities.dnipro.lng,15.35], [1.360,cities.dnipro.lat,cities.dnipro.lng,15.35]
   ].map(s => ({p:s[0], lat:s[1], lng:s[2], zoom:s[3]}));
 
+  // ── Calm the cinematography ──────────────────────────────────────────────────────────────────
+  // The original keyframes slammed z≈6.7 (travel) → z≈15.3 (street) → back, FIVE times — that dramatic
+  // zoom in/out read as jerky, and pulling out to the country overview is what needed uncached tiles
+  // (the blank). Compress every keyframe's zoom into a gentler band: city peaks still reach car-LOD
+  // zoom (~14) so traffic shows; travel stays at ~9 (wide enough to cross distance, never bare country).
+  // Tune ZCALM_MIN/MAX to taste. (ZSRC_* = the original min/max the keyframes were authored in.)
+  const ZCALM_MIN = 9.0, ZCALM_MAX = 14.3, ZSRC_MIN = 5.7, ZSRC_MAX = 15.35;
+  stops.forEach(s => { s.zoom = ZCALM_MIN + (s.zoom - ZSRC_MIN) * (ZCALM_MAX - ZCALM_MIN) / (ZSRC_MAX - ZSRC_MIN); });
+  // ─────────────────────────────────────────────────────────────────────────────────────────────
+
   const routeEnd = stops[stops.length - 1].p;
   const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
   const lerp = (a,b,t) => a + (b-a) * t;
@@ -3150,10 +3160,10 @@ body{
         // so panning across the country during a fast scroll never hits an unloaded tile.
         const BB = {n:52.8, s:44.0, w:21.5, e:40.6};
         const bboxTiles = (z)=>{ const x0=lon2x(BB.w,z), x1=lon2x(BB.e,z), y0=lat2y(BB.n,z), y1=lat2y(BB.s,z); for(let x=x0;x<=x1;x++) for(let y=y0;y<=y1;y++) add(z,x,y); };
-        [5,6,7].forEach(bboxTiles);
-        // City approach/detail: each city centre across the mid zooms (overzoom fills the between-levels).
-        centers.forEach(c=>[8,10,12].forEach(z=>{ const cx=lon2x(c.lng,z), cy=lat2y(c.lat,z); for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) add(z,cx+dx,cy+dy); }));
-        const queue = Array.from(new Set(urls)).slice(0, 320);
+        [7,8].forEach(bboxTiles);   // travel band (camera now stays ≥ z9; z7/8 are the overzoom parents)
+        // City approach/detail: each city centre across the mid→high zooms (overzoom fills the between-levels).
+        centers.forEach(c=>[10,12,14].forEach(z=>{ const cx=lon2x(c.lng,z), cy=lat2y(c.lat,z); for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) add(z,cx+dx,cy+dy); }));
+        const queue = Array.from(new Set(urls)).slice(0, 380);
         window.__journeyTilesQueued = queue.length;
         let i=0; const CONC=6;
         const pump = ()=>{ if(i>=queue.length) return; const u=queue[i++]; fetch(u,{mode:'cors',priority:'low'}).catch(()=>{}).finally(pump); };
@@ -3256,8 +3266,8 @@ body{
       //   • bigger TAU = slower / calmer follow.  • zoom has its own (gentler) TAU than the pan.
       //   • PACE_LOADING stretches the time-constant while tiles stream so the camera can't outrun
       //     tile loading (and blank the map); 1.0 = full speed.
-      const PAN_TAU_MS   = 1100;   // fly (pan) follow time-constant
-      const ZOOM_TAU_MS  = 1500;   // zoom in/out follow time-constant (bigger = gentler zoom)
+      const PAN_TAU_MS   = 1300;   // fly (pan) follow time-constant
+      const ZOOM_TAU_MS  = 1700;   // zoom in/out follow time-constant (bigger = gentler zoom)
       const PACE_LOADING = 0.40;   // ease multiplier while tiles are still streaming
       // ───────────────────────────────────────────────────────────────────────────────────────
 
