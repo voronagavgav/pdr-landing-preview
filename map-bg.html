@@ -3152,10 +3152,15 @@ body{
         // so panning across the country during a fast scroll never hits an unloaded tile.
         const BB = {n:52.8, s:44.0, w:21.5, e:40.6};
         const bboxTiles = (z)=>{ const x0=lon2x(BB.w,z), x1=lon2x(BB.e,z), y0=lat2y(BB.n,z), y1=lat2y(BB.s,z); for(let x=x0;x<=x1;x++) for(let y=y0;y<=y1;y++) add(z,x,y); };
-        [7,8].forEach(bboxTiles);   // travel band (camera now stays ≥ z9; z7/8 are the overzoom parents)
-        // City approach/detail: each city centre across the mid→high zooms (overzoom fills the between-levels).
-        centers.forEach(c=>[10,12,14].forEach(z=>{ const cx=lon2x(c.lng,z), cy=lat2y(c.lat,z); for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) add(z,cx+dx,cy+dy); }));
-        const queue = Array.from(new Set(urls)).slice(0, 380);
+        [7,8].forEach(bboxTiles);   // travel band parents (camera stays ≥ z9; overzoom fills from these)
+        // City approach + STREET detail: warm each city across z9–14. The street zooms (13–14) get a bigger
+        // 5×5 neighbourhood so a full-screen street view is fully pre-cached and renders the INSTANT you
+        // arrive — otherwise the tiles get aborted mid-fly (net::ERR_ABORTED) and the city shows blank.
+        centers.forEach(c=>{
+          [9,10,11,12].forEach(z=>{ const cx=lon2x(c.lng,z), cy=lat2y(c.lat,z); for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) add(z,cx+dx,cy+dy); });
+          [13,14].forEach(z=>{ const cx=lon2x(c.lng,z), cy=lat2y(c.lat,z); for(let dx=-2;dx<=2;dx++) for(let dy=-2;dy<=2;dy++) add(z,cx+dx,cy+dy); });
+        });
+        const queue = Array.from(new Set(urls)).slice(0, 560);
         window.__journeyTilesQueued = queue.length;
         let i=0; const CONC=6;
         const pump = ()=>{ if(i>=queue.length) return; const u=queue[i++]; fetch(u,{mode:'cors',priority:'low'}).catch(()=>{}).finally(pump); };
