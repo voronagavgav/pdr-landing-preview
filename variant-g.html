@@ -804,6 +804,29 @@ section{position:relative}
 /* signature lenses keep the live refraction: #sample via its own ID rule above; restore #readiness here */
 .lg-everywhere.refraction-ok #readiness .glass.lens::before{ -webkit-backdrop-filter:url(#lg) var(--e3-blur); backdrop-filter:url(#lg) var(--e3-blur); }
 .lg-everywhere.refraction-ok .nav{ -webkit-backdrop-filter:url(#lg) var(--e1-blur); backdrop-filter:url(#lg) var(--e1-blur); }
+/* ===== MOBILE GLASS COST — the living map now runs on phones, so the backdrop-filter glass
+   composited OVER the moving map must stay cheap on phone GPUs. All scoped ≤760px so desktop
+   refraction (≥761) is UNTOUCHED: (1) smaller blur radii on every frosted panel; (2) DROP the
+   per-frame url(#lg) displacement on the signature lenses + nav (plain frost instead) — that filter
+   re-samples the moving map EVERY frame (the single biggest phone-GPU cost) and its subtle warp is
+   barely visible at phone size; (3) drop the full-viewport iframe filter pass. Builds on the
+   tray/game-card blur-flatten above (which stays flat — higher specificity). */
+@media(max-width:760px){
+  .glass::before{ -webkit-backdrop-filter:blur(6px) saturate(150%) brightness(106%); backdrop-filter:blur(6px) saturate(150%) brightness(106%); }
+  .glass.e1::before,.chip-glass::before{ -webkit-backdrop-filter:blur(5px) saturate(150%); backdrop-filter:blur(5px) saturate(150%); }
+  .glass.e3::before{ -webkit-backdrop-filter:blur(4px) saturate(150%); backdrop-filter:blur(4px) saturate(150%); }
+  .refraction-ok .glass.lens::before,
+  .refraction-ok #sample.glass.lens::before,
+  .lg-everywhere.refraction-ok #readiness .glass.lens::before{
+    -webkit-backdrop-filter:blur(6px) saturate(160%) brightness(120%);
+            backdrop-filter:blur(6px) saturate(160%) brightness(120%);
+  }
+  .refraction-ok .nav,
+  .lg-everywhere.refraction-ok .nav{
+    -webkit-backdrop-filter:blur(6px) saturate(150%); backdrop-filter:blur(6px) saturate(150%);
+  }
+  .mapbg-frame{ filter:none; }
+}
 .lg-everywhere .glass{ box-shadow:var(--e3-shadow), var(--rim), inset 0 0 0 1px hsl(0 0% 100% / .26); }
 .lg-everywhere .glass::after{
   background:
@@ -1982,27 +2005,31 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   }
 
   var mqReduce = matchMedia('(prefers-reduced-motion: reduce)');
-  // The living map (WebGL + traffic sim + blur-heavy glass) only runs where it stays smooth: a real
-  // screen with enough room AND power. Phones, short landscape phones, data-saver, reduced-motion,
-  // and low-memory / low-core devices all get the lighter pastel-glass fallback instead — and never
-  // even download MapLibre. (min-height guards phones held sideways; deviceMemory/cores guard weak
-  // tablets & laptops where exposed.)
-  var mqDevice = matchMedia('(min-width: 760px) and (min-height: 600px)');
+  // The living map now PERSISTS across ALL devices (phones, tablets, desktop) — each gets a
+  // device-appropriate cost profile (map-bg.html runs a LITE traffic/render mode on touch / small /
+  // low-power devices, see its `mobileLike` / `lowPowerDevice`). We keep only a sane capability
+  // floor + the honest opt-outs: reduced-motion, reduced-transparency (glass refraction is the whole
+  // point), and save-data / reduced-data (don't pull ~1 MB MapLibre on a metered link). The floor is
+  // min-height 480 (skips tiny landscape phones held sideways) + `tooWeak()` (truly ancient / low-end
+  // devices fall back to the static pastel-glass field — no map download).
+  var mqDevice = matchMedia('(min-height: 480px)');
   var mqReduceData = matchMedia('(prefers-reduced-data: reduce)');
   var mqReduceTransp = matchMedia('(prefers-reduced-transparency: reduce)');
   function saveData(){ try{ return !!(navigator.connection && navigator.connection.saveData) || mqReduceData.matches; }catch(e){ return mqReduceData.matches; } }
-  function lowPower(){
+  // Only TRULY weak / ancient devices skip the map entirely; weak-but-usable devices still get it in
+  // LITE mode (map-bg.html reduces car count, canvas pixel-ratio, max zoom & frame-rate for them).
+  function tooWeak(){
     try{
-      if(typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory < 4) return true;
-      if(typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency < 4) return true;
-      // slow link → treat as low-power and skip the map
+      if(typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory < 2) return true;
+      if(typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency < 2) return true;
+      // very slow link → don't pull ~1 MB MapLibre; fall back to the static field.
       var ct = navigator.connection && navigator.connection.effectiveType;
-      if(ct === 'slow-2g' || ct === '2g' || ct === '3g') return true;
+      if(ct === 'slow-2g' || ct === '2g') return true;
     }catch(e){}
     return false;
   }
   // never load/run the WebGL map under reduced-transparency (glass refraction is the whole point) either.
-  function allowed(){ return mqDevice.matches && !mqReduce.matches && !mqReduceTransp.matches && !saveData() && !lowPower(); }
+  function allowed(){ return mqDevice.matches && !mqReduce.matches && !mqReduceTransp.matches && !saveData() && !tooWeak(); }
 
   var syncing = false, loaded = false, mapPref = true;
 

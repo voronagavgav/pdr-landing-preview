@@ -555,13 +555,33 @@ body{
     })();
     if(window.__journeyProgress == null) window.__journeyProgress = startP;
     const initial = targetFromProgress(startP);
+
+    // ===== LITE map mode device profile (computed BEFORE the constructor so maxZoom/pixelRatio can use it).
+    // The parent page now loads this map on ALL capable devices (phones, tablets, desktop). Within that,
+    // non-desktop / weak hardware runs a lighter traffic + render profile: fewer cars, lower canvas
+    // pixel-ratio, tighter zoom/tile range, gentler frame-rate. We do NOT change the car movement / lane
+    // logic — only count, pixel-ratio, zoom and effect cost. `lowPowerDevice` (low RAM / few cores) gets
+    // the most aggressive trim; `mobileLike` (touch / small / low-power) gets the standard lite tier.
+    const lowPowerDevice = (function(){
+      try{
+        if(typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory < 4) return true;
+        if(typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency < 4) return true;
+      }catch(e){}
+      return false;
+    })();
+    const mobileLike = window.matchMedia('(max-width: 1024px)').matches
+                    || window.matchMedia('(pointer: coarse)').matches
+                    || lowPowerDevice;
+
     const map = new maplibregl.Map({
       container:'map',
       style:'https://tiles.openfreemap.org/styles/positron',
       center:[initial.lng, initial.lat],
       zoom:initial.zoom,
       minZoom:3,
-      maxZoom:18,
+      // LITE: cap max zoom tighter on touch / small / low-power (the journey only reaches ~15.35) so a
+      // fast zoom can never request deeper, heavier tiles. Desktop keeps the full 18 headroom.
+      maxZoom: mobileLike ? 16 : 18,
       attributionControl:false,
       interactive:false,
       // Faster perceived rendering: snap tiles in (was an 800ms cross-fade that read as "slow to
@@ -573,7 +593,11 @@ body{
       maxTileCacheSize:3000,
       maxTileCacheZoomLevels:15,
       cancelPendingTileRequestsWhileZooming:false,
-      pixelRatio:Math.min(window.devicePixelRatio || 1, 1.0), // background, blurred → 1x raster is plenty + fastest
+      // MapLibre canvas resolution = container size × pixelRatio (constructor MapOptions; defaults to
+      // devicePixelRatio). Hard-capped at 1.0 for EVERY device — the map is a blurred background, so 1x
+      // raster is plenty and fastest. This already undershoots the ≤1.5 "lite" cap, so phones/tablets
+      // never pay for retina map tiles. (The 2D traffic canvas pixel-ratio is capped separately below.)
+      pixelRatio:Math.min(window.devicePixelRatio || 1, 1.0),
       canvasContextAttributes:{
         antialias:false,
         preserveDrawingBuffer:false,
@@ -585,10 +609,9 @@ body{
     // NOTE: no `desynchronized:true` — it bypasses compositor vsync, which causes visible TEARING on
     // this scroll-driven background (the canvas presents out of step with the WebGL map beneath it).
     const trafficCtx = trafficCanvas.getContext('2d', {alpha:true});
-    // "mobileLike" = the lighter traffic/quality profile. It now covers tablets & any touch device
-    // (the only non-desktop devices that load the map at all), not just narrow widths — fewer cars,
-    // fewer lanes, gentler frame rate, easier on the battery.
-    const mobileLike = window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(pointer: coarse)').matches;
+    // `mobileLike` / `lowPowerDevice` are computed above (before the map constructor) — the LITE
+    // traffic/quality profile: tablets, phones, any touch device, and low-RAM / low-core machines get
+    // fewer cars, fewer lanes, a lower canvas pixel-ratio and a gentler frame rate (battery-friendly).
     const TRAFFIC = {
       roadLayerIds: [],
       networks: new Map(),
@@ -613,7 +636,10 @@ body{
     ];
 
     function resizeTrafficCanvas(){
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.25); // background-use: lighter fill-rate
+      // LITE: render the traffic 2D canvas at 1x on touch / small / low-power (vs 1.25x on desktop) —
+      // ~36% fewer pixels to fill per frame on a 2x phone, and the cars sit behind the glass blur so the
+      // lower resolution is invisible. (Desktop keeps 1.25x for crisper cars at the same cost it had.)
+      const dpr = Math.min(window.devicePixelRatio || 1, mobileLike ? 1.0 : 1.25);
       const rect = trafficCanvas.getBoundingClientRect();
       trafficCanvas.width = Math.max(1, Math.round(rect.width * dpr));
       trafficCanvas.height = Math.max(1, Math.round(rect.height * dpr));
@@ -2275,9 +2301,12 @@ body{
       const dynamicCount = Math.round(weightedLength / (mobileLike ? 192 : 118) * densityScale);
       const cityMultiplier = cityTrafficMultiplier(cityId);
       // Background-use: light traffic (~60 cars in frame at city zoom) — a calm living texture
-      // behind the glass, not a full rush-hour grid.
-      const baseMinCars = mobileLike ? 40 : 64;
-      const baseMaxCars = mobileLike ? 64 : 104;
+      // behind the glass, not a full rush-hour grid. LITE: genuinely low-power devices (low RAM / few
+      // cores) get a further ~18% trim on top of the mobileLike reduction (count only — the movement /
+      // lane logic is untouched). Normal phones/tablets keep the tuned mobileLike count.
+      const liteCarScale = lowPowerDevice ? 0.82 : 1;
+      const baseMinCars = Math.round((mobileLike ? 40 : 64) * liteCarScale);
+      const baseMaxCars = Math.round((mobileLike ? 64 : 104) * liteCarScale);
       // The adaptive controller (ensureTrafficNetwork) passes a per-city total tuned to land
       // ~60-70 cars *visible* in frame; without it, fall back to the road-density estimate.
       const count = (typeof targetOverride === 'number')
@@ -3316,7 +3345,7 @@ body{
       const trafficNow = performance.now();
       if(!TRAFFIC.lastFrame) TRAFFIC.lastFrame = trafficNow;
       const rfm = TRAFFIC.realFrameMs || 16;
-      const baseInterval = mobileLike ? 42 : 32;   // ~24fps on tablets/touch (battery), ~30fps desktop
+      const baseInterval = lowPowerDevice ? 50 : (mobileLike ? 42 : 32);   // ~20fps low-power, ~24fps tablets/touch (battery), ~30fps desktop
       const TRAFFIC_INTERVAL = reduced ? 90 : (rfm > 40 ? 72 : rfm > 28 ? 52 : rfm > 22 ? 40 : baseInterval);
       if(cameraMoved || trafficNow - TRAFFIC.lastFrame >= TRAFFIC_INTERVAL - 2){
         const rawFrameMs = Math.max(8, trafficNow - TRAFFIC.lastFrame);
