@@ -3206,21 +3206,27 @@ body{
       const effectiveZoom = Math.min(target.zoom, travelZoomCap, fastScrollCap);
 
       const zDelta = effectiveZoom - camera.zoom;
-      // Tile-paced camera: while the viewport's tiles are still streaming (a fast scroll into not-yet-
-      // loaded area), move at a fraction of speed so the camera never outruns tile loading and the map
-      // can't blank out — full speed resumes the instant tiles are ready. Guarded so a missing API can
-      // never throw, and the .45 floor means the camera never fully freezes (so it always catches up).
+
+      // ───────────────────────── CAMERA CALIBRATION (tune these) ─────────────────────────
+      // Per-frame caps at ~60fps. Lower = gentler/slower motion. PACE_LOADING slows the camera
+      // while tiles are still streaming so it can't outrun tile loading and blank the map.
+      const PAN_MAX_LAT  = 0.018;                 // top N/S pan speed (was 0.034)
+      const PAN_MAX_LNG  = 0.024;                 // top E/W pan speed (was 0.044)
+      const PAN_ACCEL    = 0.040;                 // how hard it accelerates toward target (was .044)
+      const ZOOM_MAX     = reduced ? 0.009 : 0.014;  // top zoom-in/out speed (was reduced?.016:.026)
+      const ZOOM_ACCEL   = 0.045;                 // zoom acceleration (was .055)
+      const PACE_LOADING = 0.30;                  // speed multiplier while tiles stream (was .45)
+      // ───────────────────────────────────────────────────────────────────────────────────
+
       let tilesReady = true;
       try{
         tilesReady = (typeof map.areTilesLoaded === 'function') ? map.areTilesLoaded()
                    : (typeof map.loaded === 'function') ? map.loaded() : true;
       }catch(e){}
-      const pace = tilesReady ? 1 : 0.45;
-      // Gentler camera easing → the fly + zoom take more wall-clock time, so MapLibre has room to
-      // stream tiles and the new city renders before the camera settles (no fast blur/blank).
-      camera.lat = stepToward(camera.lat, target.lat, Math.min(Math.max(Math.abs(dLat) * .044, 0.000008), 0.034) * pace);
-      camera.lng = stepToward(camera.lng, target.lng, Math.min(Math.max(Math.abs(dLng) * .044, 0.000008), 0.044) * pace);
-      camera.zoom = stepToward(camera.zoom, effectiveZoom, Math.min(Math.max(Math.abs(zDelta) * .055, 0.00040), reduced ? 0.016 : 0.026) * pace);
+      const pace = tilesReady ? 1 : PACE_LOADING;
+      camera.lat  = stepToward(camera.lat,  target.lat,    Math.min(Math.max(Math.abs(dLat)  * PAN_ACCEL,  0.000008), PAN_MAX_LAT) * pace);
+      camera.lng  = stepToward(camera.lng,  target.lng,    Math.min(Math.max(Math.abs(dLng)  * PAN_ACCEL,  0.000008), PAN_MAX_LNG) * pace);
+      camera.zoom = stepToward(camera.zoom, effectiveZoom, Math.min(Math.max(Math.abs(zDelta) * ZOOM_ACCEL, 0.00040), ZOOM_MAX) * pace);
 
       if(Math.abs(camera.lat - target.lat) < 0.00001) camera.lat = target.lat;
       if(Math.abs(camera.lng - target.lng) < 0.00001) camera.lng = target.lng;
