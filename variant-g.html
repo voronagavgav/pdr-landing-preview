@@ -385,7 +385,7 @@ button{font-family:inherit;cursor:pointer}
 .seg{display:inline-flex;gap:4px;padding:4px;border-radius:var(--radius-pill);position:relative;
   background:hsl(var(--glass-tint)/.88);border:1px solid hsl(0 0% 100%/.6);isolation:isolate;
   box-shadow:inset 0 1px 1px hsl(0 0% 100%/.7), inset -1px -1px 2px hsl(210 45% 55%/.18)}
-.seg button{border:0;background:transparent;padding:.5em 1.1em;border-radius:var(--radius-pill);
+.seg button{border:0;background:transparent;padding:.64em 1.1em;border-radius:var(--radius-pill);
   font-family:var(--font-display);font-weight:700;font-size:.86rem;color:var(--muted);position:relative;z-index:1;
   transition:color .25s var(--calm-ease)}
 .seg button[aria-checked="true"]{color:var(--green-ink)}
@@ -505,13 +505,13 @@ header.site{
 .nav-links a:hover::after,.nav-links a[aria-current="true"]::after{right:0}
 .nav-links a[aria-current="true"]{color:var(--ink)}
 .nav-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
-.nav-actions .btn{padding:.58em 1.05em;font-size:.94rem;white-space:nowrap}
+.nav-actions .btn{padding:.66em 1.05em;font-size:.94rem;white-space:nowrap}
 .cta-short{display:none}
 .link-login{display:none;color:var(--muted);font-weight:700;font-family:var(--font-display);padding:.58em .9em;border-radius:var(--radius-pill)}
 .link-login:hover{color:var(--ink);background:hsl(var(--glass-tint) / .8)}
 /* mobile nav menu (hamburger) */
 header.site .wrap{position:relative}
-.nav-burger{display:none;flex-direction:column;justify-content:center;gap:5px;width:42px;height:42px;border:0;background:transparent;padding:11px;cursor:pointer;border-radius:12px}
+.nav-burger{display:none;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;border:0;background:transparent;padding:12px;cursor:pointer;border-radius:12px}
 .nav-burger span{display:block;height:2px;width:100%;border-radius:2px;background:var(--ink);transition:transform .25s var(--calm-ease),opacity .2s}
 .nav-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
 .nav-burger[aria-expanded="true"] span:nth-child(2){opacity:0}
@@ -729,12 +729,16 @@ section{position:relative}
    and on phones (no map to fill the band). Tune ONE knob: --journey-runway. */
 :root{ --journey-runway:40vh; }
 .journey-gap{ display:none; }
+/* Show the runway bands ONLY when the living map is actually painting (html.map-live, toggled by the
+   map JS). Never leave empty bands when the map is off — data-saver / low-power / load-failure / reduced-*.
+   Cap the height in px so tall displays don't get oversized gaps. */
 @media (min-width:760px) and (min-height:600px){
-  .journey-gap{ display:block; height:var(--journey-runway); }
-  .journey-gap.short{ height:calc(var(--journey-runway) * .5); }
+  html.map-live .journey-gap{ display:block; height:min(var(--journey-runway),360px); }
+  html.map-live .journey-gap.short{ height:min(calc(var(--journey-runway) * .5),180px); }
 }
 @media (prefers-reduced-motion: reduce){ .journey-gap{ display:none !important; } }
 @media (prefers-reduced-transparency: reduce){ .journey-gap{ display:none !important; } }
+@media (prefers-reduced-data: reduce){ .journey-gap{ display:none !important; } }
 
 /* ---------- how it works (opaque cards on an e2 glass TRAY) ---------- */
 .steps{display:grid;gap:20px}
@@ -981,6 +985,7 @@ section{position:relative}
 /* ---------- faq ---------- */
 .faq-list{max-width:760px;margin:0 auto;display:grid;gap:14px}
 .faq{padding:0;overflow:hidden}
+.faq summary:focus-visible{outline:3px solid var(--green-deep);outline-offset:-4px;border-radius:12px}
 .faq summary{
   list-style:none;cursor:pointer;padding:20px 22px;display:flex;align-items:center;gap:14px;
   font-family:var(--font-display);font-weight:600;font-size:1.06rem;color:var(--ink);
@@ -1104,7 +1109,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 
 <!-- LIVING MAP BACKGROUND — Ukraine map + traffic, driven by page scroll, refracted by the glass -->
 <div class="mapbg" id="mapbg" aria-hidden="true">
-  <iframe class="mapbg-frame" id="mapbgFrame" data-src="map-bg.html" title="" tabindex="-1" scrolling="no" referrerpolicy="no-referrer" loading="lazy"></iframe>
+  <iframe class="mapbg-frame" id="mapbgFrame" data-src="map-bg.html" title="Фонова мапа (декоративна)" tabindex="-1" scrolling="no" referrerpolicy="no-referrer" loading="lazy"></iframe>
   <span class="mapbg-veil" aria-hidden="true"></span>
 </div>
 
@@ -1194,7 +1199,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   </div>
 </header>
 
-<main id="top">
+<main id="top" tabindex="-1">
 
 <!-- ============================ HERO ============================ -->
 <section class="hero" id="hero" aria-labelledby="hero-title">
@@ -1208,7 +1213,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         <p class="hero-sub">Усі офіційні питання іспиту, реальні дорожні ситуації та розумні тренування, що ведуть тебе від нуля до впевненого «склав».</p>
 
         <div class="hero-cta-row" id="hero-cta">
-          <a class="btn cta-glass btn-lg" href="#pricing"><span>Почати безкоштовно</span></a>
+          <a class="btn cta-glass btn-lg" href="#sample"><span>Почати безкоштовно</span></a>
           <a class="btn btn-ghost btn-lg" href="#sample">Спробувати без реєстрації</a>
         </div>
 
@@ -1246,10 +1251,10 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         </div>
 
         <div class="options" id="options" role="group" aria-labelledby="quiz-q">
-          <button class="opt" data-correct="false"><span class="mark" aria-hidden="true">А</span><span>Зупинитися та чекати зеленого сигналу</span></button>
-          <button class="opt" data-correct="true"><span class="mark" aria-hidden="true">Б</span><span>Продовжити рух, керуючись правилами проїзду нерегульованих перехресть</span></button>
-          <button class="opt" data-correct="false"><span class="mark" aria-hidden="true">В</span><span>Зупинитися перед перехрестям до вимкнення жовтого</span></button>
-          <button class="opt" data-correct="false"><span class="mark" aria-hidden="true">Г</span><span>Пришвидшитися, щоб проїхати перехрестя першим</span></button>
+          <button type="button" class="opt" data-correct="false"><span class="mark" aria-hidden="true">А</span><span>Зупинитися та чекати зеленого сигналу</span></button>
+          <button type="button" class="opt" data-correct="true"><span class="mark" aria-hidden="true">Б</span><span>Продовжити рух, керуючись правилами проїзду нерегульованих перехресть</span></button>
+          <button type="button" class="opt" data-correct="false"><span class="mark" aria-hidden="true">В</span><span>Зупинитися перед перехрестям до вимкнення жовтого</span></button>
+          <button type="button" class="opt" data-correct="false"><span class="mark" aria-hidden="true">Г</span><span>Пришвидшитися, щоб проїхати перехрестя першим</span></button>
         </div>
 
         <div class="feedback" id="feedback" role="status" aria-live="polite">
@@ -1339,7 +1344,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     </div>
 
     <!-- connective label into the progress part -->
-    <div class="merge-divider reveal"><span>А ось твій прогрес</span></div>
+    <div class="merge-divider reveal"><span>Ось як виглядатиме твій прогрес</span></div>
 
     <div class="game-grid zone" style="--zone-hue:158 50% 80%">
       <!-- streak -->
@@ -1388,7 +1393,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       <!-- topic path -->
       <div class="glass game-card span3 lift reveal">
         <h4 style="margin-bottom:14px">Твій маршрут по темах</h4>
-        <div class="path" aria-label="Маршрут навчання по темах">
+        <div class="path" role="img" aria-label="Маршрут навчання по темах">
           <span class="node done">Знаки <span aria-hidden="true">✓</span></span>
           <span class="arrow" aria-hidden="true">→</span>
           <span class="node done">Розмітка <span aria-hidden="true">✓</span></span>
@@ -1509,8 +1514,8 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       <div class="ready-text reveal">
         <h2 id="ready-h">Не вгадуй, чи ти готовий&nbsp;— побач це.</h2>
         <p>Ми рахуємо твою готовність за останніми результатами й опануванням тем. Сідай за кермо іспиту тоді, коли цифра скаже «готовий».</p>
-        <p class="ready-reassure"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20s-7-4.5-9.2-9C1.3 8 3 4.5 6.5 4.5c2 0 3.3 1.2 4 2.4l1.5 2.1 1.5-2.1c.7-1.2 2-2.4 4-2.4 3.5 0 5.2 3.5 3.7 6.5C19 15.5 12 20 12 20Z" fill="hsl(152 44% 72%)" stroke="var(--green-deep)" stroke-width="1.5" stroke-linejoin="round"/></svg> Тисячі вже склали з першого разу. Ви теж зможете.</p>
-        <div style="margin-top:22px"><a class="btn cta-glass btn-lg" href="#pricing"><span>Почати безкоштовно</span></a></div>
+        <p class="ready-reassure"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20s-7-4.5-9.2-9C1.3 8 3 4.5 6.5 4.5c2 0 3.3 1.2 4 2.4l1.5 2.1 1.5-2.1c.7-1.2 2-2.4 4-2.4 3.5 0 5.2 3.5 3.7 6.5C19 15.5 12 20 12 20Z" fill="hsl(152 44% 72%)" stroke="var(--green-deep)" stroke-width="1.5" stroke-linejoin="round"/></svg> Тисячі вже склали з першого разу. І ти зможеш.</p>
+        <div style="margin-top:22px"><a class="btn cta-glass btn-lg" href="#sample"><span>Почати безкоштовно</span></a></div>
       </div>
     </div>
   </div>
@@ -1526,7 +1531,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     </div>
     <div class="tcards zone zone-faint" style="--zone-hue:268 40% 84%">
       <figure class="solid tcard lift reveal">
-        <div class="stars" aria-label="5 з 5">★★★★★</div>
+        <div class="stars" role="img" aria-label="5 з 5">★★★★★</div>
         <blockquote class="quote">«Склав з першого разу, хоча знаки давались важко. Робота над помилками — це топ.»</blockquote>
         <figcaption class="who">
           <span class="av" style="background:linear-gradient(150deg,hsl(205 46% 60%),hsl(205 48% 50%))" aria-hidden="true">О</span>
@@ -1534,7 +1539,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         </figcaption>
       </figure>
       <figure class="solid tcard lift reveal">
-        <div class="stars" aria-label="5 з 5">★★★★★</div>
+        <div class="stars" role="img" aria-label="5 з 5">★★★★★</div>
         <blockquote class="quote">«Зручно вчити в дорозі, по 15 хвилин. За два тижні була повністю готова.»</blockquote>
         <figcaption class="who">
           <span class="av" style="background:linear-gradient(150deg,hsl(158 42% 56%),hsl(158 44% 46%))" aria-hidden="true">М</span>
@@ -1542,7 +1547,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
         </figcaption>
       </figure>
       <figure class="solid tcard lift reveal">
-        <div class="stars" aria-label="5 з 5">★★★★★</div>
+        <div class="stars" role="img" aria-label="5 з 5">★★★★★</div>
         <blockquote class="quote">«Нарешті зрозумів пріоритети на перехрестях — завдяки поясненням до кожного питання.»</blockquote>
         <figcaption class="who">
           <span class="av" style="background:linear-gradient(150deg,hsl(28 50% 62%),hsl(28 52% 52%))" aria-hidden="true">Д</span>
@@ -2075,7 +2080,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 
   // If the map errors or simply never loads, tear the background down so no blank/broken frame shows.
   function mapFailed(){
-    mapbg.classList.remove('is-on');
+    mapbg.classList.remove('is-on'); document.documentElement.classList.remove('map-live');
     stopSync();
     if(toggleBtn) toggleBtn.classList.remove('show');
   }
@@ -2129,10 +2134,10 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       mapbg.hidden = false;
       loadFrameOnce();
       setPaused(false);
-      requestAnimationFrame(function(){ mapbg.classList.add('is-on'); });
+      requestAnimationFrame(function(){ mapbg.classList.add('is-on'); document.documentElement.classList.add('map-live'); });
       startSync();
     }else{
-      mapbg.classList.remove('is-on');
+      mapbg.classList.remove('is-on'); document.documentElement.classList.remove('map-live');
       stopSync();
       setPaused(true);   // freeze the iframe's render loop while hidden — no GPU/CPU cost
     }
@@ -2157,5 +2162,6 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   }
 })();
 </script>
+
 </body>
 </html>
