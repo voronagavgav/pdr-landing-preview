@@ -1821,15 +1821,30 @@ body{
     }
 
     function combineOpacityWithFade(base, fade){
-      const normalized = opacityBase(base, 1);
-      if(typeof normalized === 'number') return ['*', normalized, fade];
-      return ['*', normalized, fade];
+      // Must return a SINGLE top-level zoom interpolate (the only legal form). The old ['*', base, fade]
+      // nested a zoom curve inside '*' → MapLibre rejected it ("'zoom' expression may only be used as
+      // input to a top-level 'step'/'interpolate'"), and when `base` was itself a zoom curve it was two
+      // zoom curves ("Only one zoom-based subexpression"). Those rejections are the ~58 console errors.
+      //   • constant base → bake it into the fade's OUTPUT stops (identical to base*fade, but legal)
+      //   • base already an expression (the style's own zoom curve) → return null = skip, leave it as-is
+      //   • no base → use the fade as-is (0→1)
+      const b = (typeof base === 'number' && isFinite(base)) ? base : (base == null ? 1 : null);
+      if(b == null) return null;
+      if(b === 1) return fade;
+      const out = fade.slice(0, 3);                       // ['interpolate', ['linear'], ['zoom']]
+      for(let i = 3; i < fade.length; i += 2){
+        out.push(fade[i]);                                // zoom stop (input)
+        out.push(Math.max(0, Math.min(1, Number(fade[i + 1]) * b)));  // output scaled by the base opacity
+      }
+      return out;
     }
 
     function setLayerSmoothOpacity(layer, paintProperty, fadeExpression, duration){
       try{
         const base = map.getPaintProperty(layer.id, paintProperty);
-        map.setPaintProperty(layer.id, paintProperty, combineOpacityWithFade(base, fadeExpression));
+        const combined = combineOpacityWithFade(base, fadeExpression);
+        if(combined == null) return;   // base is already a zoom curve → leave the style's opacity untouched (no illegal double-zoom)
+        map.setPaintProperty(layer.id, paintProperty, combined);
         map.setPaintProperty(layer.id, `${paintProperty}-transition`, {
           duration: duration,
           delay:0
