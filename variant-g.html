@@ -1990,12 +1990,14 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   // the camera holds at street zoom (a hold band); in the gaps it pulls back, travels and zooms
   // into the next city. Fast scrolling stays at altitude (the map's own scroll-velocity cap);
   // settling on a block lets the zoom rush in. jp = journey progress fed to the map (0..1).
+  // 4-city journey (Lviv dropped). jp = each city's MAX-ZOOM dwell position in the map's journey
+  // (its routeP ÷ routeEnd 2.17), so when a section is centered the map holds at that city's street zoom.
+  // Kyiv routeP .41–.50 → .210 · Odesa .98–1.07 → .472 · Kharkiv 1.56–1.65 → .740 · Dnipro 2.09–2.17 → .982.
   var MAP_ANCHORS = [
-    { sel:'#hero',     jp:0.173 },  // Kyiv    — hero
-    { sel:'#game',     jp:0.376 },  // Odesa   — "Як це працює" interactive demo
-    { sel:'#features', jp:0.579 },  // Lviv    — features
-    { sel:'#pricing',  jp:0.791 },  // Kharkiv — pricing
-    { sel:'#final',    jp:0.985 }   // Dnipro  — final CTA
+    { sel:'#hero',     jp:0.210 },  // Kyiv    — hero
+    { sel:'#game',     jp:0.472 },  // Odesa   — "Як це працює"
+    { sel:'#pricing',  jp:0.740 },  // Kharkiv — pricing  (#features falls in the Odesa→Kharkiv fly)
+    { sel:'#final',    jp:0.982 }   // Dnipro  — final CTA
   ];
   function smoother(t){ t = t < 0 ? 0 : t > 1 ? 1 : t; return t*t*t*(t*(t*6 - 15) + 10); }
   function curScroll(){
