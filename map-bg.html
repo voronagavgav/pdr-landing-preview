@@ -3097,6 +3097,43 @@ body{
     }
 
 
+    // ── Pre-warm the journey's tiles into the browser HTTP cache after the first city renders, so a later
+    //    fast scroll hits WARM cache (tiles appear instantly) instead of fetching over the network and
+    //    blanking. The journey is fixed (known cities + zooms), so we warm each city across the zoom bands
+    //    the fly crosses (7/9/11/13, letting MapLibre overzoom fill the between-levels) + a country overview.
+    //    Capable-desktop only (the whole map is already gated); skipped on Save-Data; best-effort + silent.
+    function prewarmJourneyTiles(){
+      try{
+        if(window.__journeyTilesWarmed) return; window.__journeyTilesWarmed = true;
+        const conn = navigator.connection; if(conn && conn.saveData) return;
+        const style = map.getStyle(); if(!style || !style.sources) return;
+        let tmpl = null;
+        for(const id in style.sources){
+          const s = style.sources[id];
+          if(s && s.type === 'vector'){
+            const src = map.getSource(id);
+            if(src && src.tiles && src.tiles.length){ tmpl = src.tiles[0]; break; }
+            if(s.tiles && s.tiles.length){ tmpl = s.tiles[0]; break; }
+          }
+        }
+        if(!tmpl || !/\{z\}.*\{x\}.*\{y\}/.test(tmpl)){ window.__journeyTilesTmpl = tmpl || 'none'; return; }
+        window.__journeyTilesTmpl = tmpl;
+        const lon2x = (lng,z)=>Math.floor((lng+180)/360*Math.pow(2,z));
+        const lat2y = (lat,z)=>{ const r=lat*Math.PI/180; return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*Math.pow(2,z)); };
+        const urls = [];
+        const add = (z,x,y)=>{ const n=Math.pow(2,z); if(x<0||y<0||x>=n||y>=n) return; urls.push(tmpl.replace('{z}',z).replace('{x}',x).replace('{y}',y)); };
+        const centers = []; const seen = {};
+        for(const k in cities){ const c=cities[k]; if(!c||typeof c.lat!=='number') continue; const key=c.lat.toFixed(2)+','+c.lng.toFixed(2); if(!seen[key]){ seen[key]=1; centers.push(c); } }
+        centers.forEach(c=>[7,9,11,13].forEach(z=>{ const cx=lon2x(c.lng,z), cy=lat2y(c.lat,z); for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) add(z,cx+dx,cy+dy); }));
+        [5,6].forEach(z=>{ const cx=lon2x(31.2,z), cy=lat2y(48.6,z); for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) add(z,cx+dx,cy+dy); });
+        const queue = Array.from(new Set(urls)).slice(0, 240);
+        window.__journeyTilesQueued = queue.length;
+        let i=0; const CONC=6;
+        const pump = ()=>{ if(i>=queue.length) return; const u=queue[i++]; fetch(u,{mode:'cors',priority:'low'}).catch(()=>{}).finally(pump); };
+        for(let j=0;j<CONC;j++) pump();
+      }catch(e){ window.__journeyTilesErr = String(e && e.message || e); }
+    }
+
     map.on('load', () => {
       map.resize();
       resizeTrafficCanvas();
@@ -3130,6 +3167,7 @@ body{
         try { applySmoothMapLayerTransitions(); } catch(e) {}
         try { ensureTrafficNetwork(); } catch(e) {}
         setTimeout(hideLoading, 180);
+        setTimeout(prewarmJourneyTiles, 1400);   // background-warm the rest of the journey's tiles into cache
       });
     });
     map.on('styledata', () => {
