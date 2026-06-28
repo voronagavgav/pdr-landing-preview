@@ -590,8 +590,8 @@ body{
       fadeDuration:0,   // snap tiles to full opacity the instant they load — no mid-fade "faint/disappearing" tiles during a fast zoom
       renderWorldCopies:false,
       refreshExpiredTiles:false,
-      maxTileCacheSize:3000,
-      maxTileCacheZoomLevels:15,
+      maxTileCacheSize: mobileLike ? 1200 : 3000,
+      maxTileCacheZoomLevels: mobileLike ? 12 : 15,
       cancelPendingTileRequestsWhileZooming:false,
       // MapLibre canvas resolution = container size × pixelRatio (constructor MapOptions; defaults to
       // devicePixelRatio). Hard-capped at 1.0 for EVERY device — the map is a blurred background, so 1x

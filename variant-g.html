@@ -1055,6 +1055,16 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 .foot-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
 .foot-cols h3{font-family:var(--font-display);font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;color:var(--ink)}
 .foot-cols a{display:block;width:fit-content;color:var(--muted);font-size:.92rem;padding:8px 0}
+/* Mobile/touch: lift interactive controls to the 44px tap-target floor (audited sub-44 on phones). */
+@media (max-width:760px), (pointer:coarse){
+  .mapbg-toggle{ width:44px; height:44px; }
+  .brand{ min-height:44px; }
+  .seg button{ min-height:44px; }
+  .quiz-reset{ min-height:44px; padding-top:11px; padding-bottom:11px; }
+  .nav-links a{ min-height:44px; display:inline-flex; align-items:center; }
+  .foot-cols a{ min-height:44px; display:flex; align-items:center; }
+  .btn{ min-height:44px; }
+}
 .foot-cols a:hover{color:var(--green-deep)}
 .disclaimer{margin-top:38px;padding-top:24px;border-top:1px solid hsl(0 0% 100% / .5);box-shadow:0 -1px 0 hsl(210 16% 88% / .6);color:var(--muted);font-size:.85rem;line-height:1.6;display:flex;flex-direction:column;gap:12px}
 .disclaimer .copy{font-weight:700;color:var(--ink)}
@@ -2177,7 +2187,15 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 
   // Auto-enable on capable devices so the map starts loading immediately; the Tweaks effect
   // reconciles to the persisted preference shortly after.
-  if(allowed()) window.__setMapBg(true);
+  // On mobile/touch, DEFER the map until after full load (+a beat) so MapLibre's ~1MB parse + WebGL init
+  // don't compete with first paint / LCP / TBT; desktop stays immediate. (Map still shows on all devices.)
+  if(allowed()){
+    if(window.matchMedia('(max-width:760px), (pointer:coarse)').matches){
+      var __enableMap = function(){ setTimeout(function(){ window.__setMapBg(true); }, 1200); };
+      if(document.readyState === 'complete') __enableMap();
+      else window.addEventListener('load', __enableMap, { once:true });
+    } else { window.__setMapBg(true); }
+  }
   // Re-evaluate when the device context changes (rotate, resize across the threshold, reduced-motion
   // toggle) so the map switches on/off to match capability without a reload.
   function onEnv(){ window.__setMapBg(mapPref); }
