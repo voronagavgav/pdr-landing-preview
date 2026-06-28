@@ -2058,7 +2058,11 @@ body{
       if(!lane || !lane.connections || !lane.connections.length) return null;
 
       const options = lane.connections;
-      const r = (Math.sin((car.seed || 1) * 997 + car.progress * .013) + 1) / 2;
+      // Genuine per-junction randomness so cars EXPLORE the city instead of settling into a fixed,
+      // deterministic circuit. The old sin(seed, progress) choice was repeatable — a car re-entering the
+      // same junction always picked the same exit, so it looped one route and "reappeared at its start".
+      // Keep the natural weighting below (mostly straight, sometimes a turn), just make the draw random.
+      const r = Math.random();
 
       let pool;
       if(r < .60){
@@ -2073,7 +2077,7 @@ body{
         pool = options;
       }
 
-      const choice = pool[Math.floor(((r * 997) % 1) * pool.length)] || options[0];
+      const choice = pool[Math.floor(Math.random() * pool.length)] || options[0];
       return choice || null;
     }
 
@@ -3202,11 +3206,21 @@ body{
       const effectiveZoom = Math.min(target.zoom, travelZoomCap, fastScrollCap);
 
       const zDelta = effectiveZoom - camera.zoom;
+      // Tile-paced camera: while the viewport's tiles are still streaming (a fast scroll into not-yet-
+      // loaded area), move at a fraction of speed so the camera never outruns tile loading and the map
+      // can't blank out — full speed resumes the instant tiles are ready. Guarded so a missing API can
+      // never throw, and the .45 floor means the camera never fully freezes (so it always catches up).
+      let tilesReady = true;
+      try{
+        tilesReady = (typeof map.areTilesLoaded === 'function') ? map.areTilesLoaded()
+                   : (typeof map.loaded === 'function') ? map.loaded() : true;
+      }catch(e){}
+      const pace = tilesReady ? 1 : 0.45;
       // Gentler camera easing → the fly + zoom take more wall-clock time, so MapLibre has room to
       // stream tiles and the new city renders before the camera settles (no fast blur/blank).
-      camera.lat = stepToward(camera.lat, target.lat, Math.min(Math.max(Math.abs(dLat) * .044, 0.000008), 0.034));
-      camera.lng = stepToward(camera.lng, target.lng, Math.min(Math.max(Math.abs(dLng) * .044, 0.000008), 0.044));
-      camera.zoom = stepToward(camera.zoom, effectiveZoom, Math.min(Math.max(Math.abs(zDelta) * .055, 0.00040), reduced ? 0.016 : 0.026));
+      camera.lat = stepToward(camera.lat, target.lat, Math.min(Math.max(Math.abs(dLat) * .044, 0.000008), 0.034) * pace);
+      camera.lng = stepToward(camera.lng, target.lng, Math.min(Math.max(Math.abs(dLng) * .044, 0.000008), 0.044) * pace);
+      camera.zoom = stepToward(camera.zoom, effectiveZoom, Math.min(Math.max(Math.abs(zDelta) * .055, 0.00040), reduced ? 0.016 : 0.026) * pace);
 
       if(Math.abs(camera.lat - target.lat) < 0.00001) camera.lat = target.lat;
       if(Math.abs(camera.lng - target.lng) < 0.00001) camera.lng = target.lng;
