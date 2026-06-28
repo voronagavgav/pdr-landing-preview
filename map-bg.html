@@ -379,7 +379,7 @@ body{
   // (the blank). Compress every keyframe's zoom into a gentler band: city peaks still reach car-LOD
   // zoom (~14) so traffic shows; travel stays at ~9 (wide enough to cross distance, never bare country).
   // Tune ZCALM_MIN/MAX to taste. (ZSRC_* = the original min/max the keyframes were authored in.)
-  const ZCALM_MIN = 9.0, ZCALM_MAX = 14.3, ZSRC_MIN = 5.7, ZSRC_MAX = 15.35;
+  const ZCALM_MIN = 9.0, ZCALM_MAX = 15.35, ZSRC_MIN = 5.7, ZSRC_MAX = 15.35;
   stops.forEach(s => { s.zoom = ZCALM_MIN + (s.zoom - ZSRC_MIN) * (ZCALM_MAX - ZCALM_MIN) / (ZSRC_MAX - ZSRC_MIN); });
   // ─────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -3258,7 +3258,7 @@ body{
       // Zoom follows MUCH slower than the pan on purpose → "fly first, then zoom in": the camera reaches
       // the city at a wide zoom and only creeps toward max detail if you linger, so the journey is mostly
       // flown at mid zoom (not maxed). Bigger = enters max even slower / spends even less time maxed.
-      const ZOOM_TAU_MS  = 3200;   // zoom in/out follow time-constant (was 1700)
+      const ZOOM_TAU_MS  = 2400;   // zoom in/out follow time-constant (lags pan → fly-then-zoom, but reaches close city detail when you settle)
       const PACE_LOADING = 0.40;   // ease multiplier while tiles are still streaming
       // ───────────────────────────────────────────────────────────────────────────────────────
 
