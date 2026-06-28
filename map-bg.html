@@ -322,10 +322,10 @@ body{
   };
 
   const CITY_STORIES = {
-    kyiv:    {title:'Kyiv',    line:'Wide avenues, bridges and central driving scenarios around Khreshchatyk.',       range:[.090,.330]},
-    odesa:   {title:'Odesa',   line:'Coastal city streets, roundabouts and denser center traffic near Deribasivska.',   range:[.470,.660]},
-    kharkiv: {title:'Kharkiv', line:'Longer avenues and broader intersections around the city center.',                 range:[.835,1.045]},
-    dnipro:  {title:'Dnipro',  line:'River-city driving with bridge approaches and main avenue traffic.',               range:[1.150,1.285]}
+    kyiv:    {title:'Kyiv',    line:'Wide avenues, bridges and central driving scenarios around Khreshchatyk.',       range:[.300,.530]},
+    odesa:   {title:'Odesa',   line:'Coastal city streets, roundabouts and denser center traffic near Deribasivska.',   range:[.860,1.100]},
+    kharkiv: {title:'Kharkiv', line:'Longer avenues and broader intersections around the city center.',                 range:[1.440,1.690]},
+    dnipro:  {title:'Dnipro',  line:'River-city driving with bridge approaches and main avenue traffic.',               range:[1.960,2.170]}
   };
 
   const CITY_TRAFFIC_PROFILES = {
@@ -345,43 +345,47 @@ body{
     return cityId === 'kyiv' ? 1.35 : 1;
   };
 
+  // Journey keyframes [progress, lat, lng, zoom] — authored DIRECTLY in final zoom (no remap). Every city
+  // has the SAME shape so they all behave identically (this is what was making Odesa misbehave): fly in
+  // WIDE → a gentle multi-step zoom ramp → STREET-level peak with a real DWELL (so the eased camera
+  // actually reaches the close view) → pull back wide → slow travel to the next city. Travel stays ~9–10
+  // (calm, never bare country overview); each city reaches ~15.3 (street). 4-city route, Lviv dropped.
   const stops = [
-    /* Ukraine overview, then Kyiv approach and street zoom */
-    [0.000,48.62,31.20,5.70], [0.060,48.62,31.20,5.70],
-    [0.120,cities.kyiv.lat,cities.kyiv.lng,6.70],
-    [0.175,cities.kyiv.lat,cities.kyiv.lng,10.60],
-    [0.250,cities.kyiv.lat,cities.kyiv.lng,15.35], [0.300,cities.kyiv.lat,cities.kyiv.lng,15.35],
-    [0.350,cities.kyiv.lat,cities.kyiv.lng,8.20],
+    /* Ukraine intro → Kyiv */
+    [0.000,48.62,31.20,8.60], [0.060,48.62,31.20,9.00],
+    [0.140,cities.kyiv.lat,cities.kyiv.lng,9.60],     // arrive wide
+    [0.230,cities.kyiv.lat,cities.kyiv.lng,11.60],    // gentle ramp…
+    [0.320,cities.kyiv.lat,cities.kyiv.lng,13.60],
+    [0.410,cities.kyiv.lat,cities.kyiv.lng,15.35],    // street level
+    [0.500,cities.kyiv.lat,cities.kyiv.lng,15.35],    // dwell — hold the close view
+    [0.560,cities.kyiv.lat,cities.kyiv.lng,10.00],    // pull back wide
 
-    /* Kyiv → Odesa: long, gentle travel south, then street zoom */
-    [0.420,48.55,30.62,6.40],
-    [0.470,cities.odesa.lat,cities.odesa.lng,6.70],
-    [0.520,cities.odesa.lat,cities.odesa.lng,10.55],
-    [0.595,cities.odesa.lat,cities.odesa.lng,15.30], [0.645,cities.odesa.lat,cities.odesa.lng,15.30],
-    [0.695,cities.odesa.lat,cities.odesa.lng,8.00],
+    /* Kyiv → Odesa (slow travel south) */
+    [0.640,48.55,30.62,9.20],                          // wide waypoint
+    [0.710,cities.odesa.lat,cities.odesa.lng,9.60],    // arrive wide
+    [0.800,cities.odesa.lat,cities.odesa.lng,11.60],   // gentle ramp…
+    [0.890,cities.odesa.lat,cities.odesa.lng,13.60],
+    [0.980,cities.odesa.lat,cities.odesa.lng,15.30],   // street level
+    [1.070,cities.odesa.lat,cities.odesa.lng,15.30],   // dwell
+    [1.130,cities.odesa.lat,cities.odesa.lng,10.00],   // pull back wide
 
-    /* Odesa → Kharkiv: the longest leg — extra room, wide travel, then approach */
-    [0.770,48.20,33.50,6.10],
-    [0.835,cities.kharkiv.lat,cities.kharkiv.lng,6.70],
-    [0.885,cities.kharkiv.lat,cities.kharkiv.lng,10.55],
-    [0.960,cities.kharkiv.lat,cities.kharkiv.lng,15.25], [1.010,cities.kharkiv.lat,cities.kharkiv.lng,15.25],
-    [1.060,cities.kharkiv.lat,cities.kharkiv.lng,8.30],
+    /* Odesa → Kharkiv (longest leg — extra travel room) */
+    [1.220,48.20,33.50,9.00],                          // wide waypoint
+    [1.290,cities.kharkiv.lat,cities.kharkiv.lng,9.60],
+    [1.380,cities.kharkiv.lat,cities.kharkiv.lng,11.60],
+    [1.470,cities.kharkiv.lat,cities.kharkiv.lng,13.60],
+    [1.560,cities.kharkiv.lat,cities.kharkiv.lng,15.25],// street level
+    [1.650,cities.kharkiv.lat,cities.kharkiv.lng,15.25],// dwell
+    [1.710,cities.kharkiv.lat,cities.kharkiv.lng,10.00],// pull back wide
 
-    /* Kharkiv → Dnipro: short, smooth hop, then final main street zoom */
-    [1.115,49.22,35.62,7.20],
-    [1.165,cities.dnipro.lat,cities.dnipro.lng,10.70],
-    [1.235,cities.dnipro.lat,cities.dnipro.lng,15.35], [1.285,cities.dnipro.lat,cities.dnipro.lng,15.35]
+    /* Kharkiv → Dnipro (short hop) */
+    [1.780,49.22,35.62,9.80],                          // wide waypoint (short hop → less zoom-out)
+    [1.850,cities.dnipro.lat,cities.dnipro.lng,9.80],  // arrive wide
+    [1.930,cities.dnipro.lat,cities.dnipro.lng,11.60], // gentle ramp…
+    [2.010,cities.dnipro.lat,cities.dnipro.lng,13.60],
+    [2.090,cities.dnipro.lat,cities.dnipro.lng,15.35], // street level
+    [2.170,cities.dnipro.lat,cities.dnipro.lng,15.35]  // final dwell
   ].map(s => ({p:s[0], lat:s[1], lng:s[2], zoom:s[3]}));
-
-  // ── Calm the cinematography ──────────────────────────────────────────────────────────────────
-  // The original keyframes slammed z≈6.7 (travel) → z≈15.3 (street) → back, FIVE times — that dramatic
-  // zoom in/out read as jerky, and pulling out to the country overview is what needed uncached tiles
-  // (the blank). Compress every keyframe's zoom into a gentler band: city peaks still reach car-LOD
-  // zoom (~14) so traffic shows; travel stays at ~9 (wide enough to cross distance, never bare country).
-  // Tune ZCALM_MIN/MAX to taste. (ZSRC_* = the original min/max the keyframes were authored in.)
-  const ZCALM_MIN = 9.0, ZCALM_MAX = 15.35, ZSRC_MIN = 5.7, ZSRC_MAX = 15.35;
-  stops.forEach(s => { s.zoom = ZCALM_MIN + (s.zoom - ZSRC_MIN) * (ZCALM_MAX - ZCALM_MIN) / (ZSRC_MAX - ZSRC_MIN); });
-  // ─────────────────────────────────────────────────────────────────────────────────────────────
 
   const routeEnd = stops[stops.length - 1].p;
   const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
@@ -3258,7 +3262,7 @@ body{
       // Zoom follows MUCH slower than the pan on purpose → "fly first, then zoom in": the camera reaches
       // the city at a wide zoom and only creeps toward max detail if you linger, so the journey is mostly
       // flown at mid zoom (not maxed). Bigger = enters max even slower / spends even less time maxed.
-      const ZOOM_TAU_MS  = 2400;   // zoom in/out follow time-constant (lags pan → fly-then-zoom, but reaches close city detail when you settle)
+      const ZOOM_TAU_MS  = 1500;   // zoom follow time-constant (slightly lags pan for fly-then-zoom; responsive enough to reach the street-level peak. Gentleness now comes from the spread-out keyframe ramp, not lag.)
       const PACE_LOADING = 0.40;   // ease multiplier while tiles are still streaming
       // ───────────────────────────────────────────────────────────────────────────────────────
 
