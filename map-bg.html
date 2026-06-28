@@ -3248,54 +3248,44 @@ body{
       // even without internal scroll events.
       if(typeof window.__journeyProgress === 'number') updateTarget();
 
-      const dLat = target.lat - camera.lat;
-      const dLng = target.lng - camera.lng;
-      const dZoom = target.zoom - camera.zoom;
-      const distance = Math.hypot(dLat, dLng);
+      // ───────────────────────── CAMERA CALIBRATION (the only knobs) ─────────────────────────
+      // The `stops` keyframes ALREADY encode the whole cinematography (pull back to a wide view between
+      // cities, then zoom in on arrival), interpolated with smoothstep in targetFromProgress(). So the
+      // camera's only job is to SMOOTHLY follow that interpolated target — a single time-constant
+      // exponential ease, frame-rate independent, no per-frame caps, no velocity hacks, no stepping.
+      //   • bigger TAU = slower / calmer follow.  • zoom has its own (gentler) TAU than the pan.
+      //   • PACE_LOADING stretches the time-constant while tiles stream so the camera can't outrun
+      //     tile loading (and blank the map); 1.0 = full speed.
+      const PAN_TAU_MS   = 1100;   // fly (pan) follow time-constant
+      const ZOOM_TAU_MS  = 1500;   // zoom in/out follow time-constant (bigger = gentler zoom)
+      const PACE_LOADING = 0.40;   // ease multiplier while tiles are still streaming
+      // ───────────────────────────────────────────────────────────────────────────────────────
 
-      // Restored reliable zoom engine from the last stable map version:
-      // travel wide first, then zoom in only when centered.
-      // The scroll-velocity cap now decays after scrolling stops, so zoom cannot get stuck.
-      const idleMs = performance.now() - lastProgressTime;
-      const effectiveScrollVelocity = idleMs > 90
-        ? scrollVelocity * Math.exp(-(idleMs - 90) / 180)
-        : scrollVelocity;
-
-      if(idleMs > 520) scrollVelocity = 0;
-
-      // "Zoom out a bit less" between cities: keep a higher floor zoom during the fly so the camera
-      // crosses fewer zoom levels (shorter zoom-in on arrival → renders sooner) and traffic stays
-      // partly visible instead of dropping to the bare country overview.
-      const travelZoomCap = distance > 2.4 ? 8.2 : distance > 1.2 ? 8.9 : distance > .48 ? 10.2 : distance > .16 ? 11.8 : 18;
-      const fastScrollCap = effectiveScrollVelocity > 0.00024 ? 11.7 : 18;
-      const effectiveZoom = Math.min(target.zoom, travelZoomCap, fastScrollCap);
-
-      const zDelta = effectiveZoom - camera.zoom;
-
-      // ───────────────────────── CAMERA CALIBRATION (tune these) ─────────────────────────
-      // Per-frame caps at ~60fps. Lower = gentler/slower motion. PACE_LOADING slows the camera
-      // while tiles are still streaming so it can't outrun tile loading and blank the map.
-      const PAN_MAX_LAT  = 0.011;                 // top N/S pan speed (lower = calmer fly)
-      const PAN_MAX_LNG  = 0.014;                 // top E/W pan speed
-      const PAN_ACCEL    = 0.032;                 // how hard it accelerates toward target
-      const ZOOM_MAX     = reduced ? 0.006 : 0.009;  // top zoom-in/out speed (lower = gentler zoom)
-      const ZOOM_ACCEL   = 0.034;                 // zoom acceleration
-      const PACE_LOADING = 0.30;                  // speed multiplier while tiles stream
-      // ───────────────────────────────────────────────────────────────────────────────────
+      const _now = performance.now();
+      const fdt = Math.min(64, Math.max(8, _now - (TRAFFIC.lastEaseTs || _now)));
+      TRAFFIC.lastEaseTs = _now;
 
       let tilesReady = true;
       try{
         tilesReady = (typeof map.areTilesLoaded === 'function') ? map.areTilesLoaded()
                    : (typeof map.loaded === 'function') ? map.loaded() : true;
       }catch(e){}
-      const pace = tilesReady ? 1 : PACE_LOADING;
-      camera.lat  = stepToward(camera.lat,  target.lat,    Math.min(Math.max(Math.abs(dLat)  * PAN_ACCEL,  0.000008), PAN_MAX_LAT) * pace);
-      camera.lng  = stepToward(camera.lng,  target.lng,    Math.min(Math.max(Math.abs(dLng)  * PAN_ACCEL,  0.000008), PAN_MAX_LNG) * pace);
-      camera.zoom = stepToward(camera.zoom, effectiveZoom, Math.min(Math.max(Math.abs(zDelta) * ZOOM_ACCEL, 0.00040), ZOOM_MAX) * pace);
+      const pace  = tilesReady ? 1 : PACE_LOADING;
+      const kPan  = 1 - Math.exp(-(fdt * pace) / PAN_TAU_MS);
+      const kZoom = 1 - Math.exp(-(fdt * pace) / ZOOM_TAU_MS);
 
-      if(Math.abs(camera.lat - target.lat) < 0.00001) camera.lat = target.lat;
-      if(Math.abs(camera.lng - target.lng) < 0.00001) camera.lng = target.lng;
-      if(Math.abs(camera.zoom - effectiveZoom) < 0.001) camera.zoom = effectiveZoom;
+      camera.lat  += (target.lat  - camera.lat)  * kPan;
+      camera.lng  += (target.lng  - camera.lng)  * kPan;
+      camera.zoom += (target.zoom - camera.zoom) * kZoom;
+
+      // snap when essentially arrived (prevents endless sub-pixel easing)
+      if(Math.abs(target.lat  - camera.lat)  < 0.00001) camera.lat  = target.lat;
+      if(Math.abs(target.lng  - camera.lng)  < 0.00001) camera.lng  = target.lng;
+      if(Math.abs(target.zoom - camera.zoom) < 0.001)   camera.zoom = target.zoom;
+
+      // debug instrumentation (read by the e2b calibration harness; harmless in prod)
+      window.__camZoom = camera.zoom; window.__camLat = camera.lat; window.__camLng = camera.lng;
+      window.__camTargetZoom = target.zoom;
 
       // Did the camera actually move this frame? This drives BOTH the map jump AND (critically) the
       // traffic redraw below — so the cars are re-projected on every frame the map moves and can never
