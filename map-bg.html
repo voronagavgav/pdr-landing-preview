@@ -287,7 +287,6 @@ body{
   const cities = {
     kyiv:    {lat:50.44765,lng:30.52295},  // Khreshchatyk / Maidan area
     odesa:   {lat:46.48535,lng:30.73820},  // Deribasivska / city centre
-    lviv:    {lat:49.84185,lng:24.03155},  // Rynok / old town
     kharkiv: {lat:50.00465,lng:36.23215},  // Sumska / Freedom Square
     dnipro:  {lat:48.46490,lng:35.04690}   // Yavornytskoho avenue
   };
@@ -323,17 +322,15 @@ body{
   };
 
   const CITY_STORIES = {
-    kyiv:    {title:'Kyiv',    line:'Wide avenues, bridges and central driving scenarios around Khreshchatyk.',       range:[.090,.318]},
-    odesa:   {title:'Odesa',   line:'Coastal city streets, roundabouts and denser center traffic near Deribasivska.',   range:[.374,.584]},
-    lviv:    {title:'Lviv',    line:'Compact old-town streets with slower, tighter route movement.',                    range:[.648,.856]},
-    kharkiv: {title:'Kharkiv', line:'Longer avenues and broader intersections around the city center.',                 range:[.934,1.138]},
-    dnipro:  {title:'Dnipro',  line:'River-city driving with bridge approaches and main avenue traffic.',               range:[1.198,1.360]}
+    kyiv:    {title:'Kyiv',    line:'Wide avenues, bridges and central driving scenarios around Khreshchatyk.',       range:[.090,.330]},
+    odesa:   {title:'Odesa',   line:'Coastal city streets, roundabouts and denser center traffic near Deribasivska.',   range:[.470,.660]},
+    kharkiv: {title:'Kharkiv', line:'Longer avenues and broader intersections around the city center.',                 range:[.835,1.045]},
+    dnipro:  {title:'Dnipro',  line:'River-city driving with bridge approaches and main avenue traffic.',               range:[1.150,1.285]}
   };
 
   const CITY_TRAFFIC_PROFILES = {
     kyiv:    {density:1.10, majorBias:1.22, localBias:.92, centerPull:1.18, majorSpeed:9.6, localSpeed:6.7},
     odesa:   {density:1.00, majorBias:1.10, localBias:.96, centerPull:1.05, majorSpeed:8.8, localSpeed:6.2},
-    lviv:    {density:.88, majorBias:.96, localBias:1.08, centerPull:1.24, majorSpeed:7.6, localSpeed:5.7},
     kharkiv: {density:1.04, majorBias:1.30, localBias:.86, centerPull:.98, majorSpeed:10.2, localSpeed:6.9},
     dnipro:  {density:1.02, majorBias:1.24, localBias:.90, centerPull:1.05, majorSpeed:9.8, localSpeed:6.8}
   };
@@ -351,37 +348,29 @@ body{
   const stops = [
     /* Ukraine overview, then Kyiv approach and street zoom */
     [0.000,48.62,31.20,5.70], [0.060,48.62,31.20,5.70],
-    [0.112,cities.kyiv.lat,cities.kyiv.lng,6.70],
-    [0.150,cities.kyiv.lat,cities.kyiv.lng,10.60],
-    [0.215,cities.kyiv.lat,cities.kyiv.lng,15.35], [0.255,cities.kyiv.lat,cities.kyiv.lng,15.35],
-    [0.295,cities.kyiv.lat,cities.kyiv.lng,10.60], [0.325,cities.kyiv.lat,cities.kyiv.lng,6.70],
+    [0.120,cities.kyiv.lat,cities.kyiv.lng,6.70],
+    [0.175,cities.kyiv.lat,cities.kyiv.lng,10.60],
+    [0.250,cities.kyiv.lat,cities.kyiv.lng,15.35], [0.300,cities.kyiv.lat,cities.kyiv.lng,15.35],
+    [0.350,cities.kyiv.lat,cities.kyiv.lng,8.20],
 
-    /* Kyiv → Odesa: pull back, travel wide, center, then zoom */
-    [0.356,48.74,30.22,6.70],
-    [0.392,cities.odesa.lat,cities.odesa.lng,6.70],
-    [0.430,cities.odesa.lat,cities.odesa.lng,10.55],
-    [0.492,cities.odesa.lat,cities.odesa.lng,15.30], [0.532,cities.odesa.lat,cities.odesa.lng,15.30],
-    [0.572,cities.odesa.lat,cities.odesa.lng,10.45], [0.602,cities.odesa.lat,cities.odesa.lng,6.70],
+    /* Kyiv → Odesa: long, gentle travel south, then street zoom */
+    [0.420,48.55,30.62,6.40],
+    [0.470,cities.odesa.lat,cities.odesa.lng,6.70],
+    [0.520,cities.odesa.lat,cities.odesa.lng,10.55],
+    [0.595,cities.odesa.lat,cities.odesa.lng,15.30], [0.645,cities.odesa.lat,cities.odesa.lng,15.30],
+    [0.695,cities.odesa.lat,cities.odesa.lng,8.00],
 
-    /* Odesa → Lviv: inland wide travel first, then street zoom */
-    [0.635,48.64,28.52,6.70],
-    [0.668,cities.lviv.lat,cities.lviv.lng,6.70],
-    [0.706,cities.lviv.lat,cities.lviv.lng,10.60],
-    [0.768,cities.lviv.lat,cities.lviv.lng,15.35], [0.807,cities.lviv.lat,cities.lviv.lng,15.35],
-    [0.846,cities.lviv.lat,cities.lviv.lng,10.45], [0.875,cities.lviv.lat,cities.lviv.lng,6.70],
+    /* Odesa → Kharkiv: the longest leg — extra room, wide travel, then approach */
+    [0.770,48.20,33.50,6.10],
+    [0.835,cities.kharkiv.lat,cities.kharkiv.lng,6.70],
+    [0.885,cities.kharkiv.lat,cities.kharkiv.lng,10.55],
+    [0.960,cities.kharkiv.lat,cities.kharkiv.lng,15.25], [1.010,cities.kharkiv.lat,cities.kharkiv.lng,15.25],
+    [1.060,cities.kharkiv.lat,cities.kharkiv.lng,8.30],
 
-    /* Lviv → Kharkiv: cross-country at wide zoom, then approach and zoom */
-    [0.915,49.18,30.02,6.70],
-    [0.956,cities.kharkiv.lat,cities.kharkiv.lng,6.70],
-    [0.994,cities.kharkiv.lat,cities.kharkiv.lng,10.55],
-    [1.056,cities.kharkiv.lat,cities.kharkiv.lng,15.25], [1.095,cities.kharkiv.lat,cities.kharkiv.lng,15.25],
-    [1.132,cities.kharkiv.lat,cities.kharkiv.lng,10.40], [1.160,cities.kharkiv.lat,cities.kharkiv.lng,6.75],
-
-    /* Kharkiv → Dnipro: short wide transition, then final main street zoom */
-    [1.190,49.12,35.22,6.75],
-    [1.220,cities.dnipro.lat,cities.dnipro.lng,6.75],
-    [1.257,cities.dnipro.lat,cities.dnipro.lng,10.70],
-    [1.320,cities.dnipro.lat,cities.dnipro.lng,15.35], [1.360,cities.dnipro.lat,cities.dnipro.lng,15.35]
+    /* Kharkiv → Dnipro: short, smooth hop, then final main street zoom */
+    [1.115,49.22,35.62,7.20],
+    [1.165,cities.dnipro.lat,cities.dnipro.lng,10.70],
+    [1.235,cities.dnipro.lat,cities.dnipro.lng,15.35], [1.285,cities.dnipro.lat,cities.dnipro.lng,15.35]
   ].map(s => ({p:s[0], lat:s[1], lng:s[2], zoom:s[3]}));
 
   // ── Calm the cinematography ──────────────────────────────────────────────────────────────────
@@ -615,7 +604,6 @@ body{
     const CITY_ORDER = [
       ['kyiv', cities.kyiv],
       ['odesa', cities.odesa],
-      ['lviv', cities.lviv],
       ['kharkiv', cities.kharkiv],
       ['dnipro', cities.dnipro]
     ];
