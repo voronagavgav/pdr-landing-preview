@@ -723,6 +723,18 @@ section{position:relative}
 .section-head h2{font-size:clamp(1.7rem,4.4vw,2.45rem);margin-bottom:.4em;letter-spacing:-.01em;color:var(--ink)}
 .section-head p{color:var(--muted);font-size:1.06rem}
 @media(min-width:980px){.section-pad{padding:104px 0}}
+/* Journey runway — open "driving" bands before each city arrival so the map camera has more scroll
+   distance to fly across the country between cities (calmer fly, less rushed). Desktop-only: matches the
+   living map's gate (min-width:760 + min-height:600); hidden under reduced-motion/transparency (map off)
+   and on phones (no map to fill the band). Tune ONE knob: --journey-runway. */
+:root{ --journey-runway:40vh; }
+.journey-gap{ display:none; }
+@media (min-width:760px) and (min-height:600px){
+  .journey-gap{ display:block; height:var(--journey-runway); }
+  .journey-gap.short{ height:calc(var(--journey-runway) * .5); }
+}
+@media (prefers-reduced-motion: reduce){ .journey-gap{ display:none !important; } }
+@media (prefers-reduced-transparency: reduce){ .journey-gap{ display:none !important; } }
 
 /* ---------- how it works (opaque cards on an e2 glass TRAY) ---------- */
 .steps{display:grid;gap:20px}
@@ -1290,6 +1302,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 </section>
 
 <!-- ============================ HOW IT WORKS + PROGRESS (merged) ============================ -->
+<div class="journey-gap" aria-hidden="true"></div>
 <section class="section-pad" id="game" aria-labelledby="game-h">
   <div class="wrap">
     <div class="section-head reveal">
@@ -1541,6 +1554,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 </section>
 
 <!-- ============================ PRICING ============================ -->
+<div class="journey-gap short" aria-hidden="true"></div>
 <section class="section-pad" id="pricing" aria-labelledby="price-h">
   <div class="wrap">
     <div class="section-head reveal">
@@ -1611,6 +1625,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
 </section>
 
 <!-- ============================ FINAL CTA ============================ -->
+<div class="journey-gap" aria-hidden="true"></div>
 <section class="section-pad final zone" id="final" aria-labelledby="final-h" style="--zone-hue:158 50% 80%">
   <div class="wrap">
     <div class="solid final-card reveal">
