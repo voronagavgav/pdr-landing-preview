@@ -69,7 +69,9 @@ body{
   position:absolute;
   inset:0;
   z-index:1;
-  background:var(--pastel-mint);
+  /* Match the map's own land/base colour (#f3f6ee) so a momentarily-missing tile during a fast zoom
+     blends into the surrounding land instead of flashing a contrasting mint void (softened by the glass). */
+  background:#f3f6ee;
   outline:0;
 }
 #traffic{
@@ -562,7 +564,7 @@ body{
       // Faster perceived rendering: snap tiles in (was an 800ms cross-fade that read as "slow to
       // render" during the fly), don't render wrapped world copies, and skip MSAA (invisible behind
       // the frosted glass, but a real GPU saving).
-      fadeDuration:140,
+      fadeDuration:0,   // snap tiles to full opacity the instant they load — no mid-fade "faint/disappearing" tiles during a fast zoom
       renderWorldCopies:false,
       refreshExpiredTiles:false,
       maxTileCacheSize:3000,
