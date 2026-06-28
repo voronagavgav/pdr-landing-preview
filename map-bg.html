@@ -3268,7 +3268,10 @@ body{
       // the city at a wide zoom and only creeps toward max detail if you linger, so the journey is mostly
       // flown at mid zoom (not maxed). Bigger = enters max even slower / spends even less time maxed.
       const ZOOM_TAU_MS  = 700;    // zoom follow time-constant — responsive so the camera actually REACHES the street-level keyframes (heavy lag was the bug: it never caught up). Calm/gentle now comes from the spread-out keyframe ramp + wide travel keyframes, NOT from lag. Still slightly > pan so zoom trails the fly a touch (fly-then-zoom).
-      const PACE_LOADING = 0.40;   // ease multiplier while tiles are still streaming
+      const PACE_LOADING = 0.80;   // ease multiplier while tiles stream — kept HIGH so the tile-pace no
+                                   // longer caps how far cities zoom in (it was stalling the climb to street
+                                   // zoom at ~12). Blank is now guarded by the prewarm (city street tiles
+                                   // are pre-cached), so the camera no longer needs to crawl for tiles.
       // ───────────────────────────────────────────────────────────────────────────────────────
 
       const _now = performance.now();
