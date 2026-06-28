@@ -1931,6 +1931,13 @@ body{
 
       smoothMapApplied = true;
 
+      // DISABLED: the per-layer zoom-opacity fades + minzoom-lowering made the map build up "layer by
+      // layer" on zoom (a stepped/banded look) instead of feeling smooth. Off = standard MapLibre zoom
+      // rendering (smooth) with our custom colours preserved (those are applied separately). The console
+      // stays clean because we now set no opacity expressions at all. Flip to true + re-tune to revisit.
+      const SMOOTH_LAYER_FADES = false;
+      if(!SMOOTH_LAYER_FADES) return;
+
       for(const layer of style.layers){
         if(!layer || !layer.id || layer.type === 'background') continue;
 
@@ -3268,12 +3275,12 @@ body{
       // ───────────────────────── CAMERA CALIBRATION (tune these) ─────────────────────────
       // Per-frame caps at ~60fps. Lower = gentler/slower motion. PACE_LOADING slows the camera
       // while tiles are still streaming so it can't outrun tile loading and blank the map.
-      const PAN_MAX_LAT  = 0.018;                 // top N/S pan speed (was 0.034)
-      const PAN_MAX_LNG  = 0.024;                 // top E/W pan speed (was 0.044)
-      const PAN_ACCEL    = 0.040;                 // how hard it accelerates toward target (was .044)
-      const ZOOM_MAX     = reduced ? 0.009 : 0.014;  // top zoom-in/out speed (was reduced?.016:.026)
-      const ZOOM_ACCEL   = 0.045;                 // zoom acceleration (was .055)
-      const PACE_LOADING = 0.30;                  // speed multiplier while tiles stream (was .45)
+      const PAN_MAX_LAT  = 0.011;                 // top N/S pan speed (lower = calmer fly)
+      const PAN_MAX_LNG  = 0.014;                 // top E/W pan speed
+      const PAN_ACCEL    = 0.032;                 // how hard it accelerates toward target
+      const ZOOM_MAX     = reduced ? 0.006 : 0.009;  // top zoom-in/out speed (lower = gentler zoom)
+      const ZOOM_ACCEL   = 0.034;                 // zoom acceleration
+      const PACE_LOADING = 0.30;                  // speed multiplier while tiles stream
       // ───────────────────────────────────────────────────────────────────────────────────
 
       let tilesReady = true;
