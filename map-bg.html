@@ -3267,7 +3267,10 @@ body{
       //   • PACE_LOADING stretches the time-constant while tiles stream so the camera can't outrun
       //     tile loading (and blank the map); 1.0 = full speed.
       const PAN_TAU_MS   = 1300;   // fly (pan) follow time-constant
-      const ZOOM_TAU_MS  = 1700;   // zoom in/out follow time-constant (bigger = gentler zoom)
+      // Zoom follows MUCH slower than the pan on purpose → "fly first, then zoom in": the camera reaches
+      // the city at a wide zoom and only creeps toward max detail if you linger, so the journey is mostly
+      // flown at mid zoom (not maxed). Bigger = enters max even slower / spends even less time maxed.
+      const ZOOM_TAU_MS  = 3200;   // zoom in/out follow time-constant (was 1700)
       const PACE_LOADING = 0.40;   // ease multiplier while tiles are still streaming
       // ───────────────────────────────────────────────────────────────────────────────────────
 
