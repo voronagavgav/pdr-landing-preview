@@ -176,7 +176,7 @@ button{font-family:inherit;cursor:pointer}
    the moving city → the liquid-glass effect becomes alive. Gated to desktop + non-reduced-motion. */
 .mapbg{
   position:fixed; inset:0; z-index:-10; overflow:hidden; pointer-events:none;
-  opacity:0; transition:opacity 1.2s var(--calm-ease);
+  opacity:0; transition:opacity .6s var(--calm-ease);
 }
 .mapbg.is-on{ opacity:1; }
 .mapbg-frame{
@@ -2081,16 +2081,27 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     // Start the map already at the hero city (first anchor) so it skips overview tiles.
     var startHash = '#p=' + (MAP_ANCHORS[0] ? MAP_ANCHORS[0].jp : 0.173);
     var src = frame.getAttribute('data-src') + startHash;
-    // Loading speed: let the page's own hero paint first, then load the map during idle time.
+    // Loading speed: WARM the self-hosted MapLibre download NOW so the ~1 MB lands in parallel with the
+    // hero paint and is HTTP-cache-warm by the time the iframe boots. Only reached on capable devices
+    // (loadFrameOnce runs behind allowed()), so phones / data-saver never fetch it. Same-origin → the
+    // iframe's <script src="vendor/maplibre-gl.js"> reuses this cached response (no double download).
+    ['vendor/maplibre-gl.js', 'vendor/maplibre-gl.css'].forEach(function(href){
+      try{
+        var l = document.createElement('link');
+        l.rel = 'prefetch'; l.as = /\.css$/.test(href) ? 'style' : 'script'; l.href = href;
+        document.head.appendChild(l);
+      }catch(e){}
+    });
     var go = function(){
       frame.src = src;
       // watchdog: if the iframe never fires `load` (missing file, hung network), fall back gracefully.
       watchdog = setTimeout(function(){ if(!settled){ settled = true; mapFailed(); } }, 9000);
     };
+    // Boot the iframe right after the hero paints — no long idle wait (the JS is already prefetching).
     if('requestIdleCallback' in window){
-      requestIdleCallback(go, { timeout: 1600 });
+      requestIdleCallback(go, { timeout: 300 });
     }else{
-      setTimeout(go, document.readyState === 'complete' ? 60 : 400);
+      setTimeout(go, document.readyState === 'complete' ? 30 : 200);
     }
   }
 
