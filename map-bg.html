@@ -577,7 +577,9 @@ body{
       }
     });
     const trafficCanvas = document.getElementById('traffic');
-    const trafficCtx = trafficCanvas.getContext('2d', {alpha:true, desynchronized:true});
+    // NOTE: no `desynchronized:true` — it bypasses compositor vsync, which causes visible TEARING on
+    // this scroll-driven background (the canvas presents out of step with the WebGL map beneath it).
+    const trafficCtx = trafficCanvas.getContext('2d', {alpha:true});
     // "mobileLike" = the lighter traffic/quality profile. It now covers tablets & any touch device
     // (the only non-desktop devices that load the map at all), not just narrow widths — fewer cars,
     // fewer lanes, gentler frame rate, easier on the battery.
@@ -3208,7 +3210,12 @@ body{
       if(Math.abs(camera.lng - target.lng) < 0.00001) camera.lng = target.lng;
       if(Math.abs(camera.zoom - effectiveZoom) < 0.001) camera.zoom = effectiveZoom;
 
-      if(Math.abs(camera.lat-last.lat) > 0.00001 || Math.abs(camera.lng-last.lng) > 0.00001 || Math.abs(camera.zoom-last.zoom) > 0.0001){
+      // Did the camera actually move this frame? This drives BOTH the map jump AND (critically) the
+      // traffic redraw below — so the cars are re-projected on every frame the map moves and can never
+      // detach from the roads during a fast scroll/zoom (the cause of the "torn" look). When the camera
+      // is settled, the traffic falls back to its ~30fps throttle to save GPU.
+      const cameraMoved = Math.abs(camera.lat-last.lat) > 0.00001 || Math.abs(camera.lng-last.lng) > 0.00001 || Math.abs(camera.zoom-last.zoom) > 0.0001;
+      if(cameraMoved){
         map.jumpTo({center:[camera.lng, camera.lat], zoom:camera.zoom});
         last = {...camera};
       }
@@ -3221,7 +3228,7 @@ body{
       const rfm = TRAFFIC.realFrameMs || 16;
       const baseInterval = mobileLike ? 42 : 32;   // ~24fps on tablets/touch (battery), ~30fps desktop
       const TRAFFIC_INTERVAL = reduced ? 90 : (rfm > 40 ? 72 : rfm > 28 ? 52 : rfm > 22 ? 40 : baseInterval);
-      if(trafficNow - TRAFFIC.lastFrame >= TRAFFIC_INTERVAL - 2){
+      if(cameraMoved || trafficNow - TRAFFIC.lastFrame >= TRAFFIC_INTERVAL - 2){
         const rawFrameMs = Math.max(8, trafficNow - TRAFFIC.lastFrame);
         const trafficDt = Math.min(.080, rawFrameMs / 1000);
         TRAFFIC.smoothFrameMs = TRAFFIC.smoothFrameMs
