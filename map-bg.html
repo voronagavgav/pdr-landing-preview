@@ -270,6 +270,10 @@ body{
 </main>
 <!-- MapLibre 5.24.0 self-hosted (vendor/) — same-origin: no CDN DNS/TLS/redirect hop, no supply-chain risk, HTTP-cache-warm via the parent's prefetch. -->
 <script src="vendor/maplibre-gl.js"></script>
+<!-- PMTiles 3.2.1 self-hosted (vendor/) — lets MapLibre read the self-hosted single-file vector tile
+     archive (./map/cities.pmtiles) via HTTP range reads, killing the OpenFreeMap CDN round-trips on mobile.
+     If this lib (or the local assets) are missing, the map falls back to the live OpenFreeMap style. -->
+<script src="vendor/pmtiles.js"></script>
 <script>
 (function(){
   'use strict';
@@ -539,7 +543,7 @@ body{
     }
   }
 
-  function start(){
+  async function start(){
     if(!window.maplibregl){
       loading.querySelector('.loading-sub').textContent = 'Map library did not load. Check internet access.';
       return;
@@ -573,9 +577,45 @@ body{
                     || window.matchMedia('(pointer: coarse)').matches
                     || lowPowerDevice;
 
+    // ===== SELF-HOSTED MAP TILES (PMTiles) with a live OpenFreeMap FALLBACK ============================
+    // By default the whole basemap loads from same-origin ./map/ — style.json + a single-file PMTiles
+    // vector archive (HTTP range-read) + glyphs + sprite — so mobile never waits on the OpenFreeMap CDN.
+    // A pre-flight probe confirms those assets exist AND the origin supports range reads BEFORE we commit;
+    // if ANYTHING is missing/broken (or the pmtiles lib didn't load) we fall straight back to the live
+    // OpenFreeMap positron style. Same OpenMapTiles schema + same style JSON → identical look either way.
+    // Choosing the style ONCE here (not via a later setStyle) keeps every existing load/error/traffic
+    // handler running exactly as before.
+    const OFM_STYLE   = 'https://tiles.openfreemap.org/styles/positron';
+    const LOCAL_STYLE = './map/style.json';
+    let chosenStyle = OFM_STYLE;
+    window.__mapUseLocalTiles = false;
+    window.__mapTileSource = 'openfreemap';
+    try{
+      if(typeof pmtiles !== 'undefined' && pmtiles && pmtiles.Protocol){
+        const styleOk = await fetch(LOCAL_STYLE, {cache:'force-cache'}).then(r => r.ok).catch(() => false);
+        let tilesOk = false;
+        if(styleOk){
+          // pmtiles needs HTTP range reads — require a 206 (and verify the PMTiles magic) so we never
+          // pull the whole archive here and never pick local tiles on a server that can't range-read.
+          tilesOk = await fetch('./map/cities.pmtiles', {headers:{Range:'bytes=0-6'}}).then(async r => {
+            if(r.status !== 206) return false;
+            const b = new Uint8Array(await r.arrayBuffer());
+            return new TextDecoder().decode(b.slice(0,7)) === 'PMTiles';
+          }).catch(() => false);
+        }
+        if(styleOk && tilesOk){
+          maplibregl.addProtocol('pmtiles', new pmtiles.Protocol().tile);
+          chosenStyle = LOCAL_STYLE;
+          window.__mapUseLocalTiles = true;
+          window.__mapTileSource = 'self-hosted-pmtiles';
+        }
+      }
+    }catch(e){ window.__mapUseLocalTiles = false; window.__mapTileSource = 'openfreemap'; }
+    // ===================================================================================================
+
     const map = new maplibregl.Map({
       container:'map',
-      style:'https://tiles.openfreemap.org/styles/positron',
+      style: chosenStyle,
       center:[initial.lng, initial.lat],
       zoom:initial.zoom,
       minZoom:3,
@@ -3158,6 +3198,10 @@ body{
     function prewarmJourneyTiles(){
       try{
         if(window.__journeyTilesWarmed) return; window.__journeyTilesWarmed = true;
+        // Self-hosted mode: tiles come from the local PMTiles archive via range reads, not from the CDN
+        // tile URLs — prewarming those URLs would re-download bytes we never use (the very mobile cost
+        // we're killing), so skip it entirely. (Fallback/OpenFreeMap mode keeps the prewarm.)
+        if(window.__mapUseLocalTiles) return;
         const conn = navigator.connection; if(conn && conn.saveData) return;
         const style = map.getStyle(); if(!style || !style.sources) return;
         let tmpl = null;
@@ -3196,6 +3240,25 @@ body{
         for(let j=0;j<CONC;j++) pump();
       }catch(e){ window.__journeyTilesErr = String(e && e.message || e); }
     }
+
+    // Runtime safety net: if the self-hosted vector source itself errors at runtime (e.g. range reads
+    // unexpectedly blocked) despite the pre-flight passing, swap to the live OpenFreeMap positron style
+    // ONCE so the map can never stay blank. Missing individual tiles do NOT trigger this (PMTiles returns
+    // an empty tile, not an error), and a missing glyph/sprite won't either — only a real source failure.
+    let __ofmFellBack = false;
+    map.on('error', (e) => {
+      try{
+        if(!window.__mapUseLocalTiles || __ofmFellBack) return;
+        const srcId = e && e.sourceId;
+        const msg = String((e && e.error && e.error.message) || (e && e.error) || '').toLowerCase();
+        if(srcId === 'openmaptiles' || msg.indexOf('cities.pmtiles') >= 0 || msg.indexOf('pmtiles') >= 0){
+          __ofmFellBack = true;
+          window.__mapUseLocalTiles = false;
+          window.__mapTileSource = 'openfreemap-fallback';
+          try{ map.setStyle(OFM_STYLE); }catch(_){}
+        }
+      }catch(_){}
+    });
 
     map.on('load', () => {
       map.resize();
