@@ -3241,6 +3241,40 @@ body{
       }catch(e){ window.__journeyTilesErr = String(e && e.message || e); }
     }
 
+    // ── Background-prefetch the WHOLE self-hosted PMTiles archive into the HTTP cache after the page's
+    //    load event, so every subsequent tile range-read is served from local cache (instant) instead of
+    //    the network — this makes even a "softer parent" overzoom moment vanish once cached, and removes
+    //    the per-range latency on a fast scroll. Strictly conservative: self-hosted mode ONLY, never on
+    //    Save-Data / prefers-reduced-data / slow (2g) links, low request priority, fully non-blocking
+    //    (fires well after load so it can't hurt first paint / the initial mobile load we optimized).
+    function prefetchPmtilesArchive(){
+      try{
+        if(window.__pmtilesPrefetchStarted) return; window.__pmtilesPrefetchStarted = true;
+        if(!window.__mapUseLocalTiles){ window.__pmtilesPrefetch = 'skip:not-local'; return; }
+        const conn = navigator.connection;
+        if(conn){
+          if(conn.saveData){ window.__pmtilesPrefetch = 'skip:save-data'; return; }
+          if(/(slow-2g|2g|3g)/.test(conn.effectiveType || '')){ window.__pmtilesPrefetch = 'skip:slow-link'; return; }
+        }
+        try{ if(window.matchMedia && window.matchMedia('(prefers-reduced-data: reduce)').matches){ window.__pmtilesPrefetch = 'skip:reduced-data'; return; } }catch(_){}
+        window.__pmtilesPrefetch = 'fetching';
+        // default cache mode = a normal full GET that the browser stores; later pmtiles Range reads
+        // (206) are then served from that cached full response. `priority:'low'` deprioritizes it behind
+        // everything else (ignored harmlessly by engines that don't support the hint).
+        fetch('./map/cities.pmtiles', {priority:'low', mode:'same-origin'})
+          .then(r => (r && r.ok) ? r.arrayBuffer() : Promise.reject(new Error('bad status')))
+          .then(buf => { window.__pmtilesPrefetch = 'done:' + (buf ? buf.byteLength : 0); })
+          .catch(e => { window.__pmtilesPrefetch = 'err:' + (e && e.message || e); });
+      }catch(e){ window.__pmtilesPrefetch = 'err:' + (e && e.message || e); }
+    }
+    // Trigger after the load event (or immediately if already loaded), with a delay so first paint and
+    // the hero/MapLibre boot finish first. Self-perpetuating guard makes this run at most once.
+    (function schedulePrefetch(){
+      const go = () => setTimeout(prefetchPmtilesArchive, 2200);
+      if(document.readyState === 'complete') go();
+      else window.addEventListener('load', go, {once:true});
+    })();
+
     // Runtime safety net: if the self-hosted vector source itself errors at runtime (e.g. range reads
     // unexpectedly blocked) despite the pre-flight passing, swap to the live OpenFreeMap positron style
     // ONCE so the map can never stay blank. Missing individual tiles do NOT trigger this (PMTiles returns
