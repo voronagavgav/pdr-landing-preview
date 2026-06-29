@@ -1,0 +1,2212 @@
+<!-- @dsCard group="Лендінг" -->
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- progressive-enhancement flag: set BEFORE paint so reveal content is only JS-hidden when JS runs -->
+<script>document.documentElement.classList.add('js')</script>
+<title>Drivers School — Рідке скло / Liquid Glass</title>
+<meta name="description" content="Підготовка до теоретичного іспиту з ПДР. Усі офіційні питання, реальні дорожні ситуації та розумні тренування — спокійно, крок за кроком.">
+
+<!-- canonical + social + favicon -->
+<link rel="canonical" href="https://voronagavgav.github.io/pdr-landing-preview/variant-g.html">
+<meta name="theme-color" content="#FBFAF7">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Drivers School — Рідке скло / Liquid Glass">
+<meta property="og:description" content="Підготовка до теоретичного іспиту з ПДР. Усі офіційні питання, реальні дорожні ситуації та розумні тренування — спокійно, крок за кроком.">
+<meta property="og:url" content="https://voronagavgav.github.io/pdr-landing-preview/variant-g.html">
+<meta property="og:locale" content="uk_UA">
+<meta property="og:image" content="https://voronagavgav.github.io/pdr-landing-preview/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Drivers School — Рідке скло / Liquid Glass">
+<meta name="twitter:description" content="Підготовка до теоретичного іспиту з ПДР. Усі офіційні питання, реальні дорожні ситуації та розумні тренування — спокійно, крок за кроком.">
+<meta name="twitter:image" content="https://voronagavgav.github.io/pdr-landing-preview/og-image.png">
+<!-- inline on-brand favicon: «Світлик» traffic-light mark on a rounded slate tile -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='16'%20fill='%233a4a52'/%3E%3Ccircle%20cx='32'%20cy='18'%20r='8'%20fill='%23FFB89A'/%3E%3Ccircle%20cx='32'%20cy='34'%20r='8'%20fill='%23FFE08A'/%3E%3Ccircle%20cx='32'%20cy='50'%20r='8'%20fill='%239AD9B8'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Warm the living-map background's origins during idle so the iframe's first tiles arrive sooner -->
+<link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
+<link rel="dns-prefetch" href="https://tiles.openfreemap.org">
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="dns-prefetch" href="https://unpkg.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Nunito:wght@600;700&display=swap&subset=cyrillic,cyrillic-ext,latin" rel="stylesheet">
+
+<style>
+/* ============================================================
+   VARIANT G — "Рідке скло / Liquid Glass" (calm pastel · Apple-2025)
+   Pastel BLOBS behind glass that REFRACTS at the rim.
+   Frosted glass = cross-browser floor · SVG edge-lensing = Chromium
+   enhancement gated by .refraction-ok · dark slate text on light glass
+   only · reading content on near-opaque cards · soft green CTA glass.
+   ============================================================ */
+
+:root{
+  --bg-base:#FBFAF7;       /* warm off-white page — calm pastel field (à la variant F) */
+  --anchor:205 22% 56%;    /* SOFT muted teal-slate — faint shadow-ish tint behind hero glass only */
+  --ink:#1F2933;           /* slate — body text on opaque cards (NEVER #000) */
+  --muted:#46515D;         /* secondary text (>=4.5:1 on opaque card) */
+  --green-soft:#9AD9B8;    /* soft pastel green — CTA glass tint / success fills */
+  --green-deep:#226157;    /* deep green — ONLY green text/icons on white where contrast needed */
+  --green-ink:#173B30;     /* dark slate-green text used on green glass CTA */
+  --warn:#B4532E;          /* calm clear "wrong" (icon+label, never color alone) */
+  --warm-ink:#6a4a28;      /* tokenised warm text (format-chip, peach icon strokes) */
+  --amber:#8A5E0E;         /* tokenised rating amber — darkened for ≥4.5:1 on light cards (was #B07A12 / #C98A1E) */
+
+  /* glass tint (HSL parts so opacity is tunable) */
+  --glass-tint:200 50% 97%;          /* soft cool-white */
+  --glass-line:0 0% 100% / .55;      /* thin bright border */
+
+  --font-display:'Nunito',system-ui,'Segoe UI',Roboto,sans-serif;
+  --font-body:'Manrope',system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+
+  --radius-lg:34px;   /* section trays — biggest squircle */
+  --radius:30px;
+  --radius-md:22px;
+  --radius-sm:16px;
+  --radius-pill:999px;
+
+  --calm-ease:cubic-bezier(0.16,1,0.3,1);
+
+  /* floating drop shadow for glass panels */
+  --float:0 10px 34px hsl(210 40% 40% / .16);
+  --float-hi:0 18px 48px hsl(210 40% 40% / .20);
+
+  /* ---- ELEVATION SYSTEM (v3): tinted blue-slate multi-shadow, never black; light top-left ---- */
+  /* e1 — RESTING frosted chrome: chips, badges, small cards, footer, nav resting */
+  --e1-shadow:
+    0 1px 2px hsl(210 40% 38% / .10),
+    0 6px 16px hsl(210 40% 38% / .12);
+  --e1-blur: blur(7px) saturate(160%) brightness(106%);
+  --e1-fill: hsl(var(--glass-tint) / .55);
+  /* e2 — RAISED frosted panel: section trays, trust card, gamification cards, PRO, final CTA */
+  --e2-shadow:
+    0 1px 2px hsl(210 40% 38% / .10),
+    0 10px 30px hsl(210 42% 40% / .16),
+    0 2px 8px hsl(210 42% 40% / .10);
+  --e2-blur: blur(10px) saturate(175%) brightness(108%);
+  --e2-fill: hsl(var(--glass-tint) / .50);
+  /* e3 — HERO / SIGNATURE refraction (SVG lens only): hero quiz + readiness gauge */
+  --e3-shadow:
+    0 2px 4px hsl(210 40% 38% / .12),
+    0 18px 48px hsl(210 44% 40% / .22),
+    0 4px 14px hsl(210 44% 40% / .14);
+  --e3-blur: blur(6px) saturate(168%) brightness(133%);
+  --e3-fill: hsl(var(--glass-tint) / .28);   /* lens: transparent + BRIGHT clean glass (no chroma darkening) */
+
+  /* shared rim: bright top-left bevel + shaded bottom-right + top gloss. Reused on ALL tiers. */
+  --rim:
+    inset 0 1px 1px hsl(0 0% 100% / .85),
+    inset 1.5px 1.5px 2px hsl(0 0% 100% / .55),
+    inset -1.5px -1.5px 3px hsl(210 45% 55% / .20);
+  --rim-pill:
+    inset 0 1px 1px hsl(0 0% 100% / .75),
+    inset -1px -1px 2px hsl(210 45% 55% / .16);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:clip}
+body{
+  margin:0;
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:17px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+  background:var(--bg-base);
+}
+/* ---- CALM PASTEL FIELD on a FIXED layer (no background-attachment:fixed repaint) ----
+   very soft mint/sky/peach washes + ONE subtle contrast pool behind the hero glass
+   (top-right) so the lens still has a faint dark->light edge to bend. Soft, not colorful. */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;
+  background:
+    /* gentle LOCAL pool behind the hero #sample lens — light, must NOT read as a dark patch */
+    radial-gradient(26rem 22rem at 82% 6%,  hsl(var(--anchor) / .12), transparent 64%),
+    radial-gradient(46rem 46rem at 10% 12%, hsl(158 52% 80% / .26), transparent 62%),
+    radial-gradient(44rem 44rem at 92% 34%, hsl(202 56% 82% / .24), transparent 62%),
+    radial-gradient(48rem 48rem at 50% 98%, hsl(28 62% 86% / .22), transparent 62%);
+}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:700;line-height:1.18;margin:0;letter-spacing:-.005em}
+h3,h4{font-weight:600}
+p{margin:0}
+a{color:inherit;text-decoration:none}
+ul{margin:0;padding:0;list-style:none}
+img,svg{display:block}
+button{font-family:inherit;cursor:pointer}
+
+/* focus visibility floor — independent of glass */
+:focus-visible{outline:3px solid var(--green-deep);outline-offset:3px;border-radius:10px}
+
+.wrap{width:100%;max-width:1160px;margin:0 auto;padding:0 22px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* skip-to-content — offscreen until focused, then slides into the top-left */
+.skip{position:fixed;left:12px;top:12px;z-index:200;transform:translateY(-160%);
+  background:hsl(152 50% 84%);color:var(--green-ink);font-family:var(--font-display);font-weight:700;font-size:.95rem;
+  padding:.6em 1.1em;border-radius:var(--radius-pill);border:1px solid hsl(152 50% 70%);box-shadow:var(--float);
+  transition:transform .2s var(--calm-ease)}
+.skip:focus{transform:none}
+
+/* drifting blobs ON TOP of the gradient give the glass moving color to refract */
+/* very soft, low-opacity pastel drift — gentle moving color for the glass, stays calm */
+.drift{position:fixed;border-radius:50%;filter:blur(70px);z-index:-1;pointer-events:none;opacity:.30;will-change:transform}
+.drift.b1{width:42vw;height:42vw;max-width:560px;max-height:560px;background:hsl(158 50% 80%);top:-8vh;left:-6vw;animation:drift1 14s ease-in-out infinite}
+.drift.b2{width:38vw;height:38vw;max-width:520px;max-height:520px;background:hsl(202 56% 80%);top:12vh;right:-8vw;animation:drift2 16s ease-in-out infinite}
+.drift.b3{width:40vw;height:40vw;max-width:560px;max-height:560px;background:hsl(28 62% 84%);bottom:-12vh;left:18vw;animation:drift3 18s ease-in-out infinite}
+
+/* faint masked grid ONLY under the hero zone — fine high-contrast edges the lens can bend */
+.bg-detail{
+  position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.07;
+  background-image:
+    repeating-linear-gradient(0deg,  hsl(208 24% 46% / .5) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, hsl(208 24% 46% / .5) 0 1px, transparent 1px 40px);
+  -webkit-mask-image:radial-gradient(44rem 32rem at 80% 26%, #000 8%, transparent 72%);
+          mask-image:radial-gradient(44rem 32rem at 80% 26%, #000 8%, transparent 72%);
+}
+
+/* ===== LIVING MAP BACKGROUND ============================================================
+   A real Ukraine map + canvas traffic sim (map-bg.html) sits at the very back, driven by page
+   scroll. The pastel field (-3) and drift blobs (-1) tint it; the glass backdrop-filter refracts
+   the moving city → the liquid-glass effect becomes alive. Gated to desktop + non-reduced-motion. */
+.mapbg{
+  position:fixed; inset:0; z-index:-10; overflow:hidden; pointer-events:none;
+  opacity:0; transition:opacity .6s var(--calm-ease);
+}
+.mapbg.is-on{ opacity:1; }
+.mapbg-frame{
+  position:absolute; inset:-2vh -2vw; width:104vw; height:104vh; border:0; display:block;
+  filter:saturate(.84) brightness(1.03);
+  pointer-events:none;
+  transform:translateZ(0); backface-visibility:hidden;   /* own compositor layer → cheaper backdrop sampling */
+}
+/* veil keeps the map calm + text legible; tinted toward the page's pastel glass field.
+   --mapbg-veil (0=clear, ~.62=very soft) is driven by the Tweaks panel. */
+.mapbg-veil{
+  position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(58% 48% at 50% 32%, hsl(var(--glass-tint) / calc(var(--mapbg-veil,.46) * .4)), transparent 70%),
+    linear-gradient(180deg,
+      hsl(var(--glass-tint) / var(--mapbg-veil,.46)),
+      hsl(28 40% 96% / calc(var(--mapbg-veil,.46) * .9)));
+}
+/* WCAG 2.2.2 — stop/start the background motion. Small pastel-glass pill, bottom-right, shown ONLY
+   once the living map is capable (JS adds .show); keyboard-focusable; honours reduced-motion implicitly
+   (the map never loads there, so the control never appears). */
+.mapbg-toggle{
+  position:fixed; right:18px; bottom:18px; z-index:50; display:none; align-items:center; justify-content:center;
+  width:42px; height:42px; padding:0; border-radius:var(--radius-pill);
+  background:hsl(152 47% 83% / .92); color:var(--green-ink);
+  border:1px solid hsl(152 50% 99% / .7);
+  -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur);
+  box-shadow:var(--e1-shadow), var(--rim-pill);
+}
+.mapbg-toggle.show{ display:inline-flex; }
+.mapbg-toggle:hover{ background:hsl(152 50% 80% / .95); }
+.mapbg-toggle svg{ width:18px; height:18px; display:block; }
+.mapbg-toggle .ic-play{ display:none; }
+.mapbg-toggle.is-paused .ic-pause{ display:none; }
+.mapbg-toggle.is-paused .ic-play{ display:block; }
+@keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(3vw,4vh) scale(1.06)}}
+@keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-3vw,3vh) scale(1.05)}}
+@keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(2vw,-3vh) scale(1.07)}}
+
+/* ============================================================
+   LIQUID GLASS — frosted floor (cross-browser) + SVG refraction
+   (Chromium enhancement gated by .refraction-ok).
+   ============================================================ */
+/* ---- e2 is the DEFAULT .glass tier; .e1/.e3 step it down/up ---- */
+.glass{
+  position:relative;border-radius:var(--radius);
+  background:var(--e2-fill);
+  border:1px solid hsl(0 0% 100% / .60);
+  isolation:isolate;overflow:hidden;
+  box-shadow:var(--e2-shadow), var(--rim);
+}
+.glass::before{                                       /* frost layer */
+  content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+  -webkit-backdrop-filter:var(--e2-blur);
+          backdrop-filter:var(--e2-blur);
+}
+.glass.e1{ background:var(--e1-fill); box-shadow:var(--e1-shadow), var(--rim); border-radius:var(--radius-md); }
+.glass.e1::before{ -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur); }
+.glass.e3{ background:var(--e3-fill); box-shadow:var(--e3-shadow), var(--rim); }
+.glass.e3::before{ -webkit-backdrop-filter:var(--e3-blur); backdrop-filter:var(--e3-blur); }
+/* Rounded corners on panels + reading cards. (The squircle — corner-shape:superellipse(2) — was
+   dropped here: Chrome renders NO border on a bordered box with a superellipse corner-shape, so every
+   .glass/.solid panel lost its rim. `round` keeps the border continuous cross-browser; the squircle is
+   only safe on borderless surfaces, and none of these are.) */
+.glass,.solid{ corner-shape:round; }
+/* TRAY — biggest squircle + a 1px white→transparent top rim-light (section-edge treatment) */
+.tray{ border-radius:var(--radius-lg); padding:22px; }
+.tray>.tray-edge{ position:absolute; left:8%; right:8%; top:0; height:1px; z-index:4; pointer-events:none;
+  background:linear-gradient(90deg, transparent, hsl(0 0% 100% / .9), transparent); }
+@media(min-width:760px){ .tray{ padding:26px; } }
+/* mobile: drop the tray + gamification-card blur to a flat tinted fill — cuts blur layers on weak GPUs */
+@media(max-width:760px){
+  .glass.tray::before{ -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .glass.tray{ background:hsl(var(--glass-tint) / .62); }
+  .glass.game-card::before{ -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .glass.game-card{ background:hsl(var(--glass-tint) / .66); }
+}
+
+/* ---- calm ≤.10 pastel DEPTH POOL behind each glass zone (no extra blur) ---- */
+.zone{ position:relative; }
+.zone::before{
+  content:""; position:absolute; inset:-4% -2%; z-index:0; pointer-events:none;
+  background:radial-gradient(70% 60% at 30% 20%, hsl(var(--zone-hue,158 50% 80%) / .09), transparent 70%),
+            radial-gradient(60% 55% at 85% 80%, hsl(var(--zone-hue,158 50% 80%) / .06), transparent 72%);
+  -webkit-mask-image:radial-gradient(120% 100% at 50% 50%, #000 55%, transparent 100%);
+          mask-image:radial-gradient(120% 100% at 50% 50%, #000 55%, transparent 100%);
+}
+.zone.zone-faint::before{
+  background:radial-gradient(70% 60% at 30% 20%, hsl(var(--zone-hue,268 40% 84%) / .05), transparent 70%),
+            radial-gradient(60% 55% at 85% 80%, hsl(var(--zone-hue,268 40% 84%) / .04), transparent 72%);
+}
+.zone>*{ position:relative; z-index:1; }
+
+/* ---- CHIP VOCABULARY: one e1 frosted pill reused page-wide ---- */
+.chip-glass{
+  position:relative; isolation:isolate; overflow:hidden;
+  background:var(--e1-fill); border:1px solid hsl(0 0% 100% / .6);
+  box-shadow:var(--e1-shadow), var(--rim-pill);
+}
+.chip-glass::before{ content:""; position:absolute; inset:0; z-index:-1; border-radius:inherit;
+  -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur); }
+.chip-glass>*{ position:relative; z-index:1; }
+/* TOP-EDGE SPECULAR GLOSS arc — the bright streak across the upper rim */
+.glass::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
+  background:linear-gradient(135deg,
+    hsl(0 0% 100% / .55) 0%, hsl(0 0% 100% / .10) 18%, transparent 42%);
+  mix-blend-mode:screen;
+}
+/* SIGNATURE LENSES: add a curved top "dome" specular over the corner gloss — reads as real glass.
+   (On a calm low-contrast page the SVG refraction is subtle by nature, so the glassiness must come
+   from the highlight + rim, not the displacement.) */
+.glass.lens::after{
+  background:
+    radial-gradient(125% 80% at 50% -40%, hsl(0 0% 100% / .42), transparent 56%),
+    linear-gradient(135deg, hsl(0 0% 100% / .55) 0%, hsl(0 0% 100% / .10) 18%, transparent 42%);
+}
+/* Fresnel-style reflective edge — the rim catches more light (per liquid-glass-studio feature set);
+   a faint full-perimeter inner highlight reads as an environment reflection on the glass edge. */
+.glass.lens{box-shadow:var(--e3-shadow), var(--rim), inset 0 0 0 1px hsl(0 0% 100% / .26)}
+.glass>*{position:relative;z-index:3}
+/* SAFARI/FIREFOX refraction fallback: backdrop-filter:url() is Chromium-only, so refract a fixed-position
+   CLONE of the page's pastel field inside the lens via regular filter:url() (works everywhere). Hidden in
+   Chromium (.refraction-ok), which keeps the better LIVE backdrop refraction. */
+.glass.lens .lens-refract{position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;overflow:hidden}
+.glass.lens .lens-refract::before{content:"";position:absolute;inset:-30%;
+  background:
+    radial-gradient(22rem 18rem at 86% 22%, hsl(165 64% 86% / .32), transparent 60%),
+    radial-gradient(26rem 22rem at 82% 6%,  hsl(var(--anchor) / .10), transparent 64%),
+    radial-gradient(46rem 46rem at 10% 12%, hsl(158 52% 80% / .26), transparent 62%),
+    radial-gradient(44rem 44rem at 92% 34%, hsl(202 56% 82% / .24), transparent 62%),
+    radial-gradient(48rem 48rem at 50% 98%, hsl(28 62% 86% / .22), transparent 62%);
+  background-attachment:fixed;
+  filter:url(#lg) saturate(150%) brightness(116%);opacity:.6}
+.refraction-ok .glass.lens .lens-refract{display:none}
+/* SVG edge lensing — reserved for hero panel + nav capsule layer only (Chromium) */
+/* single #lg displacement + BRIGHT settings = clean light liquid glass.
+   (A 3-pass chromatic filter was tried and dropped — it rendered dark/muddy in Chrome.) */
+.refraction-ok .glass.lens::before{
+  -webkit-backdrop-filter:url(#lg) blur(6px) saturate(168%) brightness(133%);
+          backdrop-filter:url(#lg) blur(6px) saturate(168%) brightness(133%);
+}
+/* HERO panel pushed glassier than the shared default: brighter top dome + a lower-blur,
+   higher-vibrancy LIVE refraction so the warp actually reads. The readiness card keeps the
+   calmer default. (Kept in sync with the reduced-transparency/contrast kill rules below.) */
+#sample.glass.lens::after{
+  background:
+    radial-gradient(130% 86% at 50% -42%, hsl(0 0% 100% / .52), transparent 58%),
+    linear-gradient(135deg, hsl(0 0% 100% / .60) 0%, hsl(0 0% 100% / .12) 18%, transparent 44%);
+}
+.refraction-ok #sample.glass.lens::before{
+  -webkit-backdrop-filter:url(#lg) blur(5px) saturate(180%) brightness(140%);
+          backdrop-filter:url(#lg) blur(5px) saturate(180%) brightness(140%);
+}
+/* LIQUID-GLASS hover response on the hero panel: a single light-sweep glides across the glass.
+   It lives BELOW the text (z-index:2 < content z-index:3) and only animates a gradient's position +
+   opacity — the panel/text never transforms, so it stays crisp. Pairs with the pointer sheen. */
+#sample .glass-sweep{position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;
+  mix-blend-mode:screen;opacity:0;
+  background:linear-gradient(105deg,transparent 40%,hsl(0 0% 100% / .42) 50%,transparent 60%);
+  background-size:250% 100%;background-position:200% 0}
+@media(hover:hover) and (min-width:760px){
+  #sample:hover .glass-sweep{animation:heroSweep 1s var(--calm-ease)}
+}
+@keyframes heroSweep{0%{background-position:200% 0;opacity:0}
+  16%{opacity:.95}82%{opacity:.95}100%{background-position:-40% 0;opacity:0}}
+
+/* ---------- pointer-reactive specular sheen (gated by reduce-motion in JS+CSS) ---------- */
+.reactive{position:relative}
+.reactive .sheen{
+  position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;opacity:0;
+  background:radial-gradient(18rem 18rem at var(--mx,50%) var(--my,0%),
+    hsl(0 0% 100% / .55), hsl(0 0% 100% / .12) 30%, transparent 60%);
+  mix-blend-mode:screen;transition:opacity .35s var(--calm-ease)}
+.reactive:hover .sheen{opacity:1}
+
+/* ============================================================
+   MOTION (v3 addendum) — all GPU-cheap: transform / opacity / gradient.
+   (The periodic light-sweep + idle breathe shimmer were removed — Danil found the recurring
+   gloss distracting; only pointer/hover/press-driven effects remain.)
+   ============================================================ */
+/* C — liquid PRESS RIPPLE from the click point */
+.ripple{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;overflow:hidden}
+.ripple i{position:absolute;left:var(--rx,50%);top:var(--ry,50%);width:12px;height:12px;border-radius:50%;
+  background:hsl(0 0% 100% / .6);transform:translate(-50%,-50%) scale(0);mix-blend-mode:screen}
+.ripple i.go{animation:ripple .6s var(--calm-ease) forwards}
+@keyframes ripple{to{transform:translate(-50%,-50%) scale(26);opacity:0}}
+
+/* D — gauge settle pulse when it lands */
+.ready-num.count{animation:numpulse .6s var(--calm-ease)}
+@keyframes numpulse{0%{transform:scale(.96);opacity:.7}100%{transform:scale(1);opacity:1}}
+
+/* H — (removed) the lens panels USED to pull/tilt toward the cursor on hover, but ANY transform on a
+   backdrop-filter panel re-samples it sub-pixel and softens the text while you read it. The quiz panel
+   must stay crisp, so there is no hover transform now — only the pointer sheen (a light overlay) remains. */
+
+/* soft green inner-glow bloom (readiness gauge + final CTA), screen blend */
+.glass>.bloom,.bloom{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:1;mix-blend-mode:screen;
+  background:radial-gradient(50% 55% at 50% 62%, hsl(152 56% 62% / .44), transparent 70%);opacity:0;
+  transition:opacity .9s var(--calm-ease)}
+.bloom.lit{opacity:1}
+
+/* ---------- segmented glass toggle (decorative-but-real Apple control) ---------- */
+/* FLAT tinted fill — it sits ON the frosted #sample panel, so a 2nd backdrop-blur here
+   was glass-on-glass (refracted nothing, cost a layer). Solid tint reads identical. */
+.seg{display:inline-flex;gap:4px;padding:4px;border-radius:var(--radius-pill);position:relative;
+  background:hsl(var(--glass-tint)/.88);border:1px solid hsl(0 0% 100%/.6);isolation:isolate;
+  box-shadow:inset 0 1px 1px hsl(0 0% 100%/.7), inset -1px -1px 2px hsl(210 45% 55%/.18)}
+.seg button{border:0;background:transparent;padding:.64em 1.1em;border-radius:var(--radius-pill);
+  font-family:var(--font-display);font-weight:700;font-size:.86rem;color:var(--muted);position:relative;z-index:1;
+  transition:color .25s var(--calm-ease)}
+.seg button[aria-checked="true"]{color:var(--green-ink)}
+.seg .thumb{position:absolute;top:4px;bottom:4px;border-radius:var(--radius-pill);z-index:0;
+  background:hsl(152 50% 84%/.9);border:1px solid hsl(0 0% 100%/.7);
+  box-shadow:0 2px 8px hsl(152 40% 35%/.2), inset 0 1px 1px hsl(0 0% 100%/.8);
+  transition:transform .3s var(--calm-ease), width .3s var(--calm-ease)}
+/* the active segment reads as a glass capsule (top specular gloss) */
+.seg .thumb::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,hsl(0 0% 100% / .55),transparent 52%);mix-blend-mode:screen}
+
+/* near-opaque READING card — for question text + options + feature copy */
+.solid{
+  position:relative;border-radius:var(--radius-md);
+  background:hsl(var(--glass-tint) / .93);
+  border:1px solid hsl(210 22% 86%);
+  box-shadow:var(--float);
+}
+.lift{transition:transform .3s var(--calm-ease), box-shadow .3s var(--calm-ease)}
+.lift:hover{transform:translateY(-4px);box-shadow:var(--float-hi)}
+
+/* ============================================================
+   BUTTONS — soft green-tinted glass CTA + DARK slate text (green fix)
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.55em;
+  font-family:var(--font-display);font-weight:700;font-size:1.02rem;
+  padding:.86em 1.5em;border-radius:var(--radius-pill);border:1px solid transparent;
+  transition:transform .18s var(--calm-ease), box-shadow .18s ease, background .18s ease;
+}
+/* PRIMARY = green-tinted liquid glass pill, dark green-slate text */
+.cta-glass{
+  position:relative;color:var(--green-ink);font-weight:700;
+  background:hsl(152 47% 83% / .95);
+  border:1px solid hsl(152 50% 99% / .7);
+  isolation:isolate;overflow:hidden;
+  box-shadow:
+    0 6px 18px hsl(152 40% 35% / .22),
+    inset 0 1px 1px hsl(0 0% 100% / .9),
+    inset 1.5px 1.5px 2px hsl(0 0% 100% / .55),
+    inset -1.5px -1.5px 3px hsl(152 40% 45% / .22);
+}
+/* No backdrop-blur (flat green pill) — but a liquid light-SWEEP on hover: the glass catches light. */
+.cta-glass::before{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(105deg,transparent 40%,hsl(0 0% 100% / .5) 50%,transparent 60%);
+  background-size:250% 100%;background-position:200% 0;opacity:0;mix-blend-mode:screen}
+@media(hover:hover){.cta-glass:hover::before{opacity:1;animation:liquidSweep .85s var(--calm-ease)}}
+@keyframes liquidSweep{from{background-position:200% 0}to{background-position:-60% 0}}
+.cta-glass::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
+  background:linear-gradient(135deg, hsl(0 0% 100% / .5) 0%, hsl(0 0% 100% / .08) 22%, transparent 46%);
+  mix-blend-mode:screen;
+}
+.cta-glass>*{position:relative;z-index:3}
+.cta-glass:hover{transform:translateY(-1px);background:hsl(152 50% 80% / .9)}
+.cta-glass:active{transform:scale(.985)}
+.cta-glass:focus-visible{outline:3px solid var(--green-deep);outline-offset:3px}
+/* GHOST = plain frosted glass, demoted */
+.btn-ghost{
+  background:hsl(var(--glass-tint) / .7);color:var(--ink);
+  border:1px solid hsl(210 22% 84%);font-weight:600;
+  box-shadow:var(--float), inset 1px 1px 1px hsl(0 0% 100% / .6);
+  position:relative;isolation:isolate;overflow:hidden;
+}
+.btn-ghost::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+  -webkit-backdrop-filter:blur(10px) saturate(140%);backdrop-filter:blur(10px) saturate(140%)}
+.btn-ghost:hover{transform:translateY(-1px);background:hsl(var(--glass-tint) / .82)}
+.btn-ghost:active{transform:translateY(1px)}
+.btn-lg{font-size:1.1rem;padding:1em 1.85em}
+.btn-block{width:100%}
+
+/* ============================================================
+   HEADER — sticky frosted glass (softened blur to avoid scroll jank)
+   ============================================================ */
+header.site{
+  position:sticky;top:14px;z-index:60;
+  background:transparent;border:0;box-shadow:none;
+  -webkit-backdrop-filter:none;backdrop-filter:none;   /* the capsule carries the glass, not the bar */
+}
+/* floating rounded glass capsule (detached, shadowed) — the biggest visual upgrade */
+.nav{
+  display:flex;align-items:center;gap:14px;height:62px;
+  margin:0 auto;border-radius:var(--radius-pill);padding:0 14px;position:relative;
+  background:var(--e1-fill);
+  border:1px solid hsl(0 0% 100% / .6);
+  -webkit-backdrop-filter:var(--e1-blur);
+          backdrop-filter:var(--e1-blur);
+  box-shadow:var(--e1-shadow), var(--rim-pill);
+  isolation:isolate;will-change:transform;
+  transition:background .3s var(--calm-ease), box-shadow .3s var(--calm-ease);
+}
+/* scroll-lift: capsule rises e1→e2 when floating over content */
+.nav.stuck{
+  background:hsl(var(--glass-tint) / .70);
+  box-shadow:var(--e2-shadow), var(--rim-pill);
+}
+/* PROMOTE the nav capsule to a real refraction lens in Chromium — the iconic liquid-glass toolbar
+   (refracts the content scrolling beneath it). Safari/FF keep the frosted -webkit fallback. */
+.refraction-ok .nav{ -webkit-backdrop-filter:url(#lg) var(--e1-blur); backdrop-filter:url(#lg) var(--e1-blur); }
+.nav>*{position:relative;z-index:3}
+/* nav sheen: tighter radius + centred default (the bar is only 62px tall) */
+.nav .sheen{z-index:2;background:radial-gradient(10rem 7rem at var(--mx,50%) var(--my,50%),
+  hsl(0 0% 100% / .5), hsl(0 0% 100% / .12) 32%, transparent 62%)}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:700;font-size:1.16rem}
+.badge-mark{
+  width:42px;height:42px;border-radius:14px;flex:0 0 auto;
+  background:linear-gradient(150deg,hsl(158 44% 70%),hsl(170 42% 56%));
+  color:var(--green-ink);display:grid;place-items:center;
+  font-family:var(--font-display);font-weight:700;font-size:.9rem;letter-spacing:.03em;
+  border:1px solid hsl(0 0% 100% / .7);
+  box-shadow:0 4px 12px hsl(158 40% 40% / .28), inset 1px 1px 1px hsl(0 0% 100% / .85), inset -1px -1px 2px hsl(158 40% 45% / .25);
+}
+.nav-links{display:none;gap:26px}
+.nav-links a{color:var(--muted);font-weight:600;font-size:.96rem;padding:6px 2px;position:relative}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;background:var(--green-deep);border-radius:2px;transition:right .25s var(--calm-ease)}
+.nav-links a:hover::after,.nav-links a[aria-current="true"]::after{right:0}
+.nav-links a[aria-current="true"]{color:var(--ink)}
+.nav-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.nav-actions .btn{padding:.66em 1.05em;font-size:.94rem;white-space:nowrap}
+.cta-short{display:none}
+.link-login{display:none;color:var(--muted);font-weight:700;font-family:var(--font-display);padding:.58em .9em;border-radius:var(--radius-pill)}
+.link-login:hover{color:var(--ink);background:hsl(var(--glass-tint) / .8)}
+/* mobile nav menu (hamburger) */
+header.site .wrap{position:relative}
+.nav-burger{display:none;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;border:0;background:transparent;padding:12px;cursor:pointer;border-radius:12px}
+.nav-burger span{display:block;height:2px;width:100%;border-radius:2px;background:var(--ink);transition:transform .25s var(--calm-ease),opacity .2s}
+.nav-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+.nav-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.mobile-menu{display:none;position:absolute;left:22px;right:22px;top:80px;z-index:55;flex-direction:column;
+  background:hsl(var(--glass-tint) / .95);-webkit-backdrop-filter:var(--e1-blur);backdrop-filter:var(--e1-blur);
+  border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--e2-shadow),var(--rim);border-radius:var(--radius-md);padding:8px;corner-shape:round}
+.mobile-menu.open{display:flex;animation:fadeUp .25s var(--calm-ease)}
+.mobile-menu a{padding:13px 14px;border-radius:12px;color:var(--ink);font-family:var(--font-display);font-weight:600;font-size:1.02rem}
+.mobile-menu a:hover{background:hsl(var(--glass-tint) / .7)}
+@media(max-width:899px){.nav-burger{display:flex}}
+@media(min-width:900px){.mobile-menu{display:none!important}}
+/* ≥900px: 3-zone grid (brand | centred links | actions) kills the dead middle gulf */
+@media(min-width:900px){
+  .nav{display:grid;grid-template-columns:auto 1fr auto}
+  .nav-links{display:flex;justify-self:center}
+  .nav-actions{margin-left:0;justify-self:end}
+  .link-login{display:inline-flex}
+}
+/* small phones: tighten the capsule + swap CTA to the short «Почати» so it never wraps */
+@media(max-width:480px){
+  .nav{gap:10px;padding:0 12px}
+  .nav-actions .btn{padding:.55em .95em}
+  .cta-full{display:none}
+  .cta-short{display:inline}
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{position:relative;padding:40px 0 26px}
+/* CONCENTRATED light pool behind the #sample lens so the glass has structured colour to bend
+   (mint→sky→peach lobes, still pastel/light — never a dark patch). More to refract = glassier hero. */
+.hero::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(20rem 16rem at 86% 16%, hsl(165 66% 85% / .42), transparent 60%),
+    radial-gradient(22rem 20rem at 97% 42%, hsl(202 62% 85% / .30), transparent 62%),
+    radial-gradient(18rem 16rem at 68% 62%, hsl(28 64% 88% / .20), transparent 64%)}
+.hero-grid{position:relative;z-index:2;display:grid;gap:30px;align-items:center}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:hsl(var(--glass-tint) / .8);border:1px solid hsl(0 0% 100% / .6);
+  color:var(--muted);font-weight:600;font-size:.83rem;
+  padding:.5em 1em;border-radius:var(--radius-pill);margin-bottom:18px;
+  box-shadow:0 4px 12px hsl(210 40% 40% / .1), inset 1px 1px 1px hsl(0 0% 100% / .7);
+}
+.eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--green-deep)}
+
+/* mascot greeting */
+.hero-mascot{display:flex;align-items:flex-start;gap:13px;margin-top:26px;margin-bottom:22px;max-width:520px}
+.mascot-stage{
+  flex:0 0 auto;width:104px;height:124px;border-radius:22px;
+  display:grid;place-items:center;
+}
+.mascot-svg{width:86px;height:auto}
+/* Світлик FLIES: body bobs, ground shadow reacts inversely on the same cycle */
+.mbody{transform-box:fill-box;transform-origin:center;animation:svFloat 4.5s ease-in-out infinite}
+.msh{transform-box:fill-box;transform-origin:center;animation:svShadow 4.5s ease-in-out infinite}
+@keyframes svFloat{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-7px) rotate(1deg)}}
+@keyframes svShadow{0%,100%{transform:scale(1);opacity:.12}50%{transform:scale(.82);opacity:.07}}
+/* cramped mini placements keep face + shadow, hide the waving arm */
+.mini-mascot .marm,.quiz-helper svg .marm{display:none}
+/* OPAQUE soft card in the copy column (not a 3rd floating-glass tier) — lighter shadow */
+.speech{
+  background:hsl(var(--glass-tint) / .98);border:1px solid hsl(210 22% 88%);
+  border-radius:18px;padding:13px 16px;font-size:.95rem;color:var(--ink);position:relative;
+  box-shadow:0 6px 18px hsl(210 40% 40% / .10);
+}
+.speech::before{content:"";position:absolute;left:-7px;top:22px;width:14px;height:14px;background:hsl(var(--glass-tint) / .98);border-left:1px solid hsl(210 22% 88%);border-bottom:1px solid hsl(210 22% 88%);transform:rotate(45deg)}
+.speech b{color:var(--green-deep);font-weight:700}
+
+h1.hero-title{font-size:clamp(2.1rem,6.4vw,3.4rem);font-weight:700;margin-bottom:.46em;letter-spacing:-.015em}
+h1.hero-title .soft{color:var(--green-deep)}
+.hero-sub{font-size:1.1rem;color:var(--muted);max-width:38ch;margin-bottom:24px;line-height:1.6}
+.hero-cta-row{display:flex;flex-wrap:wrap;gap:13px;align-items:center}
+/* small phones: stack hero CTAs full-width so the green primary clearly wins */
+@media(max-width:520px){
+  .hero-cta-row .btn{width:100%}
+  .hero-mascot{margin-top:20px}
+}
+.micro-trust{margin-top:18px;color:var(--muted);font-size:.92rem;display:flex;flex-wrap:wrap;gap:7px 14px;align-items:center}
+.micro-trust b{color:var(--ink);font-weight:700}
+.micro-calm{margin-top:9px;font-size:.9rem;color:var(--green-deep);font-weight:600;display:flex;align-items:center;gap:7px}
+
+/* ---------- sample question (signature glass widget) ---------- */
+.quiz{padding:24px 22px;position:relative;z-index:2}
+.quiz-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.quiz .kicker{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-display);font-weight:700;font-size:.8rem;color:var(--green-deep);background:hsl(158 44% 90%);border:1px solid hsl(158 40% 80%);padding:.4em .85em;border-radius:var(--radius-pill)}
+.quiz-helper{display:flex;align-items:center;gap:8px;background:hsl(205 40% 94%);border:1px solid hsl(205 30% 82%);border-radius:var(--radius-sm);padding:.4em .7em .4em .5em;font-size:.78rem;color:var(--muted);line-height:1.3;max-width:230px}
+.quiz-helper svg{width:24px;flex:0 0 auto}
+@media(max-width:460px){.quiz-helper{width:100%;max-width:none}}
+/* local scrim so the question stays >=4.5:1 even over the dark anchor behind the lensed panel */
+.quiz-q{font-family:var(--font-display);font-weight:600;font-size:1.16rem;line-height:1.35;margin-bottom:18px;color:var(--ink);
+  background:hsl(var(--glass-tint) / .82);border-radius:14px;padding:12px 14px;
+  box-shadow:inset 0 0 0 1px hsl(0 0% 100% / .5)}
+.options{display:grid;gap:10px}
+/* options sit on NEAR-OPAQUE surface for legibility */
+.opt{
+  display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  background:hsl(var(--glass-tint) / .96);color:var(--ink);font-family:var(--font-body);font-weight:600;font-size:1rem;
+  border:1.5px solid hsl(210 20% 84%);border-radius:var(--radius-sm);padding:14px 16px;
+  box-shadow:0 4px 12px hsl(210 40% 40% / .1);
+  transition:transform .15s var(--calm-ease), box-shadow .18s var(--calm-ease), background .25s, border-color .25s, color .25s;
+}
+.opt:hover:not(:disabled){transform:translateY(-2px);box-shadow:var(--float)}
+.opt:active:not(:disabled){transform:translateY(0)}
+.opt:disabled{cursor:default}
+/* liquid glass behaviour on answer buttons — light sweeps across on hover */
+.opt{position:relative;overflow:hidden}
+.opt>*{position:relative;z-index:2}
+.opt::after{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(105deg,transparent 42%,hsl(0 0% 100% / .42) 50%,transparent 58%);
+  background-size:250% 100%;background-position:200% 0;opacity:0;mix-blend-mode:screen}
+@media(hover:hover){.opt:hover:not(:disabled)::after{opacity:1;animation:liquidSweep .7s var(--calm-ease)}}
+.opt .mark{
+  flex:0 0 auto;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;
+  background:hsl(158 30% 90%);font-family:var(--font-display);font-weight:700;font-size:.9rem;color:var(--muted);
+  border:1px solid hsl(158 28% 80%);transition:.25s;
+}
+.opt.correct{background:hsl(152 46% 90%);border-color:var(--green-deep);color:#0f3b2e}
+.opt.correct .mark{background:var(--green-deep);color:#fff;border-color:#14463b}
+.opt.wrong{background:hsl(16 50% 93%);border-color:var(--warn);color:#7d3a1f}
+.opt.wrong .mark{background:var(--warn);color:#fff;border-color:#8c3f22}
+.opt.reveal-soft{animation:softglow 1.2s var(--calm-ease)}
+@keyframes softglow{
+  0%{box-shadow:0 0 0 0 hsl(152 50% 45% / .5), 0 4px 12px hsl(210 40% 40% / .1)}
+  60%{box-shadow:0 0 0 14px hsl(152 50% 45% / 0), 0 4px 12px hsl(210 40% 40% / .1)}
+  100%{box-shadow:0 4px 12px hsl(210 40% 40% / .1)}
+}
+
+.feedback{
+  margin-top:16px;border-radius:var(--radius-sm);padding:13px 15px;font-size:.95rem;line-height:1.5;
+  display:none;align-items:flex-start;gap:11px;border:1px solid transparent;
+}
+.feedback.show{display:flex;animation:fadeUp .4s var(--calm-ease) both}
+.feedback.ok{background:hsl(152 46% 92%);color:#0f3b2e;border-color:var(--green-deep)}
+.feedback.no{background:hsl(16 50% 93%);color:#7d3a1f;border-color:var(--warn)}
+.feedback .ic{flex:0 0 auto;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;margin-top:1px}
+.feedback.ok .ic{background:var(--green-deep);color:#fff}
+.feedback.no .ic{background:var(--warn);color:#fff}
+.feedback .ic svg{width:15px;height:15px}
+.feedback b{font-weight:700}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.xp{
+  margin-top:13px;display:none;align-items:center;gap:9px;
+  font-family:var(--font-display);font-weight:600;color:var(--green-deep);font-size:.93rem;
+}
+.xp.show{display:flex;animation:fadeUp .45s .1s var(--calm-ease) both}
+.xp .chip{background:var(--green-deep);color:#fff;padding:.25em .7em;border-radius:var(--radius-pill);font-size:.84rem;font-weight:700}
+.xp .mini-mascot{width:24px;height:auto;flex:0 0 auto}
+.quiz-reset{margin-top:14px;display:none;background:none;border:0;color:var(--muted);font-weight:700;font-size:.9rem;text-decoration:underline;text-underline-offset:3px;padding:4px 0;font-family:var(--font-display)}
+.quiz-reset.show{display:inline-flex;align-items:center;gap:6px}
+
+@media(min-width:980px){
+  .hero{padding:60px 0 44px}
+  .hero-grid{grid-template-columns:1.04fr 1fr;gap:52px}
+  .hero-sub{font-size:1.16rem}
+  .quiz{padding:30px 30px}
+}
+
+/* ============================================================
+   TRUST BAR
+   ============================================================ */
+.trust{position:relative;z-index:2;margin-top:4px;padding:8px 0 16px}
+.trust-card{padding:24px 22px;display:grid;gap:22px}
+.official{display:flex;align-items:center;gap:13px;justify-content:center;text-align:center}
+@media(max-width:759px){.official{flex-direction:column;text-align:center}}
+.official .gov{
+  width:48px;height:48px;border-radius:13px;flex:0 0 auto;
+  background:linear-gradient(150deg,hsl(205 50% 64%),hsl(205 52% 52%));display:grid;place-items:center;
+  border:1px solid hsl(0 0% 100% / .6);
+  box-shadow:0 4px 12px hsl(205 45% 40% / .3), inset 1px 1px 1px hsl(0 0% 100% / .7);
+}
+.official b{font-family:var(--font-display);font-weight:700;font-size:1.02rem;color:var(--ink)}
+.official small{display:block;color:var(--muted);font-weight:500;font-size:.84rem}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;text-align:center}
+/* stat blocks = e1 chip look — DEMOTED to flat fill (no blur) to keep the trust viewport
+   inside the ≤5 backdrop-filter budget (tray + nav already use blur here) */
+.stat{position:relative;border-radius:var(--radius-sm);padding:12px 8px;
+  background:hsl(var(--glass-tint) / .82);border:1px solid hsl(0 0% 100% / .6);
+  box-shadow:var(--e1-shadow), var(--rim-pill)}
+.stat .n{font-family:var(--font-display);font-weight:700;font-size:1.5rem;color:var(--ink)}
+.stat .l{color:var(--muted);font-size:.82rem;font-weight:500;line-height:1.3;min-height:2.2em;display:flex;align-items:center;justify-content:center}
+.stat .n .star{color:var(--amber)}
+/* FLAT tinted pill (no nested backdrop-blur — it sat on the frosted trust-card) */
+.format-chip{
+  position:relative;
+  margin:0 auto;display:inline-flex;align-items:center;gap:7px 12px;flex-wrap:wrap;justify-content:center;
+  background:hsl(28 50% 92% / .88);border:1px solid hsl(28 40% 82% / .8);color:var(--warm-ink);font-weight:600;font-size:.9rem;
+  padding:.6em 1.1em;border-radius:var(--radius-pill);box-shadow:var(--e1-shadow), var(--rim-pill);
+}
+.format-chip .unit{display:inline-flex;align-items:center;gap:.4em;white-space:nowrap}
+.format-chip .unit-note{white-space:nowrap;opacity:.92}
+.format-chip .pill{background:hsl(0 0% 100% / .9);color:var(--warm-ink);padding:.16em .58em;border-radius:var(--radius-pill);font-weight:700;font-size:.84rem;border:1px solid hsl(28 40% 80%)}
+@media(min-width:760px){
+  .trust-card{grid-template-columns:auto 1fr;align-items:center;gap:30px;padding:26px 32px}
+  .official{justify-content:flex-start;text-align:left;border-right:1px solid hsl(210 20% 82%);padding-right:30px}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .trust-extra{grid-column:1/-1;display:flex;justify-content:center;padding-top:2px}
+}
+
+/* ============================================================
+   SECTION SCAFFOLD
+   ============================================================ */
+section{position:relative}
+.section-pad{padding:72px 0}
+.section-head{text-align:center;max-width:660px;margin:0 auto 44px}
+.section-head .tag{display:inline-block;font-family:var(--font-display);font-weight:700;color:var(--green-deep);font-size:.84rem;background:hsl(158 44% 90%);border:1px solid hsl(158 40% 80%);padding:.4em 1em;border-radius:var(--radius-pill);margin-bottom:14px}
+.section-head h2{font-size:clamp(1.7rem,4.4vw,2.45rem);margin-bottom:.4em;letter-spacing:-.01em;color:var(--ink)}
+.section-head p{color:var(--muted);font-size:1.06rem}
+@media(min-width:980px){.section-pad{padding:104px 0}}
+/* Journey runway — open "driving" bands before each city arrival so the map camera has more scroll
+   distance to fly across the country between cities (calmer fly, less rushed). Desktop-only: matches the
+   living map's gate (min-width:760 + min-height:600); hidden under reduced-motion/transparency (map off)
+   and on phones (no map to fill the band). Tune ONE knob: --journey-runway. */
+:root{ --journey-runway:40vh; }
+.journey-gap{ display:none; }
+/* Show the runway bands ONLY when the living map is actually painting (html.map-live, toggled by the
+   map JS). Never leave empty bands when the map is off — data-saver / low-power / load-failure / reduced-*.
+   Cap the height in px so tall displays don't get oversized gaps. */
+@media (min-width:760px) and (min-height:600px){
+  html.map-live .journey-gap{ display:block; height:min(var(--journey-runway),360px); }
+  html.map-live .journey-gap.short{ height:min(calc(var(--journey-runway) * .5),180px); }
+}
+@media (prefers-reduced-motion: reduce){ .journey-gap{ display:none !important; } }
+@media (prefers-reduced-transparency: reduce){ .journey-gap{ display:none !important; } }
+@media (prefers-reduced-data: reduce){ .journey-gap{ display:none !important; } }
+
+/* ---------- how it works (opaque cards on an e2 glass TRAY) ---------- */
+.steps{display:grid;gap:20px}
+.step{padding:30px 26px}
+.step .num{
+  position:relative;width:50px;height:50px;border-radius:16px;display:grid;place-items:center;
+  font-family:var(--font-display);font-weight:700;font-size:1.35rem;color:#fff;margin-bottom:16px;
+  border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--rim-pill);
+}
+.step:nth-child(1) .num{background:linear-gradient(150deg,hsl(158 42% 56%),hsl(158 44% 46%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5), var(--rim-pill)}
+.step:nth-child(2) .num{background:linear-gradient(150deg,hsl(205 46% 60%),hsl(205 48% 50%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5), var(--rim-pill)}
+.step:nth-child(3) .num{background:linear-gradient(150deg,hsl(28 52% 48%),hsl(28 54% 40%));box-shadow:inset 1px 1px 1px hsl(0 0% 100% / .5), var(--rim-pill)}
+.step h3{font-size:1.24rem;margin-bottom:.55em;color:var(--ink)}
+.step p{color:var(--muted)}
+@media(min-width:860px){.steps{grid-template-columns:repeat(3,1fr)}}
+/* #how: the e2 tray held OPAQUE cards (a near-invisible double-frame) — strip the glass
+   so the 3 cards read as one sequence on the zone pool; keep only the hairline tray-edge. */
+.method .glass.tray{background:transparent;box-shadow:none;border:0;padding:0;overflow:visible}
+.method .glass.tray::before,.method .glass.tray::after{display:none}
+/* white hairline pinned above the cards (z-index:4) — overlapped cards on hover; removed */
+.method .tray-edge{display:none}
+/* corners fix: squircle (superellipse) corners drop their border in Chrome — use round so the border is continuous */
+.method .step{corner-shape:round}
+/* divider between the method (3 steps) and the progress grid in the merged section */
+.merge-divider{display:flex;align-items:center;gap:16px;margin:34px 4px 22px;color:var(--green-deep)}
+.merge-divider::before,.merge-divider::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,hsl(158 30% 80%),transparent)}
+.merge-divider span{font-family:var(--font-display);font-weight:700;font-size:.92rem;letter-spacing:.01em;white-space:nowrap}
+/* demo video block — a rich "show, don't tell" media moment (togcard-style: the block IS a video) */
+/* streak day-cells fill ONCE when the card reveals (same idiom as the Level bar — a CSS transition on
+   reveal, staggered; NOT an always-running loop) */
+.streak-days span{transition:background .5s var(--calm-ease), border-color .5s var(--calm-ease)}
+.streak-days span.on{background:hsl(34 28% 91%);border-color:hsl(30 26% 84%)}
+.reveal.in .streak-days span.on{background:linear-gradient(90deg,hsl(34 50% 70%),hsl(24 50% 64%));border-color:hsl(24 38% 64%)}
+.reveal.in .streak-days span.on:nth-child(2){transition-delay:.1s}
+.reveal.in .streak-days span.on:nth-child(3){transition-delay:.2s}
+.reveal.in .streak-days span.on:nth-child(4){transition-delay:.3s}
+.reveal.in .streak-days span.on:nth-child(5){transition-delay:.4s}
+.reveal.in .streak-days span.on:nth-child(6){transition-delay:.5s}
+@media (prefers-reduced-motion: reduce){
+  .streak-days span{transition:none}
+  .streak-days span.on{background:linear-gradient(90deg,hsl(34 50% 70%),hsl(24 50% 64%));border-color:hsl(24 38% 64%)}
+}
+
+/* ---------- step icons only (clean cards; no connectors — they kept getting rejected) ---------- */
+.steps{position:relative}
+.step{position:relative;z-index:1}
+/* quiet muted line-icon, top-right of each card (balances the number badge on the left) */
+.step .step-ic{position:absolute;top:34px;right:24px;width:26px;height:26px;color:hsl(205 15% 62%);opacity:.62;pointer-events:none}
+.step .step-ic svg{width:100%;height:100%;display:block}
+
+/* ===== Liquid-glass TWEAKS — applied when toggles are on (panel-driven) ===== */
+/* "Скло всюди": every frosted panel gains the dome gloss + Fresnel rim.
+   PERF: the SVG edge-lens (backdrop-filter:url(#lg)) is RE-COMPUTED every frame over the animated map,
+   so it stays ONLY on the signature surfaces (#sample, #readiness, .nav). Every OTHER glass panel keeps
+   PLAIN blur — still frosted glass, just without the expensive url(#lg) displacement.
+   The plain-blur broad rules are gated to ≥761px so the mobile blur-flatten (tray/game-card, above)
+   still wins on small screens. */
+@media(min-width:761px){
+  .lg-everywhere.refraction-ok .glass::before{ -webkit-backdrop-filter:var(--e2-blur); backdrop-filter:var(--e2-blur); }
+  .lg-everywhere.refraction-ok .glass.e1::before{ -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur); }
+  .lg-everywhere.refraction-ok .glass.e3::before{ -webkit-backdrop-filter:var(--e3-blur); backdrop-filter:var(--e3-blur); }
+}
+/* signature lenses keep the live refraction: #sample via its own ID rule above; restore #readiness here */
+.lg-everywhere.refraction-ok #readiness .glass.lens::before{ -webkit-backdrop-filter:url(#lg) var(--e3-blur); backdrop-filter:url(#lg) var(--e3-blur); }
+.lg-everywhere.refraction-ok .nav{ -webkit-backdrop-filter:url(#lg) var(--e1-blur); backdrop-filter:url(#lg) var(--e1-blur); }
+/* ===== MOBILE GLASS COST — the living map now runs on phones, so the backdrop-filter glass
+   composited OVER the moving map must stay cheap on phone GPUs. All scoped ≤760px so desktop
+   refraction (≥761) is UNTOUCHED: (1) smaller blur radii on every frosted panel; (2) DROP the
+   per-frame url(#lg) displacement on the signature lenses + nav (plain frost instead) — that filter
+   re-samples the moving map EVERY frame (the single biggest phone-GPU cost) and its subtle warp is
+   barely visible at phone size; (3) drop the full-viewport iframe filter pass. Builds on the
+   tray/game-card blur-flatten above (which stays flat — higher specificity). */
+@media(max-width:760px){
+  .glass::before{ -webkit-backdrop-filter:blur(6px) saturate(150%) brightness(106%); backdrop-filter:blur(6px) saturate(150%) brightness(106%); }
+  .glass.e1::before,.chip-glass::before{ -webkit-backdrop-filter:blur(5px) saturate(150%); backdrop-filter:blur(5px) saturate(150%); }
+  .glass.e3::before{ -webkit-backdrop-filter:blur(4px) saturate(150%); backdrop-filter:blur(4px) saturate(150%); }
+  .refraction-ok .glass.lens::before,
+  .refraction-ok #sample.glass.lens::before,
+  .lg-everywhere.refraction-ok #readiness .glass.lens::before{
+    -webkit-backdrop-filter:blur(6px) saturate(160%) brightness(120%);
+            backdrop-filter:blur(6px) saturate(160%) brightness(120%);
+  }
+  .refraction-ok .nav,
+  .lg-everywhere.refraction-ok .nav{
+    -webkit-backdrop-filter:blur(6px) saturate(150%); backdrop-filter:blur(6px) saturate(150%);
+  }
+  .mapbg-frame{ filter:none; }
+}
+.lg-everywhere .glass{ box-shadow:var(--e3-shadow), var(--rim), inset 0 0 0 1px hsl(0 0% 100% / .26); }
+.lg-everywhere .glass::after{
+  background:
+    radial-gradient(125% 80% at 50% -40%, hsl(0 0% 100% / .42), transparent 56%),
+    linear-gradient(135deg, hsl(0 0% 100% / .55) 0%, hsl(0 0% 100% / .10) 18%, transparent 42%);
+}
+/* "Скляні картки контенту": near-opaque reading cards become frosted glass */
+.lg-content .solid{
+  background:hsl(var(--glass-tint) / var(--lg-solid-alpha, .82));
+  -webkit-backdrop-filter:var(--e1-blur);
+          backdrop-filter:var(--e1-blur);
+  border-color:hsl(0 0% 100% / .6);
+}
+/* ---------- gamification showcase (glass/opaque chrome) ---------- */
+.game-grid{display:grid;gap:18px}
+.game-card{padding:24px 22px}
+.game-card h4{font-family:var(--font-display);font-weight:700;font-size:1.05rem;margin-bottom:4px;color:var(--ink)}
+/* local near-opaque scrim so the muted caption stays >=4.5:1 over the live moving map */
+.game-card .muted{color:var(--muted);font-size:.9rem;
+  display:inline-block;background:hsl(var(--glass-tint) / .82);border-radius:8px;padding:1px 8px;
+  box-shadow:inset 0 0 0 1px hsl(0 0% 100% / .4)}
+
+/* streak */
+.streak-top{display:flex;align-items:center;gap:14px}
+.flame{
+  width:56px;height:56px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+  background:radial-gradient(circle at 38% 32%,hsl(34 70% 86%),hsl(20 58% 76%));
+  border:1px solid hsl(0 0% 100% / .6);
+  box-shadow:0 4px 12px hsl(20 45% 55% / .28), inset 1px 1px 1px hsl(0 0% 100% / .7);
+}
+.flame svg{width:26px;height:26px}
+.streak-days{display:flex;gap:6px;margin-top:16px}
+.streak-days span{flex:1;height:9px;border-radius:6px;background:hsl(34 28% 91%);border:1px solid hsl(30 26% 84%)}
+/* NOTE: the filled-gradient .on state lives under `.reveal.in .streak-days span.on` (and the
+   reduced-motion block) so the cells start UNFILLED and animate on reveal. A duplicate filled base
+   rule used to sit here and override that start — removed so the staggered fill-on-reveal works. */
+
+/* daily goal ring */
+.goal{display:flex;align-items:center;gap:18px}
+.ring{width:84px;height:84px;flex:0 0 auto}
+.ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.ring .track{stroke:hsl(158 30% 88%)}
+.ring .val{stroke:var(--green-deep);transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 1.2s var(--calm-ease)}
+.ring-label{font-family:var(--font-display);font-weight:700;font-size:1rem;fill:var(--ink)}
+
+/* xp / level */
+.level-top{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.lvl-badge{width:52px;height:52px;border-radius:15px;flex:0 0 auto;display:grid;place-items:center;background:linear-gradient(150deg,hsl(158 44% 56%),hsl(170 44% 46%));color:#fff;font-family:var(--font-display);font-weight:700;border:1px solid hsl(0 0% 100% / .5);box-shadow:0 4px 12px hsl(158 40% 40% / .28), inset 1px 1px 1px hsl(0 0% 100% / .6)}
+.lvl-badge small{display:block;font-size:.5rem;font-weight:700;opacity:.9;line-height:1;letter-spacing:.04em}
+.lvl-badge .lv{font-size:1.35rem;line-height:1}
+.xp-bar{height:14px;border-radius:8px;background:hsl(158 30% 90%);border:1px solid hsl(158 28% 80%);overflow:hidden}
+.xp-bar i{display:block;height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,hsl(158 44% 52%),hsl(170 46% 42%));transition:width 1.3s var(--calm-ease)}
+
+/* topic path */
+.path{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+/* OPAQUE chips — they sit ON the frosted game-card, so glass-tint here was glass-on-glass */
+.node{
+  position:relative;display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:.9rem;
+  padding:.5em .95em;border-radius:var(--radius-pill);background:#fff;border:1px solid hsl(210 22% 86%);color:var(--muted);
+  box-shadow:var(--rim-pill);
+}
+.node.done{background:hsl(158 36% 90%);color:var(--green-deep);border-color:hsl(158 32% 78%)}
+.node.now{background:var(--green-deep);color:#fff;border-color:#14463b;box-shadow:0 4px 12px hsl(158 40% 30% / .3)}
+.node.locked{opacity:.72}
+.node.locked svg{opacity:.8}
+.path .arrow{color:var(--muted);font-weight:700;opacity:.5}
+@media(max-width:600px){.path .arrow{display:none}}
+
+/* readiness mini meter */
+.meter-wrap{margin-top:10px}
+.meter{height:16px;border-radius:10px;background:hsl(158 30% 90%);border:1px solid hsl(158 28% 80%);overflow:hidden}
+.meter i{display:block;height:100%;width:0;border-radius:10px;background:linear-gradient(90deg,hsl(28 56% 66%),hsl(158 44% 50%));transition:width 1.4s var(--calm-ease)}
+.meter-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px}
+.meter-row b{font-family:var(--font-display);font-weight:700;font-size:1.4rem;color:var(--ink)}
+.meter-row span{color:var(--green-deep);font-weight:600;font-size:.92rem}
+
+/* badges */
+.badges{display:flex;flex-wrap:wrap;gap:10px}
+.bdg{position:relative;display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid hsl(210 22% 86%);border-radius:var(--radius-pill);padding:.48em .9em;font-weight:600;font-size:.88rem;color:var(--ink);box-shadow:var(--rim-pill)}
+.bdg .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:#fff;border:1px solid hsl(0 0% 100% / .4)}
+.bdg .ic svg{width:15px;height:15px}
+
+@media(min-width:760px){.game-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1040px){.game-grid{grid-template-columns:repeat(3,1fr)}.game-card.span2{grid-column:span 2}.game-card.span3{grid-column:1/-1}}
+/* keep co-visible blur layers ≤5: the two wide span2 cards (path + badges, chip-heavy)
+   step to a flat tinted fill instead of a 3rd/4th blur plane — visually near-identical */
+.glass.game-card.span2::before{ -webkit-backdrop-filter:none; backdrop-filter:none; }
+.glass.game-card.span2{ background:hsl(var(--glass-tint) / .66); }
+
+/* ---------- features bento (reading content = near-opaque) ---------- */
+.bento{display:grid;gap:18px}
+.feat{padding:26px 22px}
+.feat .fic{position:relative;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin-bottom:15px;border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--rim-pill)}
+.feat .fic svg{width:24px;height:24px}
+.feat h3{font-size:1.12rem;margin-bottom:.4em;color:var(--ink)}
+.feat p{color:var(--muted);font-size:.95rem;line-height:1.55}
+.feat .add{display:block;margin-top:.6em;color:var(--green-deep);font-size:.85rem;font-weight:600}
+/* featured bento tiles + the REAL Ukrainian road-sign strip (the ownable moat) */
+.feat-stats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px}
+.feat-stats span{color:var(--muted);font-size:.92rem;white-space:nowrap}
+.feat-stats b{font-family:var(--font-display);color:var(--ink);font-weight:700;font-size:1.06rem;margin-right:.18em}
+.sign-strip{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+.sign-strip .tile{width:50px;height:50px;border-radius:12px;display:grid;place-items:center;
+  background:hsl(var(--glass-tint) / .94);border:1px solid hsl(210 22% 86%);box-shadow:var(--rim-pill)}
+.sign-strip .tile svg{width:36px;height:36px}
+/* 3·3·1 orphan fix: two featured tiles span 2 → clean rows at every breakpoint */
+@media(min-width:680px){.bento{grid-template-columns:repeat(2,1fr)} .feat-photo{grid-column:span 2}}
+@media(min-width:1040px){.bento{grid-template-columns:repeat(3,1fr)} .feat-wide,.feat-photo{grid-column:span 2}}
+/* tint the frosted tray so the 'glass framing opaque cards' actually reads; lift cards whiter */
+@media(min-width:761px){ #features .glass.tray{ background:hsl(var(--glass-tint) / .40); } }
+#features .solid.feat{ background:hsl(var(--glass-tint) / .98); }
+#features .zone::before{
+  background:radial-gradient(70% 60% at 24% 16%, hsl(202 56% 80% / .15), transparent 70%),
+            radial-gradient(60% 55% at 88% 84%, hsl(158 50% 80% / .11), transparent 72%); }
+
+/* ---------- readiness outcome block (SIGNATURE #2 — glowing glass gauge) ---------- */
+.ready-grid{display:grid;gap:30px;align-items:center}
+.ready-card{padding:36px 30px;text-align:center}
+/* local stronger contrast pool behind the readiness card (in page bg, so the e3 lens can bend it).
+   One small card, alpha .12 — still calm. */
+.ready-grid{position:relative}
+.ready-grid::after{content:"";position:absolute;z-index:0;pointer-events:none;
+  width:min(420px,86vw);height:300px;left:50%;top:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(60% 60% at 50% 40%, hsl(165 64% 86% / .30), transparent 64%),
+            radial-gradient(50% 50% at 58% 82%, hsl(202 60% 88% / .15), transparent 70%);
+  -webkit-mask-image:radial-gradient(120% 100% at 50% 50%, #000 50%, transparent 100%);
+          mask-image:radial-gradient(120% 100% at 50% 50%, #000 50%, transparent 100%)}
+@media(min-width:900px){.ready-grid::after{left:auto;right:0;transform:translateY(-50%);width:min(440px,42vw)}}
+.ready-dial{position:relative;z-index:1;width:200px;height:120px;margin:0 auto 6px}
+/* clean numeral — no tinted plate (that was glass-on-glass on the e3 card) */
+.ready-num{position:relative;z-index:1;font-family:var(--font-display);font-weight:700;font-size:3.3rem;color:var(--ink);line-height:1;display:inline-block;margin-bottom:2px}
+.ready-state{position:relative;z-index:1;color:var(--green-deep);font-weight:700;font-size:1.04rem;margin-top:7px;font-family:var(--font-display)}
+/* local near-opaque scrim so the caption stays >=4.5:1 over the live map behind the e3 lens */
+.ready-cap{position:relative;z-index:1;color:var(--muted);font-size:.86rem;margin-top:6px;
+  display:inline-block;background:hsl(var(--glass-tint) / .82);border-radius:var(--radius-pill);padding:3px 12px;
+  box-shadow:inset 0 0 0 1px hsl(0 0% 100% / .45)}
+.ready-text h2{font-size:clamp(1.7rem,4.2vw,2.35rem);margin-bottom:.5em;color:var(--ink)}
+.ready-text p{color:var(--muted);font-size:1.08rem;line-height:1.6}
+.ready-reassure{margin-top:14px;color:var(--green-deep);font-weight:600;font-size:.96rem;display:flex;align-items:center;gap:8px}
+.ready-reassure svg{width:18px;height:18px;flex:0 0 auto}
+/* framing copy leads on BOTH mobile and desktop (anxious user reads the why before the bare number) */
+.ready-text{order:-1}
+@media(min-width:900px){.ready-grid{grid-template-columns:1fr 1fr;gap:54px}}
+
+/* ---------- testimonials ---------- */
+.tcards{display:grid;gap:18px}
+.tcard{padding:28px 24px;display:flex;flex-direction:column}
+.tcard .quote{font-size:1.02rem;line-height:1.55;margin:0 0 18px;color:var(--ink)}
+.tcard .who{display:flex;align-items:center;gap:12px;margin-top:auto;padding-top:6px}
+.tcard .av{position:relative;width:44px;height:44px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;color:var(--ink);font-family:var(--font-display);font-weight:700;border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--rim-pill)}
+.tcard .who b{font-family:var(--font-display);font-weight:700;color:var(--ink);line-height:1.25}
+.tcard .who small{display:block;color:var(--muted);margin-top:1px}
+.stars{color:var(--amber);font-size:.88rem;margin-bottom:11px;letter-spacing:1px}
+@media(min-width:860px){.tcards{grid-template-columns:repeat(3,1fr)}}
+
+/* ---------- pricing ---------- */
+.price-grid{display:grid;gap:20px;max-width:760px;margin:0 auto}
+.plan{padding:32px 28px;display:flex;flex-direction:column}
+.price-grid .plan{border-radius:var(--radius-md)}   /* both plans share one corner radius */
+.plan.pro{background:hsl(152 40% 90% / .82);border-color:hsl(152 44% 78%)}
+.plan .pname{font-family:var(--font-display);font-weight:700;font-size:1.28rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;color:var(--ink)}
+.plan .popular{font-family:var(--font-display);font-size:.72rem;font-weight:700;background:var(--green-deep);color:#fff;padding:.28em .7em;border-radius:var(--radius-pill);box-shadow:var(--rim-pill)}
+.plan .pprice{font-family:var(--font-display);font-weight:700;font-size:2.3rem;margin:6px 0 4px;color:var(--ink)}
+.plan .pprice small{font-size:1rem;color:var(--muted);font-weight:500}
+.plan .pfree{font-family:var(--font-display);font-weight:700;font-size:2.1rem;color:var(--ink);margin:6px 0 4px}
+.plan .pfree small{font-size:1rem;color:var(--muted);font-weight:500}
+.plan ul{display:grid;gap:11px;margin:18px 0 24px}
+/* PRO is e2 glass (.50-ish fill) — seat its feature list on a local .92 scrim to hold ≥4.5:1 */
+.plan.pro ul{background:hsl(var(--glass-tint) / .82);border-radius:var(--radius-md);padding:14px 14px;
+  box-shadow:inset 0 0 0 1px hsl(0 0% 100% / .5)}
+.plan li{display:flex;align-items:flex-start;gap:10px;color:var(--muted);font-size:.96rem;line-height:1.45}
+.plan li .ck{position:relative;flex:0 0 auto;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:hsl(152 36% 88%);color:var(--green-deep);margin-top:1px;border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--rim-pill)}
+.plan li .ck svg{width:13px;height:13px}
+.plan-note{color:var(--muted);font-size:.86rem;margin:2px 0 14px}
+.plan .btn{margin-top:auto}
+#pricing .btn-ghost{border-color:hsl(152 24% 80%)}   /* green-neutral, not cool blue, in a green section */
+@media(min-width:760px){.price-grid{grid-template-columns:1fr 1fr}}
+
+/* ---------- faq ---------- */
+.faq-list{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.faq{padding:0;overflow:hidden}
+.faq summary:focus-visible{outline:3px solid var(--green-deep);outline-offset:-4px;border-radius:12px}
+.faq summary{
+  list-style:none;cursor:pointer;padding:20px 22px;display:flex;align-items:center;gap:14px;
+  font-family:var(--font-display);font-weight:600;font-size:1.06rem;color:var(--ink);
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary .q-ic{
+  position:relative;margin-left:auto;flex:0 0 auto;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;
+  background:hsl(158 36% 88%);border:1px solid hsl(0 0% 100% / .6);box-shadow:var(--rim-pill);transition:transform .3s var(--calm-ease);color:var(--green-deep);
+}
+.faq summary .q-ic svg{width:15px;height:15px}
+.faq[open] summary .q-ic{transform:rotate(45deg)}
+.faq .a{padding:0 22px 22px;color:var(--muted);line-height:1.6}
+/* warm cream cards (was cold 200° grey), one border token, softer shadow, summary hover */
+#faq .faq{background:hsl(40 38% 98% / .97);border-color:hsl(38 26% 88%);box-shadow:0 6px 20px hsl(210 40% 40% / .10)}
+.faq summary:hover{background:hsl(40 40% 96% / .55)}
+.faq summary:hover .q-ic{color:var(--green-deep)}
+.faq[open] .a{animation:fadeUp .3s var(--calm-ease)}
+
+/* ---------- final cta ---------- */
+.final-card{padding:54px 30px;text-align:center;position:relative;overflow:hidden;max-width:720px;margin:0 auto;border-radius:var(--radius-lg)}
+.final-mascot{width:88px;height:auto;margin:0 auto 16px;position:relative;z-index:2}
+.final-card h2{font-size:clamp(1.9rem,4.8vw,2.7rem);margin-bottom:.35em;position:relative;z-index:2;letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
+.final-card p{color:var(--muted);font-size:1.12rem;margin-bottom:26px;position:relative;z-index:2}
+.final-card .btn{position:relative;z-index:2}
+.final-note{margin-top:22px;color:var(--muted);font-size:.88rem;position:relative;z-index:2;max-width:34ch;margin-left:auto;margin-right:auto;text-wrap:pretty}
+@media(min-width:980px){.final-mascot{width:108px}}
+@media(max-width:560px){.final-card .btn{width:100%;max-width:340px}}
+
+/* ---------- footer — the GLASS FLOOR the page rests on ---------- */
+footer.site{
+  position:relative;
+  background:hsl(var(--glass-tint) / .72);
+  -webkit-backdrop-filter:var(--e1-blur);
+  backdrop-filter:var(--e1-blur);
+  border-top:1px solid hsl(0 0% 100% / .55);padding:52px 0 32px;margin-top:8px;
+  box-shadow:inset 0 1px 1px hsl(0 0% 100% / .8), inset 0 12px 28px hsl(0 0% 100% / .35);
+}
+/* bright hairline top rim-light that "seals" the page */
+footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:2px;pointer-events:none;
+  background:linear-gradient(90deg, transparent, hsl(0 0% 100% / .9) 25% 75%, transparent)}
+.foot-grid{display:grid;gap:32px}
+.foot-brand{max-width:330px}
+.foot-brand p{color:var(--muted);font-size:.92rem;margin-top:14px;line-height:1.6}
+.foot-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.foot-cols h3{font-family:var(--font-display);font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;color:var(--ink)}
+.foot-cols a{display:block;width:fit-content;color:var(--muted);font-size:.92rem;padding:8px 0}
+/* Mobile/touch: lift interactive controls to the 44px tap-target floor (audited sub-44 on phones). */
+@media (max-width:760px), (pointer:coarse){
+  .mapbg-toggle{ width:44px; height:44px; }
+  .brand{ min-height:44px; }
+  .seg button{ min-height:44px; }
+  .quiz-reset{ min-height:44px; padding-top:11px; padding-bottom:11px; }
+  .nav-links a{ min-height:44px; display:inline-flex; align-items:center; }
+  .foot-cols a{ min-height:44px; display:flex; align-items:center; }
+  .btn{ min-height:44px; }
+}
+.foot-cols a:hover{color:var(--green-deep)}
+.disclaimer{margin-top:38px;padding-top:24px;border-top:1px solid hsl(0 0% 100% / .5);box-shadow:0 -1px 0 hsl(210 16% 88% / .6);color:var(--muted);font-size:.85rem;line-height:1.6;display:flex;flex-direction:column;gap:12px}
+.disclaimer .copy{font-weight:700;color:var(--ink)}
+@media(max-width:600px){.foot-cols{grid-template-columns:repeat(2,1fr);gap:18px 16px}}
+@media(min-width:880px){
+  .foot-grid{grid-template-columns:1.4fr 1.6fr}
+  .disclaimer{flex-direction:row;justify-content:space-between;align-items:center;gap:30px}
+  .disclaimer .copy{white-space:nowrap}
+}
+
+/* reveal-on-scroll — opacity + small translateY, calm ease.
+   Scoped to .js so that with JS DISABLED nothing is hidden (the IntersectionObserver that adds .in
+   never runs there) — all content stays visible. */
+.js .reveal{opacity:0;transform:translateY(12px);transition:opacity .4s var(--calm-ease), transform .4s var(--calm-ease)}
+.reveal.in{opacity:1;transform:none}
+
+/* ============================================================
+   ACCESSIBILITY FALLBACKS (the #1 glass risk — hard gates)
+   ============================================================ */
+@media (prefers-reduced-transparency:reduce){
+  .glass,.solid,.btn-ghost,.eyebrow,.speech,.node,.bdg,.seg,.stat,.chip-glass,.format-chip{background:hsl(var(--glass-tint) / .98)}
+  .glass.pro,.plan.pro{background:hsl(152 44% 92%)}
+  .nav,.nav.stuck{background:hsl(var(--glass-tint) / .98)}
+  .cta-glass{background:hsl(152 50% 84%)}
+  .glass::before,.glass::after,.cta-glass::after,.btn-ghost::before,.stat::before,.chip-glass::before,.format-chip::before,.nav{backdrop-filter:none;-webkit-backdrop-filter:none}
+  /* the Chromium refraction lens out-specifies the generic rule above — kill it explicitly */
+  .refraction-ok .glass.lens::before,.refraction-ok #sample.glass.lens::before{backdrop-filter:none;-webkit-backdrop-filter:none}
+  header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none}
+  footer.site{background:hsl(var(--glass-tint) / .98)}
+  .glass::after,.cta-glass::after,.sheen,.glass-sweep,.bg-detail,.drift,.zone::before,.ready-grid::after,.bloom,.tray>.tray-edge,.lens-refract,.mapbg{display:none}
+}
+@media (prefers-contrast:more){
+  .glass,.solid,.cta-glass,.btn-ghost,.eyebrow,.speech,.opt,.node,.bdg,.plan,.seg,.stat,.chip-glass,.format-chip{background:#fff;border-color:#1F2933;color:var(--ink)}
+  .nav,.nav.stuck{background:#fff;border-color:#1F2933}
+  .cta-glass{color:#0f2c22;border-color:#14463b}
+  .glass::before,.glass::after,.cta-glass::before,.cta-glass::after,.btn-ghost::before,.seg::before,.stat::before,.chip-glass::before,.format-chip::before{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .glass::after,.cta-glass::after,.sheen,.zone::before,.ready-grid::after,.bloom,.lens-refract{display:none}
+  .nav{backdrop-filter:none;-webkit-backdrop-filter:none}
+  header.site,footer.site{backdrop-filter:none;-webkit-backdrop-filter:none;background:#fff;border-color:#1F2933}
+  .refraction-ok .glass.lens::before,.refraction-ok #sample.glass.lens::before{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .nav-links a,.foot-cols a,.muted,.hero-sub,.stat .l,.feat p,.section-head p{color:#1F2933}
+  .bg-detail,.drift,.mapbg{display:none}
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .glass,.stat,.chip-glass,.format-chip{background:hsl(var(--glass-tint) / .96)}
+  .glass::before,.glass::after,.stat::before,.chip-glass::before,.format-chip::before{display:none}
+  .cta-glass{background:hsl(152 50% 84%)}
+  .cta-glass::before,.cta-glass::after{display:none}
+  .btn-ghost::before,.seg::before,.sheen,.bloom{display:none}
+  .nav,.nav.stuck{background:hsl(var(--glass-tint) / .96)}
+  header.site,footer.site{background:hsl(var(--glass-tint) / .96)}
+}
+
+/* ============================================================
+   REDUCED MOTION — kill drift + slides; keep tiny fades
+   ============================================================ */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
+  .drift{animation:none!important;transform:none!important}
+  .mbody{animation:none!important;transform:none!important}
+  .msh{animation:none!important;transform:none!important;opacity:.12!important}
+  .ripple{animation:none!important}
+  .ripple{display:none}
+  .ring .val,.xp-bar i,.meter i,.seg .thumb{transition:none!important}
+  .js .reveal{opacity:1;transform:none;transition:opacity .15s linear}
+  .btn:hover,.lift:hover,.opt:hover{transform:none}
+  .lift{transition:none}
+  .reactive .sheen{display:none}
+}
+</style>
+</head>
+<body class="lg-everywhere">
+
+<a class="skip" href="#top">До основного вмісту</a>
+
+<!-- LIVING MAP BACKGROUND — Ukraine map + traffic, driven by page scroll, refracted by the glass -->
+<div class="mapbg" id="mapbg" aria-hidden="true">
+  <iframe class="mapbg-frame" id="mapbgFrame" data-src="flyover-bg.html" title="Фонова мапа (декоративна)" tabindex="-1" scrolling="no" referrerpolicy="no-referrer" loading="lazy"></iframe>
+  <span class="mapbg-veil" aria-hidden="true"></span>
+</div>
+
+<!-- WCAG 2.2.2 stop-motion control — revealed by JS only when the living map is active -->
+<button id="mapbg-toggle" class="mapbg-toggle" type="button" aria-label="Зупинити фоновий рух">
+  <svg class="ic-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
+  <svg class="ic-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+</button>
+
+<!-- pastel drifting blobs + masked grid the glass refracts -->
+<span class="drift b1" aria-hidden="true"></span>
+<span class="drift b2" aria-hidden="true"></span>
+<span class="drift b3" aria-hidden="true"></span>
+<span class="bg-detail" aria-hidden="true"></span>
+
+<!-- LIQUID-GLASS SVG FILTER — single edge-concentrated displacement lens (Chromium) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- shared turbulence: higher baseFrequency → warp lives at the rim, scale 92 → clearly liquid -->
+  <filter id="lg" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.014" numOctaves="2" seed="11" stitchTiles="stitch" result="n"/>
+    <feGaussianBlur in="n" stdDeviation="1.4" result="sn"/>
+    <feDisplacementMap in="SourceGraphic" in2="sn" scale="92" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<!-- ============= REUSABLE MASCOT "Світлик" — original first-version buddy (defined once, <use>d everywhere) ============= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- softened slate body gradient (page-harmonised: warmer/softer than near-black) -->
+    <linearGradient id="mbody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#475a63"/>
+      <stop offset="1" stop-color="#33424a"/>
+    </linearGradient>
+    <!-- soft float glow consistent with the page's soft shadows -->
+    <filter id="mglow" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="4" stdDeviation="4.5" flood-color="#3a525a" flood-opacity=".28"/>
+    </filter>
+    <symbol id="svitlyk" viewBox="0 0 100 100">
+      <!-- ground shadow (stays grounded) -->
+      <ellipse class="msh" cx="50" cy="93" rx="24" ry="5" fill="#2B2F36" opacity=".12"/>
+      <!-- floating body group -->
+      <g class="mbody" filter="url(#mglow)">
+        <rect x="28" y="10" width="44" height="80" rx="22" fill="url(#mbody)"/>
+        <rect x="31" y="13" width="38" height="30" rx="16" fill="#fff" opacity=".05"/>
+        <!-- soft top-left specular highlight (glass-era polish, kept subtle) -->
+        <ellipse cx="40" cy="20" rx="9" ry="5" fill="#fff" opacity=".14"/>
+        <circle cx="50" cy="29" r="11" fill="#FFB89A"/>           <!-- red/coral -->
+        <circle cx="50" cy="51" r="11" fill="#FFE08A"/>           <!-- amber -->
+        <circle cx="50" cy="73" r="11" fill="#9AD9B8"/>           <!-- green (go) — page soft-green token -->
+        <circle cx="46.3" cy="71.5" r="1.7" fill="#1f5b45"/>      <!-- eyes -->
+        <circle cx="53.7" cy="71.5" r="1.7" fill="#1f5b45"/>
+        <path d="M45 75.5 q5 4 10 0" stroke="#1f5b45" stroke-width="1.8" fill="none" stroke-linecap="round"/> <!-- smile -->
+        <rect class="marm" x="68" y="44" width="14" height="6" rx="3" fill="url(#mbody)" transform="rotate(-22 68 47)"/>    <!-- waving arm -->
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ============================ HEADER ============================ -->
+<header class="site">
+  <div class="wrap">
+    <nav class="nav reactive" aria-label="Головна навігація">
+      <span class="sheen" aria-hidden="true"></span>
+      <a class="brand" href="#top" aria-label="Drivers School — головна">
+        <span class="badge-mark" aria-hidden="true">ПДР</span>
+        <span>Drivers&nbsp;School</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Можливості</a>
+        <a href="#game">Як це працює</a>
+        <a href="#pricing">Тарифи</a>
+        <a href="#faq">Питання</a>
+      </div>
+      <div class="nav-actions">
+        <a class="link-login" href="#top">Увійти</a>
+        <a class="btn cta-glass" href="#hero-cta"><span class="cta-full">Почати безкоштовно</span><span class="cta-short">Почати</span></a>
+        <button class="nav-burger" type="button" aria-label="Меню" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span><span></span></button>
+      </div>
+    </nav>
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="#features">Можливості</a>
+      <a href="#game">Як це працює</a>
+      <a href="#pricing">Тарифи</a>
+      <a href="#faq">Питання</a>
+      <a href="#top">Увійти</a>
+    </div>
+  </div>
+</header>
+
+<main id="top" tabindex="-1">
+
+<!-- ============================ HERO ============================ -->
+<section class="hero" id="hero" aria-labelledby="hero-title">
+  <div class="wrap">
+    <div class="hero-grid">
+
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="dot" aria-hidden="true"></span>Підготовка до теоретичного іспиту з ПДР</span>
+
+        <h1 class="hero-title" id="hero-title">Іспит ПДР — <span class="soft">без зубріння і страху</span></h1>
+        <p class="hero-sub">Усі офіційні питання іспиту, реальні дорожні ситуації та розумні тренування, що ведуть тебе від нуля до впевненого «склав».</p>
+
+        <div class="hero-cta-row" id="hero-cta">
+          <a class="btn cta-glass btn-lg" href="#sample"><span>Почати безкоштовно</span></a>
+          <a class="btn btn-ghost btn-lg" href="#sample">Спробувати без реєстрації</a>
+        </div>
+
+        <p class="micro-trust"><span style="white-space:nowrap"><b>2322</b> офіційні питання</span> · без картки · українською</p>
+
+        <div class="hero-mascot">
+          <!-- MASCOT "Світлик" — original first-version buddy (shared #svitlyk symbol) -->
+          <span class="mascot-stage">
+            <svg class="mascot-svg" viewBox="0 0 100 100" role="img" aria-label="Світлик — твій спокійний помічник">
+              <use href="#svitlyk"/>
+            </svg>
+          </span>
+          <p class="speech">Привіт, я <b>Світлик</b> — допоможу скласти спокійно. Почнемо з одного питання, без зубріння і без стресу.</p>
+        </div>
+      </div>
+
+      <!-- SAMPLE QUESTION — SIGNATURE #1 liquid-glass panel (single #lg SVG lens + pointer sheen) -->
+      <div class="glass e3 lens reactive quiz" id="sample" aria-labelledby="quiz-q">
+        <span class="lens-refract" aria-hidden="true"></span>
+        <span class="sheen" aria-hidden="true"></span>
+        <span class="glass-sweep" aria-hidden="true"></span>
+        <div class="quiz-head">
+          <span class="kicker"><span aria-hidden="true">✨</span> Спробуй прямо зараз</span>
+          <span class="quiz-helper">
+            <svg class="mini-mascot" viewBox="0 0 100 100" aria-hidden="true"><use href="#svitlyk"/></svg>
+            <span id="quiz-helper-text">Тут можна помилятися — це тренування, а не іспит.</span>
+          </span>
+        </div>
+        <p class="quiz-q" id="quiz-q">Як діяти, якщо під час руху ввімкнулося жовте миготливе світло світлофора?</p>
+
+        <div class="seg" id="mode-seg" role="radiogroup" aria-label="Режим практики" style="margin-bottom:16px">
+          <span class="thumb" aria-hidden="true"></span>
+          <button type="button" role="radio" aria-checked="true" tabindex="0" data-mode="train">Тренування</button>
+          <button type="button" role="radio" aria-checked="false" tabindex="-1" data-mode="exam">Іспит</button>
+        </div>
+
+        <div class="options" id="options" role="group" aria-labelledby="quiz-q">
+          <button type="button" class="opt" data-correct="false"><span class="mark" aria-hidden="true">А</span><span>Зупинитися та чекати зеленого сигналу</span></button>
+          <button type="button" class="opt" data-correct="true"><span class="mark" aria-hidden="true">Б</span><span>Продовжити рух, керуючись правилами проїзду нерегульованих перехресть</span></button>
+          <button type="button" class="opt" data-correct="false"><span class="mark" aria-hidden="true">В</span><span>Зупинитися перед перехрестям до вимкнення жовтого</span></button>
+          <button type="button" class="opt" data-correct="false"><span class="mark" aria-hidden="true">Г</span><span>Пришвидшитися, щоб проїхати перехрестя першим</span></button>
+        </div>
+
+        <div class="feedback" id="feedback" role="status" aria-live="polite">
+          <span class="ic" id="fb-ic" aria-hidden="true"></span>
+          <span id="fb-text"></span>
+        </div>
+        <div class="xp" id="xp">
+          <span class="chip">+15 XP</span>
+          <svg class="mini-mascot" viewBox="0 0 100 100" aria-hidden="true"><use href="#svitlyk"/></svg>
+          <span>так працює кожне питання в Drivers School</span>
+        </div>
+        <button class="quiz-reset" id="reset" type="button"><span aria-hidden="true">↺</span> Спробувати ще раз</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================ TRUST BAR ============================ -->
+<section class="trust" aria-label="Чому нам можна довіряти">
+  <div class="wrap">
+    <div class="glass trust-card reveal">
+      <div class="official">
+        <span class="gov" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 2 3 6v6c0 5 3.8 8.5 9 10 5.2-1.5 9-5 9-10V6l-9-4Z" fill="#fff" opacity=".95"/><path d="m8.5 12 2.4 2.4L16 9.5" stroke="#255A8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span>
+          <b>Питання з офіційної бази ГСЦ&nbsp;МВС</b>
+          <small>Той самий банк питань, що й на справжньому іспиті</small>
+        </span>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="n">2322</div><div class="l">офіційні питання</div></div>
+        <div class="stat"><div class="n">734</div><div class="l">фото реальних ситуацій</div></div>
+        <div class="stat"><div class="n">8 · 65</div><div class="l">категорій · тем</div></div>
+        <div class="stat"><div class="n"><span class="star">★</span> 4.9</div><div class="l">у відгуках</div></div>
+      </div>
+
+      <div class="trust-extra">
+        <span class="format-chip">
+          <span class="unit"><span class="pill">20</span> питань</span>
+          <span class="unit"><span class="pill">20</span> хвилин</span>
+          <span class="unit"><span class="pill">2</span> помилки</span>
+          <span class="unit-note">— як на справжньому іспиті</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ HOW IT WORKS + PROGRESS (merged) ============================ -->
+<div class="journey-gap" aria-hidden="true"></div>
+<section class="section-pad" id="game" aria-labelledby="game-h">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Як це працює</span>
+      <h2 id="game-h">Три кроки. І прогрес, який видно.</h2>
+      <p>Спокійний метод — і мотивація, яка тримає аж до іспиту.</p>
+    </div>
+
+    <!-- the method: 3 calm steps -->
+    <div class="zone method reveal" style="--zone-hue:158 50% 80%">
+      <div class="glass tray">
+      <span class="tray-edge" aria-hidden="true"></span>
+      <div class="steps">
+        <div class="solid step lift" style="border-radius: 22px; border-width: 1px; padding: 30px 26px">
+          <div class="num">1</div>
+          <span class="step-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.4 5.4 8.2 4.9 6 4.9c-1 0-1.9.1-2.6.3v12.4c.7-.2 1.6-.3 2.6-.3 2.2 0 4.4.5 6 1.7m0-12.4c1.6-1.2 3.8-1.7 6-1.7 1 0 1.9.1 2.6.3v12.4c-.7-.2-1.6-.3-2.6-.3-2.2 0-4.4.5-6 1.7m0-12.4V19"/></svg></span>
+          <h3>Вивчай тему</h3>
+          <p>Коротко й зрозуміло: знаки, розмітка, пріоритети — без юридичної води.</p>
+        </div>
+        <div class="solid step lift">
+          <div class="num">2</div>
+          <span class="step-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 9.4A7.5 7.5 0 0 1 17 6.2l2.4 2.2m.1-4.4v4.4H15M19.4 14.6A7.5 7.5 0 0 1 7 17.8l-2.4-2.2m-.1 4.4v-4.4H9"/></svg></span>
+          <h3>Тренуйся розумно</h3>
+          <p>Система сама повертає питання, у яких ти помилився, поки ти їх не закріпиш.</p>
+        </div>
+        <div class="solid step lift">
+          <div class="num">3</div>
+          <span class="step-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4.5" width="14" height="16.5" rx="2.6"/><path d="M9 4.5v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M8.6 11.3l1.5 1.5 2.7-2.9M8.6 16.5h5"/></svg></span>
+          <h3>Складай пробний іспит</h3>
+          <p>Той самий формат, що й офіційний: 20 питань, 20 хвилин, максимум 2 помилки.</p>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <!-- connective label into the progress part -->
+    <div class="merge-divider reveal"><span>Ось як виглядатиме твій прогрес</span></div>
+
+    <div class="game-grid zone" style="--zone-hue:158 50% 80%">
+      <!-- streak -->
+      <div class="glass game-card lift reveal">
+        <div class="streak-top">
+          <span class="flame" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3c1 3-1 4-1 6a3 3 0 0 0 6 0c0-1-.3-2-.8-2.8C18.6 8 20 11 20 14a8 8 0 1 1-16 0c0-4 3-6 4-9 .7 1.5 2.4 2 4-2Z" fill="#B4532E" opacity=".85" stroke="#8c3f22" stroke-width="1" stroke-linejoin="round"/></svg>
+          </span>
+          <div>
+            <h4>Серія 7 днів</h4>
+            <span class="muted">Не зупиняйся — ще трохи.</span>
+          </div>
+        </div>
+        <div class="streak-days" aria-hidden="true">
+          <span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span>
+        </div>
+      </div>
+
+      <!-- daily goal ring -->
+      <div class="glass game-card lift reveal">
+        <div class="goal">
+          <svg class="ring" viewBox="0 0 100 100" role="img" aria-label="Денна ціль: 3 з 5 уроків">
+            <circle class="track" cx="50" cy="50" r="40"/>
+            <circle class="val" cx="50" cy="50" r="40" data-dash="251" data-pct="60"/>
+            <text class="ring-label" x="50" y="55" text-anchor="middle">3/5</text>
+          </svg>
+          <div>
+            <h4>Денна ціль</h4>
+            <span class="muted">3 / 5 уроків сьогодні</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- xp / level -->
+      <div class="glass game-card lift reveal">
+        <div class="level-top">
+          <span class="lvl-badge" aria-hidden="true"><span><small>РІВЕНЬ</small><span class="lv">7</span></span></span>
+          <div>
+            <h4>Рівень 7</h4>
+            <span class="muted">+15 XP за правильну відповідь</span>
+          </div>
+        </div>
+        <div class="xp-bar" role="img" aria-label="Прогрес рівня 72 відсотки"><i data-w="72"></i></div>
+      </div>
+
+      <!-- topic path -->
+      <div class="glass game-card span3 lift reveal">
+        <h4 style="margin-bottom:14px">Твій маршрут по темах</h4>
+        <div class="path" role="img" aria-label="Маршрут навчання по темах">
+          <span class="node done">Знаки <span aria-hidden="true">✓</span></span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span class="node done">Розмітка <span aria-hidden="true">✓</span></span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span class="node now">Перехрестя <span aria-hidden="true">●</span> зараз</span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span class="node locked">Обгін <svg viewBox="0 0 24 24" fill="none" width="13" height="13" aria-hidden="true" style="vertical-align:-1px"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg></span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span class="node locked">Швидкість <svg viewBox="0 0 24 24" fill="none" width="13" height="13" aria-hidden="true" style="vertical-align:-1px"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg></span>
+        </div>
+      </div>
+
+      <!-- accuracy — a DISTINCT metric (the 78% readiness number lives only in the #readiness dial) -->
+      <div class="glass game-card lift reveal">
+        <h4>Середня точність</h4>
+        <div class="meter-wrap">
+          <div class="meter" role="img" aria-label="Середня точність 92 відсотки"><i data-w="92"></i></div>
+          <div class="meter-row"><b>92%</b><span>впевнено</span></div>
+        </div>
+      </div>
+
+      <!-- badges -->
+      <div class="glass game-card span2 lift reveal">
+        <h4 style="margin-bottom:14px">Зароблені відзнаки</h4>
+        <div class="badges">
+          <span class="bdg"><span class="ic" style="background:linear-gradient(150deg,hsl(205 46% 60%),hsl(205 48% 50%))" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#fff"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="#255A8C"/></svg></span>Знавець знаків</span>
+          <span class="bdg"><span class="ic" style="background:linear-gradient(150deg,hsl(158 42% 56%),hsl(158 44% 46%))" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>100 питань</span>
+          <span class="bdg"><span class="ic" style="background:linear-gradient(150deg,hsl(28 50% 62%),hsl(28 52% 52%))" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="3" stroke="#fff" stroke-width="2"/><path d="M8 3v4M16 3v4M4 10h16" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>Тиждень без пропусків</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FEATURES ============================ -->
+<section class="section-pad" id="features" aria-labelledby="feat-h">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Можливості</span>
+      <h2 id="feat-h">Усе, щоб підготуватися спокійно</h2>
+      <p>П'ять режимів практики, фото реальних ситуацій і чесна оцінка готовності.</p>
+    </div>
+
+    <div class="zone reveal" style="--zone-hue:202 56% 82%">
+    <div class="glass tray">
+    <span class="tray-edge" aria-hidden="true"></span>
+    <div class="bento">
+      <!-- FEATURED: mock exam (spans 2 on desktop) -->
+      <div class="solid feat feat-wide lift">
+        <div class="fic" style="background:hsl(28 50% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="#6a4a28" stroke-width="2"/><path d="M12 9v4l2.5 2M9 2h6" stroke="#6a4a28" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <h3>Пробний іспит</h3>
+        <p>Повна симуляція офіційного іспиту — той самий формат, що й справжній, з таймером і лімітом помилок.</p>
+        <div class="feat-stats"><span><b>20</b>питань</span><span><b>20</b>хвилин</span><span><b>2</b>помилки</span></div>
+      </div>
+      <div class="solid feat lift">
+        <div class="fic" style="background:hsl(158 40% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 1-2-2V5Z" stroke="#226157" stroke-width="2" stroke-linejoin="round"/><path d="M20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 0 2-2V5Z" stroke="#226157" stroke-width="2" stroke-linejoin="round"/></svg></div>
+        <h3>Практика за темами</h3>
+        <p>Прокачуй конкретні теми у власному темпі.</p>
+      </div>
+      <!-- FEATURED MOAT: real official road signs (spans 2 from tablet up) -->
+      <div class="solid feat feat-photo lift">
+        <div class="fic" style="background:hsl(205 45% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="14" rx="3" stroke="#255A8C" stroke-width="2"/><path d="M8 6 9.5 3.5h5L16 6" stroke="#255A8C" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" stroke="#255A8C" stroke-width="2"/></svg></div>
+        <h3>Справжні знаки й дорожні ситуації</h3>
+        <p>734 офіційні зображення — вчись на тих самих знаках і сценах, що будуть на іспиті, а не на абстрактних іконках.</p>
+        <div class="sign-strip" role="img" aria-label="Приклади офіційних дорожніх знаків: стоп, дати дорогу, головна дорога, обмеження швидкості, пішохідний перехід">
+          <span class="tile"><svg viewBox="0 0 48 48"><polygon points="15.5,4 32.5,4 44,15.5 44,32.5 32.5,44 15.5,44 4,32.5 4,15.5" fill="#C5392B" stroke="#fff" stroke-width="2.5"/><text x="24" y="28.5" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="10.5" fill="#fff">STOP</text></svg></span>
+          <span class="tile"><svg viewBox="0 0 48 48"><polygon points="5,9 43,9 24,42" fill="#fff" stroke="#C5392B" stroke-width="4" stroke-linejoin="round"/></svg></span>
+          <span class="tile"><svg viewBox="0 0 48 48"><rect x="10.5" y="10.5" width="27" height="27" rx="3" transform="rotate(45 24 24)" fill="#F2C200" stroke="#fff" stroke-width="3"/></svg></span>
+          <span class="tile"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="#fff" stroke="#C5392B" stroke-width="5"/><text x="24" y="31" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="17" fill="#1F2933">50</text></svg></span>
+          <span class="tile"><svg viewBox="0 0 48 48"><rect x="5" y="5" width="38" height="38" rx="5" fill="#2C6AA8"/><polygon points="24,11 39,38 9,38" fill="#fff"/><circle cx="24" cy="19" r="2.6" fill="#2C6AA8"/><path d="M24 22v8M24 25l-4 3M24 25l4 3M24 30l-3 6M24 30l3 6" stroke="#2C6AA8" stroke-width="2" stroke-linecap="round" fill="none"/></svg></span>
+        </div>
+      </div>
+      <div class="solid feat lift">
+        <div class="fic" style="background:hsl(205 45% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 9a8 8 0 0 1 13.5-3.5L20 8M20 4v4h-4" stroke="#255A8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 15a8 8 0 0 1-13.5 3.5L4 16M4 20v-4h4" stroke="#255A8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>Робота над помилками</h3>
+        <p>Інтервальні повторення: складні питання повертаються саме тоді, коли їх варто закріпити.</p>
+      </div>
+      <div class="solid feat lift">
+        <div class="fic" style="background:hsl(28 50% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="4" stroke="#6a4a28" stroke-width="2"/><circle cx="9" cy="9" r="1.4" fill="#6a4a28"/><circle cx="15" cy="15" r="1.4" fill="#6a4a28"/><circle cx="15" cy="9" r="1.4" fill="#6a4a28"/><circle cx="9" cy="15" r="1.4" fill="#6a4a28"/></svg></div>
+        <h3>Змішана практика</h3>
+        <p>Випадкові питання з фокусом на твоїх слабких темах.</p>
+      </div>
+      <div class="solid feat lift">
+        <div class="fic" style="background:hsl(158 40% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h12a1 1 0 0 1 1 1v15l-7-3.5L5 20V5a1 1 0 0 1 1-1Z" stroke="#226157" stroke-width="2" stroke-linejoin="round"/></svg></div>
+        <h3>Збережені питання</h3>
+        <p>Закладки на питання, до яких хочеш повернутись.</p>
+      </div>
+      <div class="solid feat lift">
+        <div class="fic" style="background:hsl(28 50% 90%)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 18 9 12l3.5 3.5L20 7" stroke="#6a4a28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h5v5" stroke="#6a4a28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>Оцінка готовності</h3>
+        <p>Чесний показник, наскільки ти готовий складати.</p>
+      </div>
+    </div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ READINESS OUTCOME ============================ -->
+<section class="section-pad" id="readiness" aria-labelledby="ready-h">
+  <div class="wrap">
+    <div class="ready-grid zone" style="--zone-hue:158 50% 80%">
+      <div class="glass e3 lens reactive ready-card reveal">
+        <span class="lens-refract" aria-hidden="true"></span>
+        <span class="sheen" aria-hidden="true"></span>
+        <span class="bloom" aria-hidden="true"></span>
+        <svg class="ready-dial" viewBox="0 0 200 120" role="img" aria-label="Готовність до іспиту 78 відсотків — майже готовий">
+          <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="hsl(158 30% 86%)" stroke-width="16" stroke-linecap="round"/>
+          <path id="readyArc" d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="url(#rg)" stroke-width="16" stroke-linecap="round"
+                stroke-dasharray="251" stroke-dashoffset="251"/>
+          <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8FBF8E"/><stop offset="1" stop-color="#226157"/></linearGradient></defs>
+        </svg>
+        <div class="ready-num" id="ready-num" data-target="78">78%</div>
+        <div class="ready-state">майже готовий</div>
+        <div class="ready-cap">Оновлюється після кожного тесту</div>
+      </div>
+
+      <div class="ready-text reveal">
+        <h2 id="ready-h">Не вгадуй, чи ти готовий&nbsp;— побач це.</h2>
+        <p>Ми рахуємо твою готовність за останніми результатами й опануванням тем. Сідай за кермо іспиту тоді, коли цифра скаже «готовий».</p>
+        <p class="ready-reassure"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20s-7-4.5-9.2-9C1.3 8 3 4.5 6.5 4.5c2 0 3.3 1.2 4 2.4l1.5 2.1 1.5-2.1c.7-1.2 2-2.4 4-2.4 3.5 0 5.2 3.5 3.7 6.5C19 15.5 12 20 12 20Z" fill="hsl(152 44% 72%)" stroke="var(--green-deep)" stroke-width="1.5" stroke-linejoin="round"/></svg> Тисячі вже склали з першого разу. І ти зможеш.</p>
+        <div style="margin-top:22px"><a class="btn cta-glass btn-lg" href="#sample"><span>Почати безкоштовно</span></a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ TESTIMONIALS ============================ -->
+<section class="section-pad" id="reviews" aria-labelledby="rev-h">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Відгуки</span>
+      <h2 id="rev-h">Спокійно склали — і ти зможеш</h2>
+      <p>Реальні історії тих, хто вже за кермом.</p>
+    </div>
+    <div class="tcards zone zone-faint" style="--zone-hue:268 40% 84%">
+      <figure class="solid tcard lift reveal">
+        <div class="stars" role="img" aria-label="5 з 5">★★★★★</div>
+        <blockquote class="quote">«Склав з першого разу, хоча знаки давались важко. Робота над помилками — це топ.»</blockquote>
+        <figcaption class="who">
+          <span class="av" style="background:linear-gradient(150deg,hsl(205 46% 60%),hsl(205 48% 50%))" aria-hidden="true">О</span>
+          <span><b>Олександр</b><small>Київ</small></span>
+        </figcaption>
+      </figure>
+      <figure class="solid tcard lift reveal">
+        <div class="stars" role="img" aria-label="5 з 5">★★★★★</div>
+        <blockquote class="quote">«Зручно вчити в дорозі, по 15 хвилин. За два тижні була повністю готова.»</blockquote>
+        <figcaption class="who">
+          <span class="av" style="background:linear-gradient(150deg,hsl(158 42% 56%),hsl(158 44% 46%))" aria-hidden="true">М</span>
+          <span><b>Марія</b><small>Львів</small></span>
+        </figcaption>
+      </figure>
+      <figure class="solid tcard lift reveal">
+        <div class="stars" role="img" aria-label="5 з 5">★★★★★</div>
+        <blockquote class="quote">«Нарешті зрозумів пріоритети на перехрестях — завдяки поясненням до кожного питання.»</blockquote>
+        <figcaption class="who">
+          <span class="av" style="background:linear-gradient(150deg,hsl(28 50% 62%),hsl(28 52% 52%))" aria-hidden="true">Д</span>
+          <span><b>Дмитро</b><small>Одеса</small></span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ PRICING ============================ -->
+<div class="journey-gap short" aria-hidden="true"></div>
+<section class="section-pad" id="pricing" aria-labelledby="price-h">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Тарифи</span>
+      <h2 id="price-h">Почни безкоштовно. Без картки.</h2>
+      <p>Преміум — коли захочеш більше. Жодного тиску.</p>
+    </div>
+    <div class="price-grid zone" style="--zone-hue:152 40% 84%">
+      <div class="solid plan reveal">
+        <div class="pname">Безкоштовно</div>
+        <div class="pfree">0 ₴ <small>назавжди</small></div>
+        <ul>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Практика за темами</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Демо пробних іспитів</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Базовий прогрес</li>
+        </ul>
+        <p class="plan-note">Без картки. Назавжди.</p>
+        <a class="btn btn-ghost btn-block" href="#hero-cta">Почати безкоштовно</a>
+      </div>
+
+      <div class="glass plan pro reveal">
+        <div class="pname">Преміум <span class="popular">Популярне</span></div>
+        <div class="pprice">99 ₴ <small>/ міс</small></div>
+        <ul>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Безлімітні пробні іспити</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Робота над помилками</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Оцінка готовності</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Усі 734 фото</li>
+          <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Без реклами</li>
+        </ul>
+        <a class="btn cta-glass btn-block" href="#hero-cta"><span>Спробувати Преміум</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FAQ ============================ -->
+<section class="section-pad" id="faq" aria-labelledby="faq-h">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Питання</span>
+      <h2 id="faq-h">Часті питання</h2>
+      <p>Коротко й чесно — щоб ти почувався спокійно.</p>
+    </div>
+    <div class="faq-list">
+      <details class="solid faq reveal" name="faq">
+        <summary>Це офіційний іспит?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
+        <div class="a">Ні. Це навчальна платформа для підготовки. Питання — з відкритої бази ГСЦ МВС, але це не офіційна екзаменаційна система.</div>
+      </details>
+      <details class="solid faq reveal" name="faq">
+        <summary>Чи актуальні питання?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
+        <div class="a">Так, ми оновлюємо базу за змінами в ПДР.</div>
+      </details>
+      <details class="solid faq reveal" name="faq">
+        <summary>Скільки часу треба на підготовку?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
+        <div class="a">Більшості вистачає 1–3 тижнів по 15–20 хвилин на день.</div>
+      </details>
+      <details class="solid faq reveal" name="faq">
+        <summary>Чи працює на телефоні?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
+        <div class="a">Так, сайт повністю адаптований під мобільні.</div>
+      </details>
+      <details class="solid faq reveal" name="faq">
+        <summary>Чи потрібна картка, щоб почати?<span class="q-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span></summary>
+        <div class="a">Ні. Почати можна безкоштовно й без картки.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FINAL CTA ============================ -->
+<div class="journey-gap" aria-hidden="true"></div>
+<section class="section-pad final zone" id="final" aria-labelledby="final-h" style="--zone-hue:158 50% 80%">
+  <div class="wrap">
+    <div class="solid final-card reveal">
+      <span class="bloom" aria-hidden="true"></span>
+      <svg class="final-mascot" viewBox="0 0 100 100" role="img" aria-label="Світлик — твій спокійний помічник"><use href="#svitlyk"/></svg>
+      <h2 id="final-h">Твоє «склав» починається сьогодні.</h2>
+      <p>Перше тренування — за 30 секунд.</p>
+      <a class="btn cta-glass btn-lg" href="#hero-cta"><span>Почати безкоштовно</span></a>
+      <p class="final-note">Навчальна платформа для підготовки. Це не офіційна екзаменаційна система.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="#top" aria-label="Drivers School — головна">
+          <span class="badge-mark" aria-hidden="true">ПДР</span>
+          <span>Drivers&nbsp;School</span>
+        </a>
+        <p>Спокійна підготовка до теоретичного іспиту з ПДР. Без зубріння, без страху — крок за кроком до твого «склав».</p>
+      </div>
+      <nav class="foot-cols" aria-label="Навігація у футері">
+        <div>
+          <h3>Продукт</h3>
+          <a href="#features">Можливості</a>
+          <a href="#pricing">Тарифи</a>
+          <a href="#game">Пробний іспит</a>
+        </div>
+        <div>
+          <h3>Підтримка</h3>
+          <a href="#faq">Питання</a>
+          <a href="#top">Контакти</a>
+        </div>
+        <div>
+          <h3>Правове</h3>
+          <a href="#top">Умови</a>
+          <a href="#top">Конфіденційність</a>
+        </div>
+      </nav>
+    </div>
+    <div class="disclaimer">
+      <p>Навчальна платформа для підготовки до теоретичної частини іспиту з ПДР. Це не офіційна екзаменаційна система. Питання — з відкритої бази ГСЦ МВС.</p>
+      <p class="copy">© 2026 Drivers School</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Liquid-glass refraction gate (Chromium renders SVG-on-backdrop) ---------- */
+  try{
+    if(window.chrome && CSS.supports('backdrop-filter','url(#x)')){
+      document.documentElement.classList.add('refraction-ok');
+    }
+  }catch(e){/* no-op: frosted-glass floor stays in effect */}
+
+  /* ---------- Mobile nav menu (hamburger) toggle ---------- */
+  (function(){
+    var burger=document.querySelector('.nav-burger'), menu=document.getElementById('mobile-menu');
+    if(!burger||!menu) return;
+    function setOpen(o){ burger.setAttribute('aria-expanded',o?'true':'false'); menu.classList.toggle('open',o); }
+    burger.addEventListener('click',function(e){ e.stopPropagation(); setOpen(burger.getAttribute('aria-expanded')!=='true'); });
+    menu.querySelectorAll('a').forEach(function(a){ a.addEventListener('click',function(){ setOpen(false); }); });
+    document.addEventListener('click',function(e){ if(menu.classList.contains('open') && !menu.contains(e.target)) setOpen(false); });
+    window.addEventListener('keydown',function(e){ if(e.key==='Escape') setOpen(false); });
+  })();
+
+  /* ---------- Pointer-reactive sheen (rAF-throttled). No tilt/pull — it blurred the glass text. ---------- */
+  if(!reduceMotion){
+    document.querySelectorAll('.reactive').forEach(function(el){
+      var raf = 0, lx = 50, ly = 50;
+      el.addEventListener('pointermove', function(e){
+        var r = el.getBoundingClientRect();
+        lx = (e.clientX - r.left)/r.width*100;
+        ly = (e.clientY - r.top)/r.height*100;
+        if(raf) return;
+        raf = requestAnimationFrame(function(){
+          raf = 0;
+          el.style.setProperty('--mx', lx.toFixed(1)+'%');
+          el.style.setProperty('--my', ly.toFixed(1)+'%');
+        });
+      });
+    });
+  }
+
+  /* ---------- Nav scroll-lift (e1→e2 when floating over content), rAF-throttled ---------- */
+  (function(){
+    var nav = document.querySelector('.nav');
+    if(!nav) return;
+    var ticking = false;
+    function update(){ nav.classList.toggle('stuck', window.scrollY > 40); ticking = false; }
+    window.addEventListener('scroll', function(){
+      if(!ticking){ ticking = true; requestAnimationFrame(update); }
+    }, {passive:true});
+    update();
+  })();
+
+  /* ---------- Liquid press ripple on CTAs + answer options (injected, GPU-cheap) ---------- */
+  if(!reduceMotion){
+    document.querySelectorAll('.cta-glass, .opt').forEach(function(el){
+      var box = document.createElement('span');
+      box.className = 'ripple'; box.setAttribute('aria-hidden','true');
+      el.appendChild(box);
+      el.addEventListener('pointerdown', function(e){
+        if(el.disabled) return;
+        var r = el.getBoundingClientRect();
+        var dot = document.createElement('i');
+        dot.style.setProperty('--rx', (e.clientX - r.left)+'px');
+        dot.style.setProperty('--ry', (e.clientY - r.top)+'px');
+        box.appendChild(dot);
+        requestAnimationFrame(function(){ dot.classList.add('go'); });
+        dot.addEventListener('animationend', function(){ dot.remove(); });
+      });
+    });
+  }
+
+  /* ---------- Segmented glass toggle — slide the .thumb under the active button ---------- */
+  (function(){
+    var seg = document.getElementById('mode-seg');
+    if(!seg) return;
+    var thumb = seg.querySelector('.thumb');
+    var btns = Array.prototype.slice.call(seg.querySelectorAll('button'));
+    var helper = document.getElementById('quiz-helper-text');
+    var HINTS = {
+      train: 'Тут можна помилятися — це тренування, а не іспит.',
+      exam:  'Як на справжньому іспиті: одна спроба на питання.'
+    };
+    function place(btn){
+      if(!thumb) return;
+      thumb.style.width = btn.offsetWidth + 'px';
+      thumb.style.transform = 'translateX(' + (btn.offsetLeft - 4) + 'px)';
+    }
+    function select(btn, focus){
+      btns.forEach(function(b){
+        var on = b === btn;
+        b.setAttribute('aria-checked', on ? 'true':'false');
+        b.tabIndex = on ? 0 : -1;
+      });
+      place(btn);
+      if(helper && btn.dataset.mode && HINTS[btn.dataset.mode]) helper.textContent = HINTS[btn.dataset.mode];
+      if(focus) btn.focus();
+    }
+    btns.forEach(function(b, i){
+      b.addEventListener('click', function(){ select(b); });
+      b.addEventListener('keydown', function(e){
+        var dir = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1
+                : (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   ? -1 : 0;
+        if(!dir) return;
+        e.preventDefault();
+        select(btns[(i + dir + btns.length) % btns.length], true);
+      });
+    });
+    var active = seg.querySelector('button[aria-checked="true"]') || btns[0];
+    requestAnimationFrame(function(){ place(active); });
+    window.addEventListener('resize', function(){
+      place(seg.querySelector('button[aria-checked="true"]') || btns[0]);
+    });
+  })();
+
+  /* ---------- Interactive sample question ---------- */
+  var options  = document.getElementById('options');
+  var feedback = document.getElementById('feedback');
+  var fbIc     = document.getElementById('fb-ic');
+  var fbText   = document.getElementById('fb-text');
+  var xp       = document.getElementById('xp');
+  var resetBtn = document.getElementById('reset');
+  var answered = false;
+
+  var ICON_OK = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 13 4 4L19 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var ICON_NO = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>';
+  var CORRECT = '<b>Правильно!</b> Жовте миготливе означає, що перехрестя нерегульоване — далі діють знаки пріоритету.';
+  var WRONG   = '<b>Не зовсім.</b> Жовте миготливе = перехрестя нерегульоване; рухайся за знаками пріоритету. Правильна відповідь підсвічена нижче.';
+
+  function getButtons(){ return Array.prototype.slice.call(options.querySelectorAll('.opt')); }
+  function optText(b){ var s = b.querySelector('span:last-child'); return s ? s.textContent : ''; }
+
+  function answer(clicked){
+    if(answered) return;
+    answered = true;
+    var buttons = getButtons();
+    var isRight = clicked.getAttribute('data-correct') === 'true';
+
+    buttons.forEach(function(b){
+      b.disabled = true;
+      if(b.getAttribute('data-correct') === 'true'){
+        b.classList.add('correct');
+        if(!reduceMotion) b.classList.add('reveal-soft');
+        var m = b.querySelector('.mark');
+        if(m) m.textContent = '✓';
+        b.setAttribute('aria-label', 'Правильна відповідь: ' + optText(b));
+      }
+    });
+    if(!isRight){
+      clicked.classList.add('wrong');
+      var mk = clicked.querySelector('.mark');
+      if(mk) mk.textContent = '✕';
+      clicked.setAttribute('aria-label', 'Неправильна відповідь: ' + optText(clicked));
+    }
+
+    feedback.classList.remove('ok','no');
+    feedback.classList.add('show', isRight ? 'ok' : 'no');
+    fbIc.innerHTML = isRight ? ICON_OK : ICON_NO;
+    fbText.innerHTML = isRight ? CORRECT : WRONG;
+
+    xp.classList.add('show');
+    resetBtn.classList.add('show');
+    /* move focus to the explanation so keyboard/SR users don't sit on a disabled option */
+    feedback.setAttribute('tabindex','-1');
+    feedback.focus();
+  }
+
+  function reset(){
+    answered = false;
+    getButtons().forEach(function(b,i){
+      b.disabled = false;
+      b.classList.remove('correct','wrong','reveal-soft');
+      b.removeAttribute('aria-label');
+      var m = b.querySelector('.mark');
+      if(m) m.textContent = ['А','Б','В','Г'][i];
+    });
+    feedback.classList.remove('show','ok','no');
+    fbText.innerHTML = '';
+    fbIc.innerHTML = '';
+    xp.classList.remove('show');
+    resetBtn.classList.remove('show');
+    var first = getButtons()[0];
+    if(first) first.focus();
+  }
+
+  getButtons().forEach(function(b){
+    b.addEventListener('click', function(){ answer(b); });
+  });
+  resetBtn.addEventListener('click', reset);
+
+  /* ---------- Scroll reveal + animated meters ---------- */
+  var revealEls = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+
+  function fillMeters(root){
+    root.querySelectorAll('.xp-bar i, .meter i').forEach(function(el){
+      if(el.dataset.filled) return; el.dataset.filled = '1';
+      el.style.width = (el.getAttribute('data-w') || 0) + '%';
+    });
+    root.querySelectorAll('.ring .val').forEach(function(c){
+      if(c.dataset.filled) return; c.dataset.filled = '1';
+      var dash = parseFloat(c.getAttribute('data-dash')) || 251;
+      var pct  = parseFloat(c.getAttribute('data-pct')) || 0;
+      c.style.strokeDasharray = dash;
+      c.style.strokeDashoffset = dash;
+      requestAnimationFrame(function(){ c.style.strokeDashoffset = dash * (1 - pct/100); });
+    });
+  }
+  function fillReadyArc(){
+    var arc = document.getElementById('readyArc');
+    if(!arc || arc.dataset.filled) return; arc.dataset.filled = '1';
+    requestAnimationFrame(function(){
+      arc.style.transition = reduceMotion ? 'none' : 'stroke-dashoffset 1.5s cubic-bezier(0.16,1,0.3,1)';
+      arc.style.strokeDashoffset = 251 * (1 - 78/100);
+    });
+    if(reduceMotion) return;
+    var card = arc.closest('.ready-card');
+    var bloom = card && card.querySelector('.bloom');
+    var num = card && card.querySelector('.ready-num');
+    if(bloom) setTimeout(function(){ bloom.classList.add('lit'); }, 250);
+    /* count the numeral 0 -> target in sync with the arc settling (the emotional payoff) */
+    if(num){
+      var target = parseInt(num.getAttribute('data-target'), 10) || 78;
+      num.textContent = '0%';
+      var t0 = null, dur = 1500;
+      requestAnimationFrame(function step(ts){
+        if(t0 === null) t0 = ts;
+        var p = Math.min(1, (ts - t0) / dur);
+        var eased = 1 - Math.pow(1 - p, 3);
+        num.textContent = Math.round(eased * target) + '%';
+        if(p < 1){ requestAnimationFrame(step); }
+        else { num.classList.add('count'); }
+      });
+    }
+  }
+
+  if('IntersectionObserver' in window && !reduceMotion){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          e.target.classList.add('in');
+          fillMeters(e.target);
+          if(e.target.querySelector && e.target.querySelector('#readyArc')) fillReadyArc();
+          if(!reduceMotion && e.target.classList.contains('final-card')){
+            var fb = e.target.querySelector('.bloom');
+            if(fb) setTimeout(function(){ fb.classList.add('lit'); }, 200);
+          }
+          io.unobserve(e.target);
+        }
+      });
+    }, {rootMargin:'0px 0px -8% 0px', threshold:0.12});
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('in'); });
+    fillMeters(document); fillReadyArc();
+  }
+
+  /* ---------- Nav scroll-spy: aria-current on the section in the middle band ---------- */
+  (function(){
+    if(!('IntersectionObserver' in window)) return;
+    var links = Array.prototype.slice.call(document.querySelectorAll('.nav-links a[href^="#"]'));
+    var map = {};
+    links.forEach(function(a){
+      var sec = document.getElementById(a.getAttribute('href').slice(1));
+      if(sec) map[sec.id] = a;
+    });
+    var ids = Object.keys(map);
+    if(!ids.length) return;
+    var spy = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          links.forEach(function(a){ a.removeAttribute('aria-current'); });
+          map[e.target.id].setAttribute('aria-current','true');
+        }
+      });
+    }, {rootMargin:'-45% 0px -50% 0px', threshold:0});
+    ids.forEach(function(id){ spy.observe(document.getElementById(id)); });
+  })();
+})();
+</script>
+
+<!-- LIVING MAP BACKGROUND — gating + scroll→journey sync -->
+<script>
+(function(){
+  var mapbg = document.getElementById('mapbg');
+  var frame = document.getElementById('mapbgFrame');
+  if(!mapbg || !frame) return;
+
+  // WCAG 2.2.2 — stop/start the background motion (the pill is revealed by __setMapBg when capable).
+  var toggleBtn = document.getElementById('mapbg-toggle');
+  function reflectToggle(on){
+    if(!toggleBtn) return;
+    toggleBtn.classList.toggle('is-paused', !on);
+    toggleBtn.setAttribute('aria-label', on ? 'Зупинити фоновий рух' : 'Увімкнути фоновий рух');
+  }
+  if(toggleBtn){
+    toggleBtn.addEventListener('click', function(){ window.__setMapBg(!mapPref); });
+  }
+
+  var mqReduce = matchMedia('(prefers-reduced-motion: reduce)');
+  // The living map now PERSISTS across ALL devices (phones, tablets, desktop) — each gets a
+  // device-appropriate cost profile (map-bg.html runs a LITE traffic/render mode on touch / small /
+  // low-power devices, see its `mobileLike` / `lowPowerDevice`). We keep only a sane capability
+  // floor + the honest opt-outs: reduced-motion, reduced-transparency (glass refraction is the whole
+  // point), and save-data / reduced-data (don't pull ~1 MB MapLibre on a metered link). The floor is
+  // min-height 480 (skips tiny landscape phones held sideways) + `tooWeak()` (truly ancient / low-end
+  // devices fall back to the static pastel-glass field — no map download).
+  var mqDevice = matchMedia('(min-height: 480px)');
+  var mqReduceData = matchMedia('(prefers-reduced-data: reduce)');
+  var mqReduceTransp = matchMedia('(prefers-reduced-transparency: reduce)');
+  function saveData(){ try{ return !!(navigator.connection && navigator.connection.saveData) || mqReduceData.matches; }catch(e){ return mqReduceData.matches; } }
+  // Only TRULY weak / ancient devices skip the map entirely; weak-but-usable devices still get it in
+  // LITE mode (map-bg.html reduces car count, canvas pixel-ratio, max zoom & frame-rate for them).
+  function tooWeak(){
+    try{
+      if(typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory < 2) return true;
+      if(typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency < 2) return true;
+      // very slow link → don't pull ~1 MB MapLibre; fall back to the static field.
+      var ct = navigator.connection && navigator.connection.effectiveType;
+      if(ct === 'slow-2g' || ct === '2g') return true;
+    }catch(e){}
+    return false;
+  }
+  // never load/run the WebGL map under reduced-transparency (glass refraction is the whole point) either.
+  function allowed(){ return mqDevice.matches && !mqReduce.matches && !mqReduceTransp.matches && !saveData() && !tooWeak(); }
+
+  var syncing = false, loaded = false, mapPref = true;
+
+  // Calibration: anchor each city's MAX zoom to a block of interest. While that block is centered
+  // the camera holds at street zoom (a hold band); in the gaps it pulls back, travels and zooms
+  // into the next city. Fast scrolling stays at altitude (the map's own scroll-velocity cap);
+  // settling on a block lets the zoom rush in. jp = journey progress fed to the map (0..1).
+  // 4-city journey (Lviv dropped). jp = each city's MAX-ZOOM dwell position in the map's journey
+  // (its routeP ÷ routeEnd 2.17), so when a section is centered the map holds at that city's street zoom.
+  // Kyiv routeP .41–.50 → .210 · Odesa .98–1.07 → .472 · Kharkiv 1.56–1.65 → .740 · Dnipro 2.09–2.17 → .982.
+  var MAP_ANCHORS = [
+    { sel:'#hero',     jp:0.210 },  // Kyiv    — hero
+    { sel:'#game',     jp:0.472 },  // Odesa   — "Як це працює"
+    { sel:'#pricing',  jp:0.740 },  // Kharkiv — pricing  (#features falls in the Odesa→Kharkiv fly)
+    { sel:'#final',    jp:0.982 }   // Dnipro  — final CTA
+  ];
+  function smoother(t){ t = t < 0 ? 0 : t > 1 ? 1 : t; return t*t*t*(t*(t*6 - 15) + 10); }
+  function curScroll(){
+    var se = document.scrollingElement || document.documentElement;
+    return window.scrollY || window.pageYOffset || se.scrollTop || 0;
+  }
+  function readProgress(){
+    var y = curScroll(), vh = window.innerHeight, baseHold = vh * 0.20;
+    var pts = [];
+    for(var i = 0; i < MAP_ANCHORS.length; i++){
+      var el = document.querySelector(MAP_ANCHORS[i].sel);
+      if(!el) continue;
+      var r = el.getBoundingClientRect();
+      // scrollY at which this section sits centered in the viewport
+      pts.push({ c: r.top + y + r.height / 2 - vh / 2, jp: MAP_ANCHORS[i].jp });
+    }
+    if(!pts.length) return 0.173;
+    pts.sort(function(a, b){ return a.c - b.c; });
+    if(y <= pts[0].c) return pts[0].jp;
+    if(y >= pts[pts.length - 1].c) return pts[pts.length - 1].jp;
+    for(var k = 0; k < pts.length - 1; k++){
+      var a = pts[k], b = pts[k + 1];
+      if(y >= a.c && y <= b.c){
+        var h = Math.min(baseHold, (b.c - a.c) * 0.14);   // shorter max-zoom dwell, much longer fly
+                                                          // between cities so the camera + map tiles
+                                                          // have time to render (no fast blink)
+        var aEnd = a.c + h, bStart = b.c - h;
+        if(y <= aEnd) return a.jp;                         // holding at city A max zoom
+        if(y >= bStart) return b.jp;                       // holding at city B max zoom
+        return a.jp + (b.jp - a.jp) * smoother((y - aEnd) / Math.max(1, bStart - aEnd));
+      }
+    }
+    return pts[pts.length - 1].jp;
+  }
+  // Scroll-driven sync (no perpetual rAF): write the journey progress only when the page actually
+  // scrolls/resizes, coalesced to one write per frame. The map's own loop eases the camera from
+  // there, so when the user is still we do zero work here.
+  var queued = false;
+  function writeProgress(){
+    queued = false;
+    if(!syncing) return;
+    try{ var w = frame.contentWindow; if(w) w.__journeyProgress = readProgress(); }catch(e){}
+  }
+  function onScroll(){ if(syncing && !queued){ queued = true; requestAnimationFrame(writeProgress); } }
+  function startSync(){
+    if(syncing) return; syncing = true;
+    window.addEventListener('scroll', onScroll, {passive:true});
+    window.addEventListener('resize', onScroll, {passive:true});
+    onScroll();
+    // Re-prime while the iframe boots (its contentWindow is replaced on navigation) and as fonts/
+    // layout settle, so the first camera position is correct without needing a scroll.
+    [120, 400, 900, 1800, 3000].forEach(function(ms){ setTimeout(onScroll, ms); });
+  }
+  function stopSync(){
+    syncing = false;
+    window.removeEventListener('scroll', onScroll);
+    window.removeEventListener('resize', onScroll);
+  }
+  function setPaused(p){ try{ var w = frame.contentWindow; if(w) w.__mapPaused = p; }catch(e){} }
+
+  // If the map errors or simply never loads, tear the background down so no blank/broken frame shows.
+  function mapFailed(){
+    mapbg.classList.remove('is-on'); document.documentElement.classList.remove('map-live');
+    stopSync();
+    if(toggleBtn) toggleBtn.classList.remove('show');
+  }
+
+  function loadFrameOnce(){
+    if(loaded) return;
+    loaded = true;
+    var settled = false, watchdog = 0;
+    frame.addEventListener('load', function(){
+      settled = true;
+      if(watchdog){ clearTimeout(watchdog); watchdog = 0; }
+      setPaused(false); onScroll();
+    });
+    frame.addEventListener('error', function(){
+      if(settled) return;
+      settled = true;
+      if(watchdog){ clearTimeout(watchdog); watchdog = 0; }
+      mapFailed();
+    });
+    // Start the map already at the hero city (first anchor) so it skips overview tiles.
+    var startHash = '#p=' + (MAP_ANCHORS[0] ? MAP_ANCHORS[0].jp : 0.173);
+    var src = frame.getAttribute('data-src') + startHash;
+    // Loading speed: WARM the self-hosted MapLibre download NOW so the ~1 MB lands in parallel with the
+    // hero paint and is HTTP-cache-warm by the time the iframe boots. Only reached on capable devices
+    // (loadFrameOnce runs behind allowed()), so phones / data-saver never fetch it. Same-origin → the
+    // iframe's <script src="vendor/maplibre-gl.js"> reuses this cached response (no double download).
+    ['vendor/maplibre-gl.js', 'vendor/maplibre-gl.css'].forEach(function(href){
+      try{
+        var l = document.createElement('link');
+        l.rel = 'prefetch'; l.as = /\.css$/.test(href) ? 'style' : 'script'; l.href = href;
+        document.head.appendChild(l);
+      }catch(e){}
+    });
+    var go = function(){
+      frame.src = src;
+      // watchdog: if the iframe never fires `load` (missing file, hung network), fall back gracefully.
+      watchdog = setTimeout(function(){ if(!settled){ settled = true; mapFailed(); } }, 9000);
+    };
+    // Boot the iframe right after the hero paints — no long idle wait (the JS is already prefetching).
+    if('requestIdleCallback' in window){
+      requestIdleCallback(go, { timeout: 300 });
+    }else{
+      setTimeout(go, document.readyState === 'complete' ? 30 : 200);
+    }
+  }
+
+  // Public hook the Tweaks panel calls.
+  window.__setMapBg = function(on){
+    mapPref = !!on;
+    if(on && allowed()){
+      mapbg.hidden = false;
+      loadFrameOnce();
+      setPaused(false);
+      requestAnimationFrame(function(){ mapbg.classList.add('is-on'); document.documentElement.classList.add('map-live'); });
+      startSync();
+    }else{
+      mapbg.classList.remove('is-on'); document.documentElement.classList.remove('map-live');
+      stopSync();
+      setPaused(true);   // freeze the iframe's render loop while hidden — no GPU/CPU cost
+    }
+    if(toggleBtn){
+      // show the control whenever the map is capable on this device, so it can pause AND resume
+      toggleBtn.classList.toggle('show', allowed());
+      reflectToggle(mapPref && allowed());
+    }
+  };
+
+  // Auto-enable on capable devices so the map starts loading immediately; the Tweaks effect
+  // reconciles to the persisted preference shortly after.
+  // On mobile/touch, DEFER the map until after full load (+a beat) so MapLibre's ~1MB parse + WebGL init
+  // don't compete with first paint / LCP / TBT; desktop stays immediate. (Map still shows on all devices.)
+  if(allowed()){
+    if(window.matchMedia('(max-width:760px), (pointer:coarse)').matches){
+      var __enableMap = function(){ setTimeout(function(){ window.__setMapBg(true); }, 1200); };
+      if(document.readyState === 'complete') __enableMap();
+      else window.addEventListener('load', __enableMap, { once:true });
+    } else { window.__setMapBg(true); }
+  }
+  // Re-evaluate when the device context changes (rotate, resize across the threshold, reduced-motion
+  // toggle) so the map switches on/off to match capability without a reload.
+  function onEnv(){ window.__setMapBg(mapPref); }
+  if(mqReduce.addEventListener){
+    mqReduce.addEventListener('change', onEnv);
+    mqDevice.addEventListener('change', onEnv);
+    mqReduceTransp.addEventListener('change', onEnv);
+    mqReduceData.addEventListener('change', onEnv);
+  }
+})();
+</script>
+
+</body>
+</html>
