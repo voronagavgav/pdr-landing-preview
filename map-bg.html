@@ -3241,13 +3241,27 @@ body{
       }catch(e){ window.__journeyTilesErr = String(e && e.message || e); }
     }
 
-    // ── Background-prefetch the WHOLE self-hosted PMTiles archive into the HTTP cache after the page's
-    //    load event, so every subsequent tile range-read is served from local cache (instant) instead of
-    //    the network — this makes even a "softer parent" overzoom moment vanish once cached, and removes
-    //    the per-range latency on a fast scroll. Strictly conservative: self-hosted mode ONLY, never on
-    //    Save-Data / prefers-reduced-data / slow (2g) links, low request priority, fully non-blocking
-    //    (fires well after load so it can't hurt first paint / the initial mobile load we optimized).
-    function prefetchPmtilesArchive(){
+    // ── Background-warm ONLY the 4 cities' street-tile sets into the HTTP cache after the page's load
+    //    event — NOT the whole 42.5 MB archive. The journey only ever shows sharp street detail at the 4
+    //    fixed city dwells (camera holds each city centre at ~z15.3, which overzooms the planet's z14), so
+    //    those are the only tiles that must be pre-cached for "instant-sharp on arrival". Probing the
+    //    archive shows each city's ENTIRE high-zoom footprint is exactly the z14 (and z13) 3×3 block around
+    //    its centre — nothing exists beyond ±1 — so warming z14r1 + z13r1 covers 100% of the present city
+    //    detail for ~5 MB total (≈88% less background data than the old full-file pull). Everything else —
+    //    the z8 complete overview parent, the z9–12 travel corridors, far tiles — is left to on-demand
+    //    range-reads (overzoom keeps them blank-less). Mechanism: we use the pmtiles JS API to resolve each
+    //    city tile's byte range in the archive (WITHOUT downloading the tile bodies — we record the range
+    //    and skip the read), coalesce them into CONTIGUOUS spans, and warm those spans with low-priority
+    //    range fetches. Warming contiguous spans (vs one fetch per tile) matters: Chromium's HTTP cache does
+    //    not reliably retain small (<~5 KB) 206 range responses, so a per-tile warm leaves the tiny
+    //    peripheral tiles uncached; a contiguous span fills one sparse cache segment from which EVERY
+    //    sub-range MapLibre later reads is a guaranteed cache HIT (transferSize 0) — exactly how the old
+    //    whole-file `bytes=0-` warm behaved, but over only the ~5 MB city region. The 4 cities' z13+z14
+    //    tiles happen to cluster as one block at the tail of the archive, so this is typically a single
+    //    span. Sequential + low request priority so it never competes with the live map or first paint.
+    //    Strictly conservative: self-hosted mode ONLY, never on Save-Data / prefers-reduced-data /
+    //    slow (2g–3g) links, fully non-blocking (fires well after load).
+    async function prefetchCityTiles(){
       try{
         if(window.__pmtilesPrefetchStarted) return; window.__pmtilesPrefetchStarted = true;
         if(!window.__mapUseLocalTiles){ window.__pmtilesPrefetch = 'skip:not-local'; return; }
@@ -3257,23 +3271,81 @@ body{
           if(/(slow-2g|2g|3g)/.test(conn.effectiveType || '')){ window.__pmtilesPrefetch = 'skip:slow-link'; return; }
         }
         try{ if(window.matchMedia && window.matchMedia('(prefers-reduced-data: reduce)').matches){ window.__pmtilesPrefetch = 'skip:reduced-data'; return; } }catch(_){}
-        window.__pmtilesPrefetch = 'fetching';
-        // Use a FULL-range request (`Range: bytes=0-`, a 206) — NOT a plain GET. pmtiles reads the
-        // archive via HTTP range requests, which the browser stores in a *sparse* cache entry; a full
-        // `bytes=0-` fetch fills that same sparse entry so EVERY later tile range-read is served from
-        // cache (verified: transferSize 0, ~1ms). A plain 200 GET caches the body but Chrome still
-        // refetches ranges from the network, so it would not warm the right cache. `priority:'low'`
-        // deprioritizes it behind everything else; it stays fresh (max-age) so repeat visits don't redownload.
-        fetch('./map/cities.pmtiles', {priority:'low', mode:'same-origin', headers:{Range:'bytes=0-'}})
-          .then(r => (r && (r.status === 206 || r.ok)) ? r.arrayBuffer() : Promise.reject(new Error('bad status ' + (r && r.status))))
-          .then(buf => { window.__pmtilesPrefetch = 'done:' + (buf ? buf.byteLength : 0); })
-          .catch(e => { window.__pmtilesPrefetch = 'err:' + (e && e.message || e); });
+        if(typeof pmtiles === 'undefined' || !pmtiles.PMTiles){ window.__pmtilesPrefetch = 'skip:no-pmtiles-api'; return; }
+
+        // [zoom, tileRadius] bands. z14 (the dwell street view) is warmed FIRST for ALL cities, then z13
+        // (the final over-city approach) — most-needed tiles cache first. r=1 is the full footprint.
+        const BANDS = [[14,1],[13,1]];
+        const lon2x = (lng,z)=>Math.floor((lng+180)/360*Math.pow(2,z));
+        const lat2y = (lat,z)=>{ const r=lat*Math.PI/180; return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*Math.pow(2,z)); };
+        const want = []; const seen = {};
+        for(const [z,r] of BANDS){
+          for(const k in cities){
+            const c = cities[k]; if(!c || typeof c.lat !== 'number') continue;
+            const cx = lon2x(c.lng,z), cy = lat2y(c.lat,z);
+            for(let dx=-r;dx<=r;dx++) for(let dy=-r;dy<=r;dy++){
+              const key = z+'/'+(cx+dx)+'/'+(cy+dy);
+              if(!seen[key]){ seen[key]=1; want.push([z, cx+dx, cy+dy]); }
+            }
+          }
+        }
+        window.__pmtilesWarmTiles = want.length;
+        window.__pmtilesPrefetch = 'resolving';
+
+        // Resolve each wanted tile's byte range by traversing the archive's directories, WITHOUT
+        // downloading the tile bodies: monkey-patch the source so a tile-data read (offset ≥ tileDataOffset)
+        // records its [start,end) and rejects (no fetch), while header/leaf-directory reads pass through
+        // (those are needed for the traversal and get cached too — MapLibre reuses them).
+        const archive = new pmtiles.PMTiles('./map/cities.pmtiles');   // same URL → shares the browser's range cache
+        const header = await archive.getHeader();
+        const tdo = header.tileDataOffset;
+        const ranges = [];
+        const src = archive.source;
+        const origGetBytes = src.getBytes.bind(src);
+        src.getBytes = function(offset, length, signal, etag){
+          if(offset >= tdo){ ranges.push([offset, offset + length]); return Promise.reject(new Error('__skipbody')); }
+          return origGetBytes(offset, length, signal, etag);
+        };
+        for(const t of want){ try{ await archive.getZxy(t[0], t[1], t[2]); }catch(_){} }
+        src.getBytes = origGetBytes;
+
+        // Coalesce the tile ranges into contiguous spans (merge across small gaps).
+        ranges.sort((a,b)=>a[0]-b[0]);
+        const GAP = 262144;   // merge tiles separated by ≤256 KB into one contiguous fetch
+        const spans = [];
+        for(const [s,e] of ranges){
+          const last = spans[spans.length-1];
+          if(last && s - last[1] <= GAP){ if(e > last[1]) last[1] = e; }
+          else spans.push([s, e]);
+        }
+        window.__pmtilesWarmSpans = spans.length;
+        window.__pmtilesWarmBytesTarget = spans.reduce((a,sp)=>a+(sp[1]-sp[0]),0);
+        if(!spans.length){ window.__pmtilesPrefetch = 'skip:no-ranges'; return; }
+
+        // Warm each contiguous span sequentially at LOW priority → guaranteed sub-range cache hits without
+        // ever competing with the live map. `priority:'low'` deprioritizes behind everything else.
+        window.__pmtilesPrefetch = 'warming';
+        let i = 0, doneBytes = 0;
+        const pump = () => {
+          if(i >= spans.length){
+            window.__pmtilesWarmBytes = doneBytes;
+            window.__pmtilesPrefetch = 'done:' + spans.length + 'span/' + doneBytes + 'b';
+            return;
+          }
+          const sp = spans[i++];
+          fetch('./map/cities.pmtiles', {priority:'low', mode:'same-origin', headers:{Range:'bytes=' + sp[0] + '-' + (sp[1]-1)}})
+            .then(r => (r && (r.status === 206 || r.ok)) ? r.arrayBuffer() : Promise.reject(new Error('bad status ' + (r && r.status))))
+            .then(buf => { doneBytes += (buf ? buf.byteLength : 0); })
+            .catch(()=>{})
+            .finally(()=>{ setTimeout(pump, 0); });
+        };
+        pump();
       }catch(e){ window.__pmtilesPrefetch = 'err:' + (e && e.message || e); }
     }
     // Trigger after the load event (or immediately if already loaded), with a delay so first paint and
     // the hero/MapLibre boot finish first. Self-perpetuating guard makes this run at most once.
     (function schedulePrefetch(){
-      const go = () => setTimeout(prefetchPmtilesArchive, 2200);
+      const go = () => setTimeout(prefetchCityTiles, 2200);
       if(document.readyState === 'complete') go();
       else window.addEventListener('load', go, {once:true});
     })();
