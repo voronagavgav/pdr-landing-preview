@@ -3258,11 +3258,14 @@ body{
         }
         try{ if(window.matchMedia && window.matchMedia('(prefers-reduced-data: reduce)').matches){ window.__pmtilesPrefetch = 'skip:reduced-data'; return; } }catch(_){}
         window.__pmtilesPrefetch = 'fetching';
-        // default cache mode = a normal full GET that the browser stores; later pmtiles Range reads
-        // (206) are then served from that cached full response. `priority:'low'` deprioritizes it behind
-        // everything else (ignored harmlessly by engines that don't support the hint).
-        fetch('./map/cities.pmtiles', {priority:'low', mode:'same-origin'})
-          .then(r => (r && r.ok) ? r.arrayBuffer() : Promise.reject(new Error('bad status')))
+        // Use a FULL-range request (`Range: bytes=0-`, a 206) — NOT a plain GET. pmtiles reads the
+        // archive via HTTP range requests, which the browser stores in a *sparse* cache entry; a full
+        // `bytes=0-` fetch fills that same sparse entry so EVERY later tile range-read is served from
+        // cache (verified: transferSize 0, ~1ms). A plain 200 GET caches the body but Chrome still
+        // refetches ranges from the network, so it would not warm the right cache. `priority:'low'`
+        // deprioritizes it behind everything else; it stays fresh (max-age) so repeat visits don't redownload.
+        fetch('./map/cities.pmtiles', {priority:'low', mode:'same-origin', headers:{Range:'bytes=0-'}})
+          .then(r => (r && (r.status === 206 || r.ok)) ? r.arrayBuffer() : Promise.reject(new Error('bad status ' + (r && r.status))))
           .then(buf => { window.__pmtilesPrefetch = 'done:' + (buf ? buf.byteLength : 0); })
           .catch(e => { window.__pmtilesPrefetch = 'err:' + (e && e.message || e); });
       }catch(e){ window.__pmtilesPrefetch = 'err:' + (e && e.message || e); }
