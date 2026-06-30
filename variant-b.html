@@ -804,27 +804,55 @@ section{position:relative}
 /* signature lenses keep the live refraction: #sample via its own ID rule above; restore #readiness here */
 .lg-everywhere.refraction-ok #readiness .glass.lens::before{ -webkit-backdrop-filter:url(#lg) var(--e3-blur); backdrop-filter:url(#lg) var(--e3-blur); }
 .lg-everywhere.refraction-ok .nav{ -webkit-backdrop-filter:url(#lg) var(--e1-blur); backdrop-filter:url(#lg) var(--e1-blur); }
-/* ===== MOBILE GLASS COST — the living map now runs on phones, so the backdrop-filter glass
-   composited OVER the moving map must stay cheap on phone GPUs. All scoped ≤760px so desktop
-   refraction (≥761) is UNTOUCHED: (1) smaller blur radii on every frosted panel; (2) DROP the
-   per-frame url(#lg) displacement on the signature lenses + nav (plain frost instead) — that filter
-   re-samples the moving map EVERY frame (the single biggest phone-GPU cost) and its subtle warp is
-   barely visible at phone size; (3) drop the full-viewport iframe filter pass. Builds on the
-   tray/game-card blur-flatten above (which stays flat — higher specificity). */
-@media(max-width:760px){
-  .glass::before{ -webkit-backdrop-filter:blur(6px) saturate(150%) brightness(106%); backdrop-filter:blur(6px) saturate(150%) brightness(106%); }
-  .glass.e1::before,.chip-glass::before{ -webkit-backdrop-filter:blur(5px) saturate(150%); backdrop-filter:blur(5px) saturate(150%); }
-  .glass.e3::before{ -webkit-backdrop-filter:blur(4px) saturate(150%); backdrop-filter:blur(4px) saturate(150%); }
+/* ===== MOBILE: LIVE MAP, ZERO GLASS (Path B phone theme) ==============================
+   The CPU profile showed the map's own work is light (main thread ~90% idle); the phone HEAT was the
+   page's glass `backdrop-filter` re-blurring the MOVING map every single frame. So on phone we keep the
+   FULL living map in the background but DROP the glass entirely: every frosted surface gets
+   backdrop-filter:none (kills the per-frame re-blur — the whole point) and the url(#lg) refraction is
+   gone, and the translucent fills become CLEAN OPAQUE PASTEL panels (built from --glass-tint, alpha
+   ~.94–.97) that keep their borders, radius and soft shadows so they still read as the same cards.
+   Scoped to ≤760px + (pointer:coarse) so the mouse desktop (≥761, fine) keeps the full liquid glass —
+   DESKTOP IS UNTOUCHED. Net phone look: live map shows in the hero + margins + gaps, solid pastel cards
+   on top, zero backdrop-filter anywhere. */
+@media(max-width:760px), (pointer:coarse){
+  /* (1) KILL every live blur + the url(#lg) refraction on ALL glass surfaces — !important so it beats
+         the higher-specificity desktop refraction rules regardless of source order. */
+  .glass::before, .glass.e1::before, .glass.e3::before,
+  .chip-glass::before,
   .refraction-ok .glass.lens::before,
   .refraction-ok #sample.glass.lens::before,
-  .lg-everywhere.refraction-ok #readiness .glass.lens::before{
-    -webkit-backdrop-filter:blur(6px) saturate(160%) brightness(120%);
-            backdrop-filter:blur(6px) saturate(160%) brightness(120%);
+  .lg-everywhere.refraction-ok #readiness .glass.lens::before,
+  .refraction-ok .nav, .lg-everywhere.refraction-ok .nav,
+  .nav, .nav.stuck, .mobile-menu, .mapbg-toggle,
+  header.site, footer.site,
+  .lg-content .solid{
+    -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
   }
-  .refraction-ok .nav,
-  .lg-everywhere.refraction-ok .nav{
-    -webkit-backdrop-filter:blur(6px) saturate(150%); backdrop-filter:blur(6px) saturate(150%);
+  /* (2) OPAQUE PASTEL FILLS from the existing palette tokens (NOT flat white — --glass-tint is a soft
+         cool-white, so ~.95 reads as a calm pastel panel). Borders / radius / shadows stay (set elsewhere). */
+  .glass{ background:hsl(var(--glass-tint) / .95) !important; }
+  .glass.e1{ background:hsl(var(--glass-tint) / .96) !important; }
+  .glass.tray, #features .glass.tray{ background:hsl(var(--glass-tint) / .94) !important; }
+  .glass.game-card{ background:hsl(var(--glass-tint) / .96) !important; }
+  .chip-glass{ background:hsl(var(--glass-tint) / .96) !important; }
+  /* signature lens panels (hero quiz + readiness gauge) — opaque so their text stays crisp over the now-sharp map */
+  #sample.glass.lens, #readiness .glass.lens{ background:hsl(var(--glass-tint) / .96) !important; }
+  .nav{ background:hsl(var(--glass-tint) / .95) !important; }
+  .nav.stuck{ background:hsl(var(--glass-tint) / .97) !important; }
+  .mobile-menu{ background:hsl(var(--glass-tint) / .97) !important; }
+  .eyebrow{ background:hsl(var(--glass-tint) / .94) !important; }
+  footer.site{ background:hsl(var(--glass-tint) / .96) !important; }
+  /* PRO pricing card keeps its soft green tint, just opaque */
+  .glass.pro, .plan.pro{ background:hsl(152 44% 93%) !important; }
+  /* (3) text floating DIRECTLY over the now-sharper map stays readable: strengthen the map veil a touch
+         + a soft, feathered scrim behind the hero copy (no hard card edge). */
+  .mapbg-veil{ --mapbg-veil:.54; }
+  .hero-copy{ position:relative; }
+  .hero-copy::before{
+    content:""; position:absolute; inset:-14px -18px -6px; z-index:-1; pointer-events:none;
+    background:radial-gradient(120% 92% at 32% 30%, hsl(var(--glass-tint) / .60), transparent 74%);
   }
+  /* (4) drop the full-viewport iframe filter pass too */
   .mapbg-frame{ filter:none; }
 }
 .lg-everywhere .glass{ box-shadow:var(--e3-shadow), var(--rim), inset 0 0 0 1px hsl(0 0% 100% / .26); }
@@ -2022,10 +2050,12 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   // point), and save-data / reduced-data (don't pull ~1 MB MapLibre on a metered link). The floor is
   // min-height 480 (skips tiny landscape phones held sideways) + `tooWeak()` (truly ancient / low-end
   // devices fall back to the static pastel-glass field — no map download).
-  // DESKTOP ONLY: phones/tablets can't sustain a live full-screen map under the glass blur (GPU heat +
-  // lag), so the map runs only on real desktops/laptops (wide + mouse). Touch/small devices get the
-  // lightweight static pastel-glass fallback — no WebGL, no traffic, no re-blur, fast load.
-  var mqDevice = matchMedia('(min-width: 1024px) and (pointer: fine)');
+  // PHONES RE-ENABLED: the map's own work is light (main thread ~90% idle); the phone HEAT was the page's
+  // glass `backdrop-filter` re-blurring the moving map every frame. The mobile theme (≤760px / coarse)
+  // now DROPS that blur entirely (backdrop-filter:none), so the map renders at normal "map-app" cost,
+  // which phones handle fine — so the living map runs on phones again. Only the honest opt-outs below
+  // (reduced-motion / reduced-transparency / save-data / tooWeak) still fall back to the static field.
+  var mqDevice = matchMedia('(min-height: 480px)');
   var mqReduceData = matchMedia('(prefers-reduced-data: reduce)');
   var mqReduceTransp = matchMedia('(prefers-reduced-transparency: reduce)');
   function saveData(){ try{ return !!(navigator.connection && navigator.connection.saveData) || mqReduceData.matches; }catch(e){ return mqReduceData.matches; } }
