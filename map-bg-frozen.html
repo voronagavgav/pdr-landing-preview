@@ -2388,8 +2388,8 @@ body{
       const liteCarScale = lowPowerDevice ? 0.82 : 1;
       // z14 needs ~4× the cars of z13 to read as full (the zoomed-in view shows ~1/4 the streets), so the
       // base build is much higher now — each city populates on BUILD (no dwell needed for scroll-through).
-      const baseMinCars = Math.round((mobileLike ? 90 : 165) * liteCarScale);
-      const baseMaxCars = Math.round((mobileLike ? 150 : 290) * liteCarScale);
+      const baseMinCars = Math.round((mobileLike ? 90 : 140) * liteCarScale);
+      const baseMaxCars = Math.round((mobileLike ? 150 : 200) * liteCarScale);
       // The adaptive controller (ensureTrafficNetwork) passes a per-city total tuned to land
       // ~60-70 cars *visible* in frame; without it, fall back to the road-density estimate.
       const count = (typeof targetOverride === 'number')
