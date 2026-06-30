@@ -3755,6 +3755,23 @@ body{
         trafficDraws:window.__trafficDraws | 0   // Path B: cumulative traffic-canvas redraws (all modes)
       };
     };
+    // Lightweight read-only car-MOVEMENT health probe (for automated tests / debugging). A car counts as
+    // "stuck" at speed < 0.3 m/s; a steady non-trivial `stuck` while `moving` stays high = a flow bug.
+    window.__carHealth = function(){
+      var net = TRAFFIC.lastVisibleNetwork;
+      if(!net || !net.cars || !net.cars.length) return {cars:0, stuck:0, moving:0};
+      var cars = net.cars, n = cars.length, stuck = 0, moving = 0, sumSpeed = 0, sumMove = 0;
+      for(var i=0;i<n;i++){
+        var s = cars[i].speed || 0; sumSpeed += s;
+        if(s < 0.3) stuck++; else { moving++; sumMove += s; }
+      }
+      return {
+        city: TRAFFIC.activeCityId, cars: n, stuck: stuck, moving: moving,
+        pctStuck: +(100*stuck/n).toFixed(1),
+        avgSpeed: +(sumSpeed/n).toFixed(2),
+        avgMovingSpeed: +(moving ? sumMove/moving : 0).toFixed(2)
+      };
+    };
     updateTarget();
     startLoop();
   }
