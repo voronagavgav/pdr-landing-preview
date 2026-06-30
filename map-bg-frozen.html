@@ -2189,10 +2189,12 @@ body{
     }
 
     function lodBlend(zoom){
-      // Wide/city view: dots. Mid street view: capsules. Close street view: cars.
-      // This avoids colored dash/capsule cars at zoomed-out Kyiv views.
-      const dotOut = 1 - smoothstep(13.15, 13.85, zoom);
-      const capsuleIn = smoothstep(13.15, 13.85, zoom);
+      // Country/travel view: dots. City/district view: little CAPSULE cars. Close street view: full cars.
+      // The dot→capsule transition was lowered (was 13.15–13.85) so the z13-CAPPED journey shows small
+      // car shapes at its city dwell instead of plain dots — by z12.9 it's fully capsule. (Below ~12.2,
+      // out at the country/travel zooms, it stays dots so far-away traffic doesn't render heavy bodies.)
+      const dotOut = 1 - smoothstep(12.2, 12.9, zoom);
+      const capsuleIn = smoothstep(12.2, 12.9, zoom);
       const capsuleOut = 1 - smoothstep(14.25, 14.75, zoom);
       const carIn = smoothstep(14.25, 14.75, zoom);
 
