@@ -296,11 +296,11 @@ body{
   // redraw (normal "map-app" cost). So phones/touch keep the cars ALIVE while idle too, at a gentler
   // ~10fps (battery-aware); real desktops stay at 12fps. The `lowPowerDevice` tier (low RAM / few cores)
   // is still fully frozen when idle via idleTrafficAllowed() — the safety floor.
-  // Idle cars only where they're CHEAP: phone has no glass (no re-blur) → 10fps is fine. Desktop keeps the
-  // heavy liquid-glass refraction (url(#lg)), so moving cars force it to re-render every frame → fans spin
-  // even on an M2 Pro. So desktop = 0 (cars freeze when idle; they still move while scrolling).
+  // Idle cars move at this fps when the page is idle (Danil wants them moving on PC too). Phone (no glass) =
+  // cheap. Desktop has the heavy url(#lg) refraction, so if moving idle cars spin fans, the fix is to LIGHTEN
+  // the glass (drop url(#lg) → plain blur) so the cars are affordable — NOT to freeze the cars.
   const IDLE_TRAFFIC_FPS = (window.matchMedia('(pointer: coarse)').matches
-                         || window.matchMedia('(max-width: 1024px)').matches) ? 10 : 0;
+                         || window.matchMedia('(max-width: 1024px)').matches) ? 10 : 12;
 
   const cities = {
     kyiv:    {lat:50.44765,lng:30.52295},  // Khreshchatyk / Maidan area
