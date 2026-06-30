@@ -2194,11 +2194,11 @@ body{
       const r = Math.random();
 
       let pool;
-      if(r < .46){
+      if(r < .60){
         // Mostly go straight or take the softest bend.
         pool = options.slice(0, Math.min(2, options.length));
-      }else if(r < .84){
-        // Turn more often — disperses cars off the main corridors so downtown through-roads don't fill up.
+      }else if(r < .86){
+        // Sometimes turn.
         pool = options.filter(o => Math.abs(o.turn) > .28 && Math.abs(o.turn) < 1.72);
         if(!pool.length) pool = options;
       }else{
@@ -2365,9 +2365,7 @@ body{
       lanes.forEach((lane, index) => {
         const mid = lane.points[Math.floor(lane.points.length / 2)] || lane.points[0];
         const dist = cityDistance(mid, cityCenter);
-        // Softened center bias: the old [0.42 … 1.20] spread made downtown ~3× denser than the edges (the
-        // "too crowded zones"). Compress to [0.62 … 1.05] so cars spread more evenly across the city grid.
-        const centrality = Math.min(1.05, Math.max(0.62, 1.20 - dist * 12.0 * profile.centerPull));
+        const centrality = Math.max(0.42, 1.20 - dist * 12.0 * profile.centerPull);
         const classWeight = lane.major ? profile.majorBias : profile.localBias;
         const riverBridgeBoost = /bridge|trunk|primary|secondary/.test(lane.roadClass || '') ? 1.08 : 1;
         const weight = lane.length * classWeight * centrality * riverBridgeBoost;
@@ -2390,10 +2388,8 @@ body{
       const liteCarScale = lowPowerDevice ? 0.82 : 1;
       // z14 needs ~4× the cars of z13 to read as full (the zoomed-in view shows ~1/4 the streets), so the
       // base build is much higher now — each city populates on BUILD (no dwell needed for scroll-through).
-      // Count trimmed ~11% (desktop 290→258, mobile 150→134) to relieve the "too crowded zones" — the
-      // dense downtown interchanges read as packed at the old count. Still populates every city on build.
-      const baseMinCars = Math.round((mobileLike ? 82 : 150) * liteCarScale);
-      const baseMaxCars = Math.round((mobileLike ? 134 : 258) * liteCarScale);
+      const baseMinCars = Math.round((mobileLike ? 90 : 165) * liteCarScale);
+      const baseMaxCars = Math.round((mobileLike ? 150 : 290) * liteCarScale);
       // The adaptive controller (ensureTrafficNetwork) passes a per-city total tuned to land
       // ~60-70 cars *visible* in frame; without it, fall back to the road-density estimate.
       const count = (typeof targetOverride === 'number')
@@ -2782,42 +2778,20 @@ body{
     // short segments). Instead, retire the car and fade a replacement in partway along a normal CONNECTED
     // lane → the dead-end stops looping, traffic count stays alive, and there's no gap/direction logic
     // change (just a relocation hidden by the spawn fade-in).
-    function respawnCarToFlow(car, network){
-      const lanes = network && network.lanes;
+    function respawnCarToFlow(car, lanes){
       if(!lanes || !lanes.length){ car.progress = 0; return; }
-      // Per-lane occupancy (so respawns flow to the EMPTIEST roads, not onto already-busy corridors → this is
-      // what kept feeding the "too crowded zones"). O(cars) once per respawn; respawns are infrequent.
-      const occ = network.__occ || (network.__occ = []);
-      occ.length = lanes.length; occ.fill(0);
-      for(const c2 of network.cars){ if(c2.laneIndex >= 0 && c2.laneIndex < occ.length) occ[c2.laneIndex] = (occ[c2.laneIndex] || 0) + 1; }
-      // Among a few random CONNECTED candidates, pick the one with the most road-length per car (most room).
-      let li = -1, bestRoom = -1;
-      for(let t=0; t<8; t++){
-        const c = (Math.random() * lanes.length) | 0; const L = lanes[c];
-        if(!L || !L.connections || !L.connections.length) continue;
-        const room = L.length / ((occ[c] || 0) + 1);
-        if(room > bestRoom){ bestRoom = room; li = c; }
-      }
+      let li = -1;
+      for(let t=0; t<10; t++){ const c = (Math.random()*lanes.length)|0; const L = lanes[c]; if(L && L.connections && L.connections.length){ li = c; break; } }
       if(li < 0){ car.progress = 0; return; }   // no connected lane anywhere (rare) → just reset to start
       const L = lanes[li];
-      // Drop into the LARGEST gap between existing cars on L → no pile-up at the start, never lands ON a car.
-      let pos = (((car.seed || 0.5) % 1)) * L.length;
-      const here = [];
-      for(const c2 of network.cars){ if(c2 !== car && c2.laneIndex === li) here.push((((c2.progress % L.length) + L.length) % L.length)); }
-      if(here.length){
-        here.sort((a, b) => a - b);
-        let gapBest = -1;
-        for(let k = 0; k < here.length; k++){
-          const a = here[k], b = (k + 1 < here.length) ? here[k + 1] : here[0] + L.length;
-          const g = b - a;
-          if(g > gapBest){ gapBest = g; pos = (a + g * 0.5) % L.length; }
-        }
-      }
       car.laneIndex   = li;
       car.nextLaneIndex = null;
       car.laneLength  = L.length;
-      car.progress    = pos;
-      car.speed       = (car.baseDesiredSpeed || car.desiredSpeed || 6) * 0.5;  // ease into flow, not dead-stopped
+      // ENTER at the lane start (not a random mid-lane spot that could land ON another car → both lock to a
+      // stop, the "stuck in each other" bug). A small seed-based offset keeps simultaneous respawns from
+      // stacking at exactly 0; start STOPPED so the car-following gap logic spaces it behind anything ahead.
+      car.progress    = (((car.seed || 0.5) % 1) * 26);
+      car.speed       = 0;
       car.brT         = 1;                       // not mid-bridge
       car.visualAlpha = 0;                       // fade in at the new spot so the relocation is invisible
       car.bornAt      = performance.now();
@@ -2850,10 +2824,10 @@ body{
 
     function updateTrafficCars(network, dt){
       if(!network) return;
-      const SPEED_MULT = 1.3;   // global "drive faster" knob — scales every car's target speed (and the
+      const SPEED_MULT = 1.0;   // global "drive faster" knob — scales every car's target speed (and the
                                 // car-following/gap logic with it, since they all key off desiredSpeed).
-                                // Safe to raise now: junction gaps GLIDE (startBridge) instead of popping,
-                                // so more transitions/sec no longer means more visible corner-jumps.
+                                // (Reverted 1.3→1.0 with the distribution experiments; junction gaps still
+                                // GLIDE via startBridge, so raising this again later stays corner-safe.)
       const laneGroups = new Map();
 
       for(const car of network.cars){
@@ -2908,11 +2882,8 @@ body{
           const distToVertex = Math.abs(vertexDist - (car.progress % lane.length));
           const hasIntersection = lane.connections && lane.connections.length > 1;
 
-          // Intersection "red-light" pauses: keep them for life, but rarer + shorter. The old rate (13% of
-          // cars, p=.26/frame, up to 1.16s) accordioned cars into dense clumps at busy multi-road junctions
-          // (the "too crowded zones"). Fewer/shorter stops keep traffic flowing through the convergence.
-          if(distToVertex < 10 && hasIntersection && car.stopBias < .09 && Math.random() < dt * .15){
-            car.stopTimer = .14 + car.stopBias * .65;
+          if(distToVertex < 10 && hasIntersection && car.stopBias < .13 && Math.random() < dt * .26){
+            car.stopTimer = .16 + car.stopBias * 1.0;
           }
 
           car.braking = car.stopTimer > 0 || car.speed < car.desiredSpeed * .56;
@@ -2936,10 +2907,10 @@ body{
                 car.progress = overflow;
                 startBridge(car, lane, network.lanes[car.laneIndex], _fromIdx);
               }else{
-                respawnCarToFlow(car, network);   // dead-end → fade-respawn on a flowing lane (no snap-back loop)
+                respawnCarToFlow(car, network.lanes);   // dead-end → fade-respawn on a flowing lane (no snap-back loop)
               }
             }else{
-              respawnCarToFlow(car, network);     // isolated segment → fade-respawn (no segment looping)
+              respawnCarToFlow(car, network.lanes);     // isolated segment → fade-respawn (no segment looping)
             }
           }
 
