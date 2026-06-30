@@ -2507,11 +2507,12 @@ body{
         adjustsDone < 5 &&
         now - TRAFFIC.lastRoadQuery > 850 &&
         now - (TRAFFIC.lastCountAdjust || 0) > 1500;
-      if(canAdjust && drawnNow < 58){
+      if(canAdjust && drawnNow < 88){
         const cur = network.cars.length;
-        // Step toward ~63 visible, but cap per-step growth so it re-measures the true centred
-        // fraction each time and can't overshoot in a single jump.
-        adjustTarget = Math.min(360, cur + 44, Math.round(cur * 63 / Math.max(10, drawnNow)));
+        // Step toward ~95 visible (denser "living city grid" for the z13 district view — the wider zoom
+        // puts far more streets on-screen, so the old ~63 read sparse), cap per-step growth so it
+        // re-measures the true centred fraction each time and can't overshoot in a single jump.
+        adjustTarget = Math.min(480, cur + 60, Math.round(cur * 95 / Math.max(10, drawnNow)));
         if(adjustTarget - cur < 6) adjustTarget = null;   // already close enough
       }
       const shouldAdjustRebuild = adjustTarget != null;
@@ -2878,7 +2879,10 @@ body{
       trafficCtx.rotate(angle);
 
       if(blend.dot > .01){
-        const radius = Math.max(1.05, wid * (camera.zoom < 12.4 ? .24 : .30));
+        // z13 cap: the journey now rests in pure-dot mode (lodBlend dot=1 at z13), so the dot is the car.
+        // Floor it bigger at the city-arrival zoom (≥12.6 → ~2.5px) so traffic READS at the district view
+        // instead of collapsing to a ~1px speck; far/country zooms keep the small 1.05 floor.
+        const radius = Math.max(camera.zoom >= 12.6 ? 2.5 : 1.05, wid * (camera.zoom < 12.4 ? .24 : .30));
         trafficCtx.globalAlpha = opacity * blend.dot;
 
         // Dot mode only: no dash/trail. This keeps zoomed-out traffic light and readable.
