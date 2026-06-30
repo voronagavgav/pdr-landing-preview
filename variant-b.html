@@ -312,12 +312,13 @@ button{font-family:inherit;cursor:pointer}
   background-attachment:fixed;
   filter:url(#lg) saturate(150%) brightness(116%);opacity:.6}
 .refraction-ok .glass.lens .lens-refract{display:none}
-/* SVG edge lensing — reserved for hero panel + nav capsule layer only (Chromium) */
-/* single #lg displacement + BRIGHT settings = clean light liquid glass.
-   (A 3-pass chromatic filter was tried and dropped — it rendered dark/muddy in Chrome.) */
+/* DESKTOP FAN-RELIEF (Path B): the url(#lg) feDisplacementMap re-samples the MOVING map every
+   frame (60fps on scroll, 12fps idle-cars) — the single biggest GPU cost on the M2 Pro. Dropped
+   to PLAIN blur here; the glass keeps its gloss/rim/sweep/vibrancy (saturate+brightness), it just
+   loses the liquid WARP. (Mobile already kills all backdrop-filter below.) */
 .refraction-ok .glass.lens::before{
-  -webkit-backdrop-filter:url(#lg) blur(6px) saturate(168%) brightness(133%);
-          backdrop-filter:url(#lg) blur(6px) saturate(168%) brightness(133%);
+  -webkit-backdrop-filter:blur(6px) saturate(168%) brightness(133%);
+          backdrop-filter:blur(6px) saturate(168%) brightness(133%);
 }
 /* HERO panel pushed glassier than the shared default: brighter top dome + a lower-blur,
    higher-vibrancy LIVE refraction so the warp actually reads. The readiness card keeps the
@@ -328,8 +329,8 @@ button{font-family:inherit;cursor:pointer}
     linear-gradient(135deg, hsl(0 0% 100% / .60) 0%, hsl(0 0% 100% / .12) 18%, transparent 44%);
 }
 .refraction-ok #sample.glass.lens::before{
-  -webkit-backdrop-filter:url(#lg) blur(5px) saturate(180%) brightness(140%);
-          backdrop-filter:url(#lg) blur(5px) saturate(180%) brightness(140%);
+  -webkit-backdrop-filter:blur(5px) saturate(180%) brightness(140%);
+          backdrop-filter:blur(5px) saturate(180%) brightness(140%);
 }
 /* LIQUID-GLASS hover response on the hero panel: a single light-sweep glides across the glass.
    It lives BELOW the text (z-index:2 < content z-index:3) and only animates a gradient's position +
@@ -482,9 +483,9 @@ header.site{
   background:hsl(var(--glass-tint) / .70);
   box-shadow:var(--e2-shadow), var(--rim-pill);
 }
-/* PROMOTE the nav capsule to a real refraction lens in Chromium — the iconic liquid-glass toolbar
-   (refracts the content scrolling beneath it). Safari/FF keep the frosted -webkit fallback. */
-.refraction-ok .nav{ -webkit-backdrop-filter:url(#lg) var(--e1-blur); backdrop-filter:url(#lg) var(--e1-blur); }
+/* nav capsule: plain frosted blur (was url(#lg) liquid lens — dropped for desktop fan-relief, since
+   the always-on-screen nav re-sampled the moving map every scroll frame). Safari/FF kept the fallback. */
+.refraction-ok .nav{ -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur); }
 .nav>*{position:relative;z-index:3}
 /* nav sheen: tighter radius + centred default (the bar is only 62px tall) */
 .nav .sheen{z-index:2;background:radial-gradient(10rem 7rem at var(--mx,50%) var(--my,50%),
@@ -801,9 +802,9 @@ section{position:relative}
   .lg-everywhere.refraction-ok .glass.e1::before{ -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur); }
   .lg-everywhere.refraction-ok .glass.e3::before{ -webkit-backdrop-filter:var(--e3-blur); backdrop-filter:var(--e3-blur); }
 }
-/* signature lenses keep the live refraction: #sample via its own ID rule above; restore #readiness here */
-.lg-everywhere.refraction-ok #readiness .glass.lens::before{ -webkit-backdrop-filter:url(#lg) var(--e3-blur); backdrop-filter:url(#lg) var(--e3-blur); }
-.lg-everywhere.refraction-ok .nav{ -webkit-backdrop-filter:url(#lg) var(--e1-blur); backdrop-filter:url(#lg) var(--e1-blur); }
+/* DESKTOP FAN-RELIEF: #readiness + nav also dropped to plain blur (were url(#lg) — see note above) */
+.lg-everywhere.refraction-ok #readiness .glass.lens::before{ -webkit-backdrop-filter:var(--e3-blur); backdrop-filter:var(--e3-blur); }
+.lg-everywhere.refraction-ok .nav{ -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur); }
 /* ===== MOBILE: LIVE MAP, ZERO GLASS (Path B phone theme) ==============================
    The CPU profile showed the map's own work is light (main thread ~90% idle); the phone HEAT was the
    page's glass `backdrop-filter` re-blurring the MOVING map every single frame. So on phone we keep the
