@@ -367,44 +367,45 @@ body{
   // has the SAME shape so they all behave identically (this is what was making Odesa misbehave): fly in
   // WIDE → a gentle multi-step zoom ramp → DISTRICT-level peak with a real DWELL (so the eased camera
   // actually reaches the close view) → pull back wide → slow travel to the next city. Travel stays ~9–10
-  // (calm, never bare country overview). ZOOM-CAPPED at z13: under the heavy background blur z13 (district)
-  // and z15 (street) look identical, but z14+ is where buildings + fine streets + ~half the tile BYTES live
-  // (OpenMapTiles has no buildings below z14), so capping at 13 never even requests them. 4-city route.
+  // (calm, never bare country overview). CAMERA peaks at z14, but the tile SOURCE is capped at z13 (see the
+  // map constructor) → MapLibre overzooms z13 tiles to fill the z14 view: z14 framing + road widths (cars
+  // fit the roads) WITHOUT downloading the z14 building/detail tiles. Under the heavy blur the stretch is
+  // invisible. 4-city route.
   const stops = [
     /* Ukraine intro → Kyiv */
     [0.000,48.62,31.20,8.60], [0.060,48.62,31.20,9.00],
     [0.140,cities.kyiv.lat,cities.kyiv.lng,9.60],     // arrive wide
     [0.230,cities.kyiv.lat,cities.kyiv.lng,11.60],    // gentle ramp…
-    [0.320,cities.kyiv.lat,cities.kyiv.lng,12.60],
-    [0.410,cities.kyiv.lat,cities.kyiv.lng,13.00],    // capped peak (was 15.35 street)
-    [0.500,cities.kyiv.lat,cities.kyiv.lng,13.00],    // dwell — hold the close view
+    [0.320,cities.kyiv.lat,cities.kyiv.lng,13.20],
+    [0.410,cities.kyiv.lat,cities.kyiv.lng,14.00],    // z14 camera peak (overzooms z13 tiles)
+    [0.500,cities.kyiv.lat,cities.kyiv.lng,14.00],    // dwell — hold the close view
     [0.560,cities.kyiv.lat,cities.kyiv.lng,10.00],    // pull back wide
 
     /* Kyiv → Odesa (slow travel south) */
     [0.640,48.55,30.62,9.20],                          // wide waypoint
     [0.710,cities.odesa.lat,cities.odesa.lng,9.60],    // arrive wide
     [0.800,cities.odesa.lat,cities.odesa.lng,11.60],   // gentle ramp…
-    [0.890,cities.odesa.lat,cities.odesa.lng,12.60],
-    [0.980,cities.odesa.lat,cities.odesa.lng,13.00],   // capped peak (was 15.30)
-    [1.070,cities.odesa.lat,cities.odesa.lng,13.00],   // dwell
+    [0.890,cities.odesa.lat,cities.odesa.lng,13.20],
+    [0.980,cities.odesa.lat,cities.odesa.lng,14.00],   // z14 camera peak
+    [1.070,cities.odesa.lat,cities.odesa.lng,14.00],   // dwell
     [1.130,cities.odesa.lat,cities.odesa.lng,10.00],   // pull back wide
 
     /* Odesa → Kharkiv (longest leg — extra travel room) */
     [1.220,48.20,33.50,9.00],                          // wide waypoint
     [1.290,cities.kharkiv.lat,cities.kharkiv.lng,9.60],
     [1.380,cities.kharkiv.lat,cities.kharkiv.lng,11.60],
-    [1.470,cities.kharkiv.lat,cities.kharkiv.lng,12.60],
-    [1.560,cities.kharkiv.lat,cities.kharkiv.lng,13.00],// capped peak (was 15.25)
-    [1.650,cities.kharkiv.lat,cities.kharkiv.lng,13.00],// dwell
+    [1.470,cities.kharkiv.lat,cities.kharkiv.lng,13.20],
+    [1.560,cities.kharkiv.lat,cities.kharkiv.lng,14.00],// z14 camera peak
+    [1.650,cities.kharkiv.lat,cities.kharkiv.lng,14.00],// dwell
     [1.710,cities.kharkiv.lat,cities.kharkiv.lng,10.00],// pull back wide
 
     /* Kharkiv → Dnipro (short hop) */
     [1.780,49.22,35.62,9.80],                          // wide waypoint (short hop → less zoom-out)
     [1.850,cities.dnipro.lat,cities.dnipro.lng,9.80],  // arrive wide
     [1.930,cities.dnipro.lat,cities.dnipro.lng,11.60], // gentle ramp…
-    [2.010,cities.dnipro.lat,cities.dnipro.lng,12.60],
-    [2.090,cities.dnipro.lat,cities.dnipro.lng,13.00], // capped peak (was 15.35)
-    [2.170,cities.dnipro.lat,cities.dnipro.lng,13.00]  // final dwell
+    [2.010,cities.dnipro.lat,cities.dnipro.lng,13.20],
+    [2.090,cities.dnipro.lat,cities.dnipro.lng,14.00], // z14 camera peak
+    [2.170,cities.dnipro.lat,cities.dnipro.lng,14.00]  // final dwell
   ].map(s => ({p:s[0], lat:s[1], lng:s[2], zoom:s[3]}));
 
   const routeEnd = stops[stops.length - 1].p;
@@ -559,7 +560,7 @@ body{
     }
   }
 
-  function start(){
+  async function start(){
     if(!window.maplibregl){
       loading.querySelector('.loading-sub').textContent = 'Map library did not load. Check internet access.';
       return;
@@ -608,16 +609,40 @@ body{
                     || window.matchMedia('(pointer: coarse)').matches
                     || lowPowerDevice;
 
+    // ===== z14 LOOK on z13 DATA: cap the vector tile SOURCE at z13 but let the camera reach z14. MapLibre
+    // overzooms (stretches) z13 tiles to fill the z14 view, so we get z14 framing + road widths (cars sit
+    // on proper-width roads) WITHOUT ever downloading z14 tiles — and the heavy `building` layer only exists
+    // at z14+, so it's never fetched (~same bytes as z13). Build the style inline: fetch the style + its
+    // TileJSON, replace the source `url` with explicit `tiles` + maxzoom 13, and drop the building layer.
+    // Falls back to the plain style URL (full native z14, with buildings) if any fetch fails.
+    let __mapStyleSpec = 'https://tiles.openfreemap.org/styles/positron';
+    try{
+      const [__sj, __tj] = await Promise.all([
+        fetch('https://tiles.openfreemap.org/styles/positron').then(r=>r.json()),
+        fetch('https://tiles.openfreemap.org/planet').then(r=>r.json())
+      ]);
+      for(const __id in __sj.sources){
+        const __s = __sj.sources[__id];
+        if(__s && __s.type === 'vector' && /planet/.test(__s.url || '')){
+          delete __s.url;
+          __s.tiles   = __tj.tiles;
+          __s.minzoom = __tj.minzoom || 0;
+          __s.maxzoom = 13;   // ← never fetch z14 (buildings live there); overzoom z13 for the z14 camera
+        }
+      }
+      __sj.layers = (__sj.layers || []).filter(L => (L['source-layer'] || '') !== 'building');
+      __mapStyleSpec = __sj;
+    }catch(__e){ /* offline / blocked → plain URL style (full native z14, with buildings) */ }
+
     const map = new maplibregl.Map({
       container:'map',
-      style:'https://tiles.openfreemap.org/styles/positron',
+      style: __mapStyleSpec,
       center:[initial.lng, initial.lat],
       zoom:initial.zoom,
       minZoom:3,
-      // ZOOM-CAPPED journey: keyframes now peak at z13, so hard-cap maxZoom just above that (13.4 still
-      // rounds to z13 tiles) on EVERY device — guarantees the heavy z14+ building/street tiles are never
-      // requested, even on a fast overshoot. (Detail beyond z13 is invisible under the background blur.)
-      maxZoom: 13.4,
+      // z14 camera, z13-capped SOURCE (above): the camera reaches z14 (cars on z14-width roads) while tiles
+      // never exceed z13 — no z14 building/detail download. maxZoom just above the z14 peak as a safety.
+      maxZoom: 14.2,
       attributionControl:false,
       interactive:false,
       // Faster perceived rendering: snap tiles in (was an 800ms cross-fade that read as "slow to
