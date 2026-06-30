@@ -2773,6 +2773,26 @@ body{
       return 2.15;
     }
 
+    // When a car reaches a true DEAD-END (no road to flow onto + no u-turn), the old code snapped its
+    // progress back to the segment START — the visible backward "loop"/jump in dense grids (cars looping
+    // short segments). Instead, retire the car and fade a replacement in partway along a normal CONNECTED
+    // lane → the dead-end stops looping, traffic count stays alive, and there's no gap/direction logic
+    // change (just a relocation hidden by the spawn fade-in).
+    function respawnCarToFlow(car, lanes){
+      if(!lanes || !lanes.length){ car.progress = 0; return; }
+      let li = -1;
+      for(let t=0; t<10; t++){ const c = (Math.random()*lanes.length)|0; const L = lanes[c]; if(L && L.connections && L.connections.length){ li = c; break; } }
+      if(li < 0){ car.progress = 0; return; }   // no connected lane anywhere (rare) → just reset to start
+      const L = lanes[li];
+      car.laneIndex   = li;
+      car.nextLaneIndex = null;
+      car.laneLength  = L.length;
+      car.progress    = Math.random() * L.length * 0.7;
+      car.visualAlpha = 0;                       // fade in at the new spot so the relocation is invisible
+      car.bornAt      = performance.now();
+      car.spawnDelay  = 0;
+    }
+
     function updateTrafficCars(network, dt){
       if(!network) return;
       const SPEED_MULT = 1.0;   // global "drive faster" knob — scales every car's target speed (and the
@@ -2850,10 +2870,10 @@ body{
                 car.laneIndex = nextChoice.index;
                 car.progress = overflow;
               }else{
-                car.progress = overflow % lane.length;
+                respawnCarToFlow(car, network.lanes);   // dead-end → fade-respawn on a flowing lane (no snap-back loop)
               }
             }else{
-              car.progress = overflow % lane.length;
+              respawnCarToFlow(car, network.lanes);     // isolated segment → fade-respawn (no segment looping)
             }
           }
 
