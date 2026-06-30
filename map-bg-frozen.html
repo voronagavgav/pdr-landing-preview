@@ -2372,15 +2372,17 @@ body{
         for(let r = 0; r < repeats; r++) weightedLaneIndices.push(index);
       });
 
-      const dynamicCount = Math.round(weightedLength / (mobileLike ? 192 : 118) * densityScale);
+      const dynamicCount = Math.round(weightedLength / (mobileLike ? 120 : 74) * densityScale);
       const cityMultiplier = cityTrafficMultiplier(cityId);
       // Background-use: light traffic (~60 cars in frame at city zoom) — a calm living texture
       // behind the glass, not a full rush-hour grid. LITE: genuinely low-power devices (low RAM / few
       // cores) get a further ~18% trim on top of the mobileLike reduction (count only — the movement /
       // lane logic is untouched). Normal phones/tablets keep the tuned mobileLike count.
       const liteCarScale = lowPowerDevice ? 0.82 : 1;
-      const baseMinCars = Math.round((mobileLike ? 40 : 64) * liteCarScale);
-      const baseMaxCars = Math.round((mobileLike ? 64 : 104) * liteCarScale);
+      // z14 needs ~4× the cars of z13 to read as full (the zoomed-in view shows ~1/4 the streets), so the
+      // base build is much higher now — each city populates on BUILD (no dwell needed for scroll-through).
+      const baseMinCars = Math.round((mobileLike ? 90 : 165) * liteCarScale);
+      const baseMaxCars = Math.round((mobileLike ? 150 : 290) * liteCarScale);
       // The adaptive controller (ensureTrafficNetwork) passes a per-city total tuned to land
       // ~60-70 cars *visible* in frame; without it, fall back to the road-density estimate.
       const count = (typeof targetOverride === 'number')
@@ -2530,16 +2532,15 @@ body{
       const adjustsDone = TRAFFIC.cityAdjusts[cityId] || 0;
       const canAdjust =
         parkedCentred && network.qualityPass &&
-        settledMs > 1600 &&
-        adjustsDone < 5 &&
+        settledMs > 600 &&            // fill faster on a brief pause (was 1600) — z14 cities need topping up
+        adjustsDone < 9 &&            // allow a bigger ramp (was 5)
         now - TRAFFIC.lastRoadQuery > 850 &&
-        now - (TRAFFIC.lastCountAdjust || 0) > 1500;
-      if(canAdjust && drawnNow < 120){
+        now - (TRAFFIC.lastCountAdjust || 0) > 650;   // (was 1500) ramp in ~2s of dwell, not ~7s
+      if(canAdjust && drawnNow < 130){
         const cur = network.cars.length;
-        // Step toward ~130 visible (busy "living city grid" for the z13 district view — the wider zoom
-        // puts far more streets on-screen), cap per-step growth so it re-measures the true centred
-        // fraction each time and can't overshoot in a single jump.
-        adjustTarget = Math.min(620, cur + 66, Math.round(cur * 130 / Math.max(10, drawnNow)));
+        // Step toward ~140 visible (busy living city at the z14 view), bigger per-step jumps so a short
+        // pause fills it; cap re-measures the true centred fraction each time so it can't overshoot.
+        adjustTarget = Math.min(680, cur + 140, Math.round(cur * 140 / Math.max(10, drawnNow)));
         if(adjustTarget - cur < 6) adjustTarget = null;   // already close enough
       }
       const shouldAdjustRebuild = adjustTarget != null;
