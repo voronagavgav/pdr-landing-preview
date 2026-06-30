@@ -672,7 +672,7 @@ body{
       renderErrorCount: 0,
       diagnostics: {reason:'init'},
       stats: {drawn:0, cars:0, lanes:0, mode:'none'},
-      palette: ['#2f9e44','#1c7ed6','#f08c00','#e8590c','#12b886','#7950f2','#d6336c','#0b7285']
+      palette: ['#2b8a3e','#1864ab','#d9480f','#c92a2a','#087f5b','#5f3dc4','#a61e4d','#0b7285']
     };
 
     const CITY_ORDER = [
@@ -2509,12 +2509,12 @@ body{
         adjustsDone < 5 &&
         now - TRAFFIC.lastRoadQuery > 850 &&
         now - (TRAFFIC.lastCountAdjust || 0) > 1500;
-      if(canAdjust && drawnNow < 88){
+      if(canAdjust && drawnNow < 120){
         const cur = network.cars.length;
-        // Step toward ~95 visible (denser "living city grid" for the z13 district view — the wider zoom
-        // puts far more streets on-screen, so the old ~63 read sparse), cap per-step growth so it
-        // re-measures the true centred fraction each time and can't overshoot in a single jump.
-        adjustTarget = Math.min(480, cur + 60, Math.round(cur * 95 / Math.max(10, drawnNow)));
+        // Step toward ~130 visible (busy "living city grid" for the z13 district view — the wider zoom
+        // puts far more streets on-screen), cap per-step growth so it re-measures the true centred
+        // fraction each time and can't overshoot in a single jump.
+        adjustTarget = Math.min(620, cur + 66, Math.round(cur * 130 / Math.max(10, drawnNow)));
         if(adjustTarget - cur < 6) adjustTarget = null;   // already close enough
       }
       const shouldAdjustRebuild = adjustTarget != null;
@@ -2710,7 +2710,7 @@ body{
       if(zoom < 10.2) return .48;
       if(zoom < 11.8) return .58;
       if(zoom < 12.7) return .68;
-      if(zoom < 13.8) return .84;
+      if(zoom < 13.8) return .95;   // z13 cap rests here — near-full opacity so the little cars read with contrast
       return 1;
     }
 
