@@ -301,11 +301,8 @@ body{
   // since dropped to plain blur (which doesn't mask motion), so 12fps + the ×1.6 car speed read as "baggy".
   // 24fps halves the visible step. Affordable now — idle does NO map.jumpTo, just a traffic redraw behind the
   // now-cheap plain blur (and the per-car update was de-projected, P2a). Phone (no glass) modest for battery.
-  // Raised again (24→40 desktop) now that idle laneSample reuses CACHED projections (the camera is frozen),
-  // so an idle tick is just car math + a canvas redraw — cheap enough for smooth ~40fps without the 2×N
-  // map.project that capped it before. Phone (no glass) gets 24.
   const IDLE_TRAFFIC_FPS = (window.matchMedia('(pointer: coarse)').matches
-                         || window.matchMedia('(max-width: 1024px)').matches) ? 24 : 40;
+                         || window.matchMedia('(max-width: 1024px)').matches) ? 15 : 24;
 
   const cities = {
     kyiv:    {lat:50.44765,lng:30.52295},  // Khreshchatyk / Maidan area
@@ -2607,12 +2604,6 @@ body{
       return TRAFFIC.lastVisibleNetwork || null;
     }
 
-    // Camera-static epoch: while idle the camera is frozen, so every lane's SCREEN projection is constant.
-    // We cache it per idle session (__projEpoch, bumped on enterIdle) and reuse across all cars + all idle
-    // ticks — so the idle traffic redraw can run smoothly at a high fps without re-projecting every car
-    // every tick (that 2×N map.project/frame was what capped idle fps → the "jumping"). During SCROLL the
-    // camera changes every frame, so we keep the cheap per-segment projection (no whole-lane reprojection).
-    let __projEpoch = 0, __cameraStatic = false;
     function laneSample(lane, distance){
       const d = ((distance % lane.length) + lane.length) % lane.length;
       let idx = 1;
@@ -2624,28 +2615,16 @@ body{
 
       const a = lane.points[i0];
       const b = lane.points[i1];
+
       const lng = lerp(a.lng, b.lng, t);
       const lat = lerp(a.lat, b.lat, t);
 
-      let axp, ayp, bxp, byp;
-      if(__cameraStatic){
-        if(lane._pe !== __projEpoch){
-          const pts = lane.points, n = pts.length;
-          let sx = lane._sx, sy = lane._sy;
-          if(!sx || sx.length !== n){ sx = lane._sx = new Float64Array(n); sy = lane._sy = new Float64Array(n); }
-          for(let k=0;k<n;k++){ const pr = map.project([pts[k].lng, pts[k].lat]); sx[k]=pr.x; sy[k]=pr.y; }
-          lane._pe = __projEpoch;
-        }
-        axp = lane._sx[i0]; ayp = lane._sy[i0]; bxp = lane._sx[i1]; byp = lane._sy[i1];
-      }else{
-        const aPx = map.project([a.lng, a.lat]);
-        const bPx = map.project([b.lng, b.lat]);
-        axp = aPx.x; ayp = aPx.y; bxp = bPx.x; byp = bPx.y;
-      }
-      const x = lerp(axp, bxp, t);
-      const y = lerp(ayp, byp, t);
-      const dx = bxp - axp;
-      const dy = byp - ayp;
+      const aPx = map.project([a.lng, a.lat]);
+      const bPx = map.project([b.lng, b.lat]);
+      const x = lerp(aPx.x, bPx.x, t);
+      const y = lerp(aPx.y, bPx.y, t);
+      const dx = bPx.x - aPx.x;
+      const dy = bPx.y - aPx.y;
       const screenLen = Math.hypot(dx, dy) || 1;
 
       return {lng, lat, x, y, dx:dx/screenLen, dy:dy/screenLen, vertexIndex:i1};
@@ -3560,9 +3539,6 @@ body{
     // Enter the idle state from the (now-stopped) 60fps loop. Either kick the low-rate traffic ticker, or
     // — if idle traffic isn't allowed here — fully freeze (draw nothing, schedule nothing).
     function enterIdle(){
-      // Camera is now frozen → switch laneSample to the cached-projection path and bump the epoch so each
-      // lane re-projects once at this resting position, then every idle tick reuses it (cheap → smooth).
-      __cameraStatic = true; __projEpoch++;
       if(!idleTrafficAllowed()){
         TRAFFIC.diagnostics.reason = 'idle-frozen';
         return;   // original Path B: everything frozen, zero idle repaint
@@ -3607,7 +3583,6 @@ body{
     function startLoop(){
       // Guard so only one rAF is ever in flight (and never run while paused).
       if(rafId != null || window.__mapPaused) return;
-      __cameraStatic = false;   // camera will move again → laneSample back to live per-frame projection
       // Leaving the low-rate idle traffic loop → cancel its pending tick so the cars don't double-advance
       // (the 60fps loop drives them from here on; baselines reset just below so its first dt is normal).
       if(idleTimer != null){ clearTimeout(idleTimer); idleTimer = null; }
