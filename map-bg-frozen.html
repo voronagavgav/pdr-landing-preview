@@ -296,11 +296,13 @@ body{
   // redraw (normal "map-app" cost). So phones/touch keep the cars ALIVE while idle too, at a gentler
   // ~10fps (battery-aware); real desktops stay at 12fps. The `lowPowerDevice` tier (low RAM / few cores)
   // is still fully frozen when idle via idleTrafficAllowed() — the safety floor.
-  // Idle cars move at this fps when the page is idle (Danil wants them moving on PC too). Phone (no glass) =
-  // cheap. Desktop has the heavy url(#lg) refraction, so if moving idle cars spin fans, the fix is to LIGHTEN
-  // the glass (drop url(#lg) → plain blur) so the cars are affordable — NOT to freeze the cars.
+  // Idle cars move at this fps when the page is idle (Danil wants them moving on PC too). RAISED 12→24 desktop:
+  // the old 12fps relied on the heavy url(#lg) DISPLACEMENT lens to MASK the low-fps stepping; that glass was
+  // since dropped to plain blur (which doesn't mask motion), so 12fps + the ×1.6 car speed read as "baggy".
+  // 24fps halves the visible step. Affordable now — idle does NO map.jumpTo, just a traffic redraw behind the
+  // now-cheap plain blur (and the per-car update was de-projected, P2a). Phone (no glass) modest for battery.
   const IDLE_TRAFFIC_FPS = (window.matchMedia('(pointer: coarse)').matches
-                         || window.matchMedia('(max-width: 1024px)').matches) ? 10 : 12;
+                         || window.matchMedia('(max-width: 1024px)').matches) ? 15 : 24;
 
   const cities = {
     kyiv:    {lat:50.44765,lng:30.52295},  // Khreshchatyk / Maidan area
@@ -617,10 +619,15 @@ body{
     // Falls back to the plain style URL (full native z14, with buildings) if any fetch fails.
     let __mapStyleSpec = 'https://tiles.openfreemap.org/styles/positron';
     try{
+      // P4: hard timeout — a HUNG (never-resolving) fetch would stall start() forever and the map would
+      // never construct (the parent's load-watchdog can't catch it, since the iframe 'load' already fired).
+      // Abort after 4.5s → rejects → caught below → falls back to the plain URL style (which always works).
+      const __ac = new AbortController();
+      const __to = setTimeout(() => __ac.abort(), 4500);
       const [__sj, __tj] = await Promise.all([
-        fetch('https://tiles.openfreemap.org/styles/positron').then(r=>r.json()),
-        fetch('https://tiles.openfreemap.org/planet').then(r=>r.json())
-      ]);
+        fetch('https://tiles.openfreemap.org/styles/positron', {signal:__ac.signal}).then(r=>r.json()),
+        fetch('https://tiles.openfreemap.org/planet', {signal:__ac.signal}).then(r=>r.json())
+      ]).finally(() => clearTimeout(__to));
       for(const __id in __sj.sources){
         const __s = __sj.sources[__id];
         if(__s && __s.type === 'vector' && /planet/.test(__s.url || '')){
@@ -2409,6 +2416,7 @@ body{
 
       const laneLoadMap = new Map();
       chosenLaneIndices.forEach(idx => laneLoadMap.set(idx, (laneLoadMap.get(idx) || 0) + 1));
+      const seenChosen = new Map();   // P3: running counter so `sameBefore` is O(1), not an O(i) slice+filter
 
       for(let i=0; i<count; i++){
         const previous = previousCars && i < previousCars.length ? previousCars[i] : null;
@@ -2424,7 +2432,8 @@ body{
         }
         const lane = lanes[laneIndex];
         const laneLoad = laneLoadMap.get(laneIndex) || 1;
-        const sameBefore = chosenLaneIndices.slice(0, i).filter(v => v === laneIndex).length;
+        const sameBefore = seenChosen.get(laneIndex) || 0;   // P3: was chosenLaneIndices.slice(0,i).filter(...).length (O(n²))
+        const _ci = chosenLaneIndices[i]; if(_ci != null) seenChosen.set(_ci, (seenChosen.get(_ci) || 0) + 1);
 
         const seed = previous ? previous.seed : (i + 1) * 0.61803398875 + cityId.length * .137;
         const stagger = ((sameBefore + 0.16 + ((i * .071) % .22)) / laneLoad) % 1;
@@ -2621,6 +2630,16 @@ body{
       return {lng, lat, x, y, dx:dx/screenLen, dy:dy/screenLen, vertexIndex:i1};
     }
 
+    // Cheap vertex-index ONLY (no map.project) — for the per-car UPDATE path, which uses only
+    // sample.vertexIndex. The full laneSample (2× map.project) stays reserved for the RENDER path. This
+    // halves the projection load per traffic frame (was ~4 projections/car: 2 in update + 2 in render).
+    function laneVertexIndex(lane, distance){
+      const d = ((distance % lane.length) + lane.length) % lane.length;
+      let idx = 1;
+      while(idx < lane.cumulative.length && lane.cumulative[idx] < d) idx++;
+      return Math.min(idx, lane.points.length - 1);
+    }
+
     function trafficOpacity(zoom, network){
       if(!network) return 0;
 
@@ -2807,8 +2826,8 @@ body{
             }
           }
 
-          const sample = laneSample(lane, car.progress);
-          const vertexDist = lane.cumulative[sample.vertexIndex] || lane.length;
+          const _vi = laneVertexIndex(lane, car.progress);   // no map.project in the update path (P2a)
+          const vertexDist = lane.cumulative[_vi] || lane.length;
           const distToVertex = Math.abs(vertexDist - (car.progress % lane.length));
           const hasIntersection = lane.connections && lane.connections.length > 1;
 
