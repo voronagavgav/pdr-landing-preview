@@ -3240,6 +3240,30 @@ body{
       }
     }catch(e){ /* cross-origin: occluders stay empty, cars draw everywhere */ }
 
+    // ── Heat A/B diagnostic — cheap URL flags on the HOST page to localize the idle fan cost on a real GPU ──
+    // (heat can't be benchmarked headless, so YOU feel the fans). Load variant-b.html?heat=...:
+    //   ?heat=nocars → idle still SIMULATES cars but skips the DRAW  → fans drop ⇒ car RENDERING is the cost.
+    //   ?heat=noblur → disable every glass backdrop-filter on the host → fans drop ⇒ the glass RE-BLUR is the cost.
+    // If nocars drops the fans but noblur doesn't, the fix is the car render path (→ GPU-instanced sprites).
+    const HEAT = (function(){
+      let s = '';
+      try{ if(window.parent && window.parent !== window) s = window.parent.location.search || ''; }catch(e){}
+      if(!s) s = location.search || '';
+      try{ return (new URLSearchParams(s).get('heat') || '').toLowerCase(); }catch(e){ return ''; }
+    })();
+    const HEAT_NOCARS = /nocars/.test(HEAT);
+    if(/noblur/.test(HEAT)){
+      try{
+        const P = (window.parent && window.parent !== window) ? window.parent : window;
+        const st = P.document.createElement('style');
+        st.textContent = '*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}';
+        P.document.head.appendChild(st);
+      }catch(e){}
+    }
+    if(HEAT) try{ console.log('[heat-diag] flag=', HEAT, '| nocars(draw skipped)=', HEAT_NOCARS, '| noblur applied=', /noblur/.test(HEAT)); }catch(e){}
+    // Idle throttle state for the adaptive density controller (see idleTrafficTick).
+    let idleNet = null, idleNetAt = 0;
+
     function renderTraffic(network, allowRecovery=true){
       const w = trafficCanvas.clientWidth;
       const h = trafficCanvas.clientHeight;
@@ -3711,9 +3735,14 @@ body{
       // cars don't change speed between scrolling and idle (reduced-motion never reaches here → fully frozen).
       const dt = Math.min(0.25, rawMs / 1000);
       try{
-        const network = ensureTrafficNetwork();
+        // Throttle the adaptive density controller at idle: once the city is settled it does NOT need to
+        // re-evaluate 24×/sec. Run it ~2×/sec and reuse the cached network otherwise — pure CPU saving, it
+        // only delays the density ramp by a couple seconds of dwell (no car-following / distribution change).
+        let network;
+        if(!idleNet || now - idleNetAt > 480){ network = ensureTrafficNetwork(); idleNet = network; idleNetAt = now; }
+        else network = idleNet;
         updateTrafficCars(network, mobileLike ? dt * .82 : dt);
-        renderTraffic(network);
+        if(!HEAT_NOCARS) renderTraffic(network);   // ?heat=nocars → simulate but skip the DRAW (A/B diagnostic)
         TRAFFIC.idleDraws = (TRAFFIC.idleDraws | 0) + 1;
         window.__idleTrafficDraws = TRAFFIC.idleDraws;
         window.__trafficDraws = (window.__trafficDraws | 0) + 1;   // shared traffic-canvas redraw counter (all modes)
