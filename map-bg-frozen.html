@@ -2730,6 +2730,8 @@ body{
 
     function updateTrafficCars(network, dt){
       if(!network) return;
+      const SPEED_MULT = 1.6;   // global "drive faster" knob — scales every car's target speed (and the
+                                // car-following/gap logic with it, since they all key off desiredSpeed)
       const laneGroups = new Map();
 
       for(const car of network.cars){
@@ -2752,7 +2754,7 @@ body{
 
           if(!Number.isFinite(car.speed)) car.speed = car.baseDesiredSpeed || car.desiredSpeed || 6;
           if(!Number.isFinite(car.progress)) car.progress = 0;
-          car.desiredSpeed = car.baseDesiredSpeed || car.desiredSpeed || 6;
+          car.desiredSpeed = (car.baseDesiredSpeed || car.desiredSpeed || 6) * SPEED_MULT;
 
           if(car.stopTimer > 0){
             car.stopTimer = Math.max(0, car.stopTimer - dt);
