@@ -2219,16 +2219,36 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     }
   };
 
-  // Auto-enable on capable devices so the map starts loading immediately; the Tweaks effect
-  // reconciles to the persisted preference shortly after.
-  // On mobile/touch, DEFER the map until after full load (+a beat) so MapLibre's ~1MB parse + WebGL init
-  // don't compete with first paint / LCP / TBT; desktop stays immediate. (Map still shows on all devices.)
+  // Auto-enable on capable devices — but DEFER the actual MapLibre boot until the FIRST real user
+  // interaction (mousemove / scroll / wheel / pointer / touch / key). The map is a decorative,
+  // scroll-driven background, so for any engaged visitor it appears effectively instantly; meanwhile
+  // MapLibre's ~2.7s parse+eval — which on a mid-tier CPU / budget phone blocks the page's INITIAL
+  // interactivity (the cost that tanks Lighthouse TBT and is invisible on a fast Mac) — never lands in
+  // the critical window. The map JS/CSS is PREFETCHED early (network only, no main-thread cost) so the
+  // first-interaction boot is instant. A long safety timer covers a visitor who never interacts (it
+  // fires well after the page has gone quiet / TTI, so it never re-introduces the boot cost into the
+  // measured window). The Tweaks effect reconciles to the persisted preference after boot.
   if(allowed()){
-    if(window.matchMedia('(max-width:760px), (pointer:coarse)').matches){
-      var __enableMap = function(){ setTimeout(function(){ window.__setMapBg(true); }, 1200); };
-      if(document.readyState === 'complete') __enableMap();
-      else window.addEventListener('load', __enableMap, { once:true });
-    } else { window.__setMapBg(true); }
+    // (1) early, low-priority network warm — so the interaction-boot has the ~1 MB already cached
+    ['vendor/maplibre-gl.js','vendor/maplibre-gl.css'].forEach(function(href){
+      try{ var l=document.createElement('link'); l.rel='prefetch';
+        l.as=/\.css$/.test(href)?'style':'script'; l.href=href; document.head.appendChild(l); }catch(e){}
+    });
+    // (2) boot on first interaction (or a long safety fallback)
+    var __mapBooted=false, __mapSafety=0;
+    var __mapEvents=['pointerdown','pointermove','mousemove','wheel','scroll','touchstart','keydown'];
+    var __bootMapBg=function(){
+      if(__mapBooted) return; __mapBooted=true;
+      __mapEvents.forEach(function(ev){ window.removeEventListener(ev, __bootMapBg); });
+      if(__mapSafety){ clearTimeout(__mapSafety); __mapSafety=0; }
+      window.__setMapBg(true);
+    };
+    var __armMapBoot=function(){
+      __mapEvents.forEach(function(ev){ window.addEventListener(ev, __bootMapBg, {passive:true}); });
+      __mapSafety=setTimeout(__bootMapBg, 10000);
+    };
+    if(document.readyState==='complete') __armMapBoot();
+    else window.addEventListener('load', __armMapBoot, {once:true});
   }
   // Re-evaluate when the device context changes (rotate, resize across the threshold, reduced-motion
   // toggle) so the map switches on/off to match capability without a reload.
