@@ -638,6 +638,17 @@ body{
         failIfMajorPerformanceCaveat:false
       }
     });
+    // Silence benign tile-abort noise. During a fly MapLibre requests tiles for viewports the camera then
+    // moves past and ABORTS them (net::ERR_ABORTED) — normal + harmless: the map fills from the tiles that
+    // do complete + the cache (measured: ~74% of requests abort on a fast fling, ALL ERR_ABORTED, zero real
+    // failures). With no 'error' handler MapLibre console.errors every one (the wall of "AJAXError: Failed
+    // to fetch (0)"). Swallow those; still surface anything genuinely unexpected as a single warn.
+    map.on('error', function(e){
+      var err = e && e.error;
+      var msg = ((err && (err.message || err.statusText)) || '') + '';
+      if(err && (err.status === 0 || /abort|Failed to fetch|signal is aborted|cancel/i.test(msg))) return;
+      console.warn('[map]', msg || e);
+    });
     const trafficCanvas = document.getElementById('traffic');
     // NOTE: no `desynchronized:true` — it bypasses compositor vsync, which causes visible TEARING on
     // this scroll-driven background (the canvas presents out of step with the WebGL map beneath it).
