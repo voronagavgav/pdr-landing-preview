@@ -3359,8 +3359,16 @@ body{
                    : (typeof map.loaded === 'function') ? map.loaded() : true;
       }catch(e){}
       const pace  = tilesReady ? 1 : PACE_LOADING;
-      const kPan  = 1 - Math.exp(-(fdt * pace) / PAN_TAU_MS);
-      const kZoom = 1 - Math.exp(-(fdt * pace) / ZOOM_TAU_MS);
+      // SETTLE-FASTER-WHEN-STOPPED: while the user is actively scrolling (a progress write <400ms ago) the
+      // follow is EXACTLY the tuned cinematic ease (boost = 1). Once they STOP, gently shorten the follow
+      // time-constant (ramped over 400→1000ms of quiet, up to 2.4×) so the camera homes onto its target in
+      // ~1-2s instead of creeping its near-invisible tail for ~6s — that long tail kept the 60fps loop +
+      // the page's heavy glass re-blur alive the whole time (the "heavier the longer you stay" heat). The
+      // exponential ease still never overshoots, and the ramp avoids any visible speed-jump, so the active
+      // fly feel is unchanged — only the post-scroll settle finishes more decisively.
+      const _settleBoost = 1 + 1.4 * Math.min(1, Math.max(0, (_now - lastProgressChangeTime - 400) / 600));
+      const kPan  = 1 - Math.exp(-(fdt * pace * _settleBoost) / PAN_TAU_MS);
+      const kZoom = 1 - Math.exp(-(fdt * pace * _settleBoost) / ZOOM_TAU_MS);
 
       camera.lat  += (target.lat  - camera.lat)  * kPan;
       camera.lng  += (target.lng  - camera.lng)  * kPan;
