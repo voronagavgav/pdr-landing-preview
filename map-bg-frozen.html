@@ -3189,6 +3189,57 @@ body{
       return 1;
     }
 
+    // ── Decouple cars from the host page's glass (idle-heat fix) ──────────────────────────────────────────
+    // The map+cars are the page BACKGROUND; the host's frosted-glass panels (.glass/.nav with an actual
+    // backdrop-filter) sit OVER them. A car moving behind a panel forces the GPU to re-blur that panel every
+    // frame — and at idle the cars are the only thing still moving, so that re-blur IS the idle heat. We
+    // erase the cars wherever a real glass panel covers them: behind the panel the car layer is then constant
+    // ⇒ a settled panel's blurred backdrop never changes ⇒ no re-blur while idle. Cars keep moving in the
+    // open (no glass there). Only works when embedded same-origin; standalone just draws everywhere.
+    let glassOccluders = [];          // {x,y,w,h,r} in #traffic-canvas CSS px (iframe is inset:-2vw/-2vh)
+    let occludersDirty = true;
+    function computeGlassOccluders(){
+      occludersDirty = false;
+      const out = [];
+      try{
+        const P = window.parent;
+        if(!P || P === window) { glassOccluders = out; return; }
+        const doc = P.document;                       // throws on cross-origin → caught → no occlusion
+        const offX = 0.02 * P.innerWidth;             // map host-viewport px → this oversized iframe's px
+        const offY = 0.02 * P.innerHeight;
+        const els = doc.querySelectorAll('.glass, .nav');
+        const hasBlur = (s) => { const v = (s.backdropFilter || s.webkitBackdropFilter || ''); return v && v !== 'none'; };
+        for(const el of els){
+          const cs = P.getComputedStyle(el);
+          // The blur lives on the element OR on its ::before lens (.glass::before{ backdrop-filter }).
+          if(!hasBlur(cs) && !hasBlur(P.getComputedStyle(el, '::before'))) continue;
+          const r = el.getBoundingClientRect();
+          if(r.width < 6 || r.height < 6) continue;
+          if(r.bottom < -60 || r.top > P.innerHeight + 60) continue;  // off-screen → can't occlude
+          const rad = parseFloat(cs.borderTopLeftRadius) || 14;
+          out.push({ x:r.left + offX, y:r.top + offY, w:r.width, h:r.height, r:Math.min(rad, r.width/2, r.height/2) });
+        }
+      }catch(e){ /* cross-origin / detached → draw everywhere */ }
+      glassOccluders = out;
+      window.__lgOccluders = out;   // read-only: lets an automated test confirm the glass panels are masked
+    }
+    function eraseGlassOccluders(ctx){
+      if(occludersDirty) computeGlassOccluders();
+      if(!glassOccluders.length) return;
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = '#000';
+      for(const o of glassOccluders){ roundedRect(ctx, o.x, o.y, o.w, o.h, o.r); ctx.fill(); }
+      ctx.restore();
+    }
+    try{
+      const P = window.parent;
+      if(P && P !== window){
+        P.addEventListener('scroll', () => { occludersDirty = true; }, {passive:true});
+        P.addEventListener('resize', () => { occludersDirty = true; }, {passive:true});
+      }
+    }catch(e){ /* cross-origin: occluders stay empty, cars draw everywhere */ }
+
     function renderTraffic(network, allowRecovery=true){
       const w = trafficCanvas.clientWidth;
       const h = trafficCanvas.clientHeight;
@@ -3266,6 +3317,11 @@ body{
         drawTrafficCar(x, y, car.rAng, car, localOpacity);
         drawn++;
       }
+
+      // Cut cars OUT from behind the parent page's frosted-glass panels. The car layer there becomes constant
+      // (transparent), so a settled panel's blurred backdrop never changes ⇒ the GPU stops re-blurring it
+      // every idle frame (the idle heat). Open areas — where there is no glass — keep their moving cars.
+      eraseGlassOccluders(trafficCtx);
 
       TRAFFIC.stats = {drawn, cars:network.cars.length, lanes:network.lanes.length, mode:trafficVisualMode(camera.zoom)};
 
