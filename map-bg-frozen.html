@@ -2787,7 +2787,11 @@ body{
       car.laneIndex   = li;
       car.nextLaneIndex = null;
       car.laneLength  = L.length;
-      car.progress    = Math.random() * L.length * 0.7;
+      // ENTER at the lane start (not a random mid-lane spot that could land ON another car → both lock to a
+      // stop, the "stuck in each other" bug). A small seed-based offset keeps simultaneous respawns from
+      // stacking at exactly 0; start STOPPED so the car-following gap logic spaces it behind anything ahead.
+      car.progress    = (((car.seed || 0.5) % 1) * 26);
+      car.speed       = 0;
       car.visualAlpha = 0;                       // fade in at the new spot so the relocation is invisible
       car.bornAt      = performance.now();
       car.spawnDelay  = 0;
