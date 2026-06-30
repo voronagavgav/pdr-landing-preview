@@ -304,6 +304,11 @@ body{
   const IDLE_TRAFFIC_FPS = (window.matchMedia('(pointer: coarse)').matches
                          || window.matchMedia('(max-width: 1024px)').matches) ? 15 : 24;
 
+  // How many cars to keep CLEARLY VISIBLE in frame at a settled city (the adaptive density controller
+  // tops the network up until ~this many are drawn). With the solid car opacity below, drawn ≈ visible,
+  // so this is effectively "cars you see". Single knob — raise for a fuller city, lower for calmer.
+  const TRAFFIC_VISIBLE_TARGET = 140;
+
   const cities = {
     kyiv:    {lat:50.44765,lng:30.52295},  // Khreshchatyk / Maidan area
     odesa:   {lat:46.48535,lng:30.73820},  // Deribasivska / city centre
@@ -2386,10 +2391,11 @@ body{
       // cores) get a further ~18% trim on top of the mobileLike reduction (count only — the movement /
       // lane logic is untouched). Normal phones/tablets keep the tuned mobileLike count.
       const liteCarScale = lowPowerDevice ? 0.82 : 1;
-      // z14 needs ~4× the cars of z13 to read as full (the zoomed-in view shows ~1/4 the streets), so the
-      // base build is much higher now — each city populates on BUILD (no dwell needed for scroll-through).
-      const baseMinCars = Math.round((mobileLike ? 90 : 140) * liteCarScale);
-      const baseMaxCars = Math.round((mobileLike ? 150 : 200) * liteCarScale);
+      // INITIAL build count — kept BELOW TRAFFIC_VISIBLE_TARGET on purpose: the adaptive controller ramps the
+      // network UP to the target on dwell and stops, so the visible count converges TO the target instead of
+      // overshooting from a high initial seed. (A fast scroll-by shows this lighter initial; a pause fills it.)
+      const baseMinCars = Math.round((mobileLike ? 70 : 80) * liteCarScale);
+      const baseMaxCars = Math.round((mobileLike ? 110 : 110) * liteCarScale);
       // The adaptive controller (ensureTrafficNetwork) passes a per-city total tuned to land
       // ~60-70 cars *visible* in frame; without it, fall back to the road-density estimate.
       const count = (typeof targetOverride === 'number')
@@ -2545,11 +2551,11 @@ body{
         adjustsDone < 9 &&            // allow a bigger ramp (was 5)
         now - TRAFFIC.lastRoadQuery > 850 &&
         now - (TRAFFIC.lastCountAdjust || 0) > 650;   // (was 1500) ramp in ~2s of dwell, not ~7s
-      if(canAdjust && drawnNow < 130){
+      if(canAdjust && drawnNow < TRAFFIC_VISIBLE_TARGET){
         const cur = network.cars.length;
-        // Step toward ~140 visible (busy living city at the z14 view), bigger per-step jumps so a short
+        // Step toward TRAFFIC_VISIBLE_TARGET cars visible at the z14 view, bigger per-step jumps so a short
         // pause fills it; cap re-measures the true centred fraction each time so it can't overshoot.
-        adjustTarget = Math.min(680, cur + 140, Math.round(cur * 140 / Math.max(10, drawnNow)));
+        adjustTarget = Math.min(680, cur + TRAFFIC_VISIBLE_TARGET, Math.round(cur * TRAFFIC_VISIBLE_TARGET / Math.max(10, drawnNow)));
         if(adjustTarget - cur < 6) adjustTarget = null;   // already close enough
       }
       const shouldAdjustRebuild = adjustTarget != null;
@@ -2649,9 +2655,9 @@ body{
       if(zoom < 6.4) return 0;
       if(zoom < 8.5) return (zoom - 6.4) / 2.1 * .26;
       if(zoom < 11.0) return .26 + (zoom - 8.5) / 2.5 * .18;
-      if(zoom < 13.0) return .44 + (zoom - 11.0) / 2.0 * .14;
-      if(zoom < 14.4) return .58 + (zoom - 13.0) / 1.4 * .10;
-      return .68;
+      if(zoom < 13.0) return .44 + (zoom - 11.0) / 2.0 * .30;
+      if(zoom < 14.4) return .74 + (zoom - 13.0) / 1.4 * .16;
+      return .90;   // solid cars at the city view so "drawn" ≈ "clearly visible" (was .68 → many read faint)
     }
 
     function trafficVisibleDensity(zoom){
