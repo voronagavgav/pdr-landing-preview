@@ -2022,7 +2022,10 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   // point), and save-data / reduced-data (don't pull ~1 MB MapLibre on a metered link). The floor is
   // min-height 480 (skips tiny landscape phones held sideways) + `tooWeak()` (truly ancient / low-end
   // devices fall back to the static pastel-glass field — no map download).
-  var mqDevice = matchMedia('(min-height: 480px)');
+  // DESKTOP ONLY: phones/tablets can't sustain a live full-screen map under the glass blur (GPU heat +
+  // lag), so the map runs only on real desktops/laptops (wide + mouse). Touch/small devices get the
+  // lightweight static pastel-glass fallback — no WebGL, no traffic, no re-blur, fast load.
+  var mqDevice = matchMedia('(min-width: 1024px) and (pointer: fine)');
   var mqReduceData = matchMedia('(prefers-reduced-data: reduce)');
   var mqReduceTransp = matchMedia('(prefers-reduced-transparency: reduce)');
   function saveData(){ try{ return !!(navigator.connection && navigator.connection.saveData) || mqReduceData.matches; }catch(e){ return mqReduceData.matches; } }

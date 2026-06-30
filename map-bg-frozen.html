@@ -291,7 +291,11 @@ body{
   // that cost is gated by frame RATE, so ticking idle traffic at ~12fps (not 60) keeps ~80% of the idle
   // saving while the heavy blur hides the low fps. 0 = fully freeze idle traffic (the original Path B).
   // Idle traffic only runs on a visible, motion-OK, capable context (see idleTrafficAllowed()).
-  const IDLE_TRAFFIC_FPS = 12;
+  // DEVICE-SPLIT: phones/touch/small screens can't afford even 12fps of full-screen re-blur (GPU heat +
+  // lag), so they get 0 = fully frozen idle (the cool Path B that felt fine). Only real desktops (mouse,
+  // wide) keep the moving idle cars.
+  const IDLE_TRAFFIC_FPS = (window.matchMedia('(pointer: coarse)').matches
+                         || window.matchMedia('(max-width: 1024px)').matches) ? 0 : 12;
 
   const cities = {
     kyiv:    {lat:50.44765,lng:30.52295},  // Khreshchatyk / Maidan area
