@@ -3431,9 +3431,18 @@ body{
       // resize, or on visibilitychange — startLoop cancels the idle timer and resumes easing from the
       // camera's EXACT current state, so the wake is hitch-free and the during-scroll motion stays
       // byte-for-byte the original. We only gate WHEN/at-what-RATE each piece runs, not HOW it moves.
-      const _settled = Math.abs(target.lat  - camera.lat)  <= 0.00001
-                    && Math.abs(target.lng  - camera.lng)  <= 0.00001
-                    && Math.abs(target.zoom - camera.zoom) <= 0.001;
+      // Freeze as soon as the fly is VISUALLY done — not when the exponential ease reaches a
+      // mathematically-tiny gap. The old epsilons (1e-5° pan / 1e-3 zoom) had a long tail: after a
+      // bigger scroll the camera kept the 60fps loop (and the page's heavy glass re-blur) running for
+      // ~9s easing the last sub-pixel bit, and with intermittent scrolling it would ~never reach that
+      // gap → the 60fps loop never froze → sustained GPU load → the page felt "heavier the longer you
+      // stay" + spun the fans. These bands are still sub-perceptual on the BLURRED background map
+      // (≈1px pan at rest zoom, ~1.7% zoom), so the freeze is invisible but happens ~1–2s after a
+      // scroll-stop instead of ~9s. No snap: the camera just holds where it visually arrived (nothing
+      // to compare it against) and eases on seamlessly from there when the next scroll wakes it.
+      const _settled = Math.abs(target.lat  - camera.lat)  <= 0.00008
+                    && Math.abs(target.lng  - camera.lng)  <= 0.00008
+                    && Math.abs(target.zoom - camera.zoom) <= 0.025;
       if(_settled && (performance.now() - lastProgressChangeTime) >= 250){
         rafId = null;
         enterIdle();   // → low-rate idle traffic, or a full freeze on hidden/reduced-motion/low-power
