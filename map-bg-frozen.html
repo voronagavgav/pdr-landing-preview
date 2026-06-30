@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ukraine Driving Practice Map — Path B (idle-freeze) — OpenFreeMap base, render stops when scroll is idle</title>
-<meta name="description" content="Path B: the smooth pre-PMTiles OpenFreeMap living map, with the camera+traffic render loop FROZEN whenever the scroll is idle so the page's glass backdrop-filter rests (zero idle repaint). Original motion during scroll." />
+<title>Ukraine Driving Practice Map — Path B (idle traffic) — OpenFreeMap base, camera freezes when idle but cars keep moving at ~12fps</title>
+<meta name="description" content="Path B: the smooth pre-PMTiles OpenFreeMap living map. When the scroll is idle the CAMERA/tiles freeze (the glass backdrop-filter rests on a static base) but the traffic CARS keep moving at a low ~12fps so the map still looks alive — ~5x cheaper than the 60fps loop. Full 60fps motion during scroll; full freeze when hidden / reduced-motion / low-power." />
 <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin />
 <link rel="stylesheet" href="vendor/maplibre-gl.css" />
 <style>
@@ -283,6 +283,15 @@ body{
   const storyTitle = document.getElementById('storyTitle');
   const storyLine = document.getElementById('storyLine');
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── Path B idle-traffic knob (the one number to tune) ─────────────────────────────────────────
+  // When the page is idle (camera settled + no scroll for ≥250ms) the camera/tiles stay FROZEN, but the
+  // traffic cars keep moving at THIS frame rate so the map still looks alive. The cars sit behind the
+  // page's glass blur, so every car-frame forces a `backdrop-filter` re-blur (the expensive bit) — and
+  // that cost is gated by frame RATE, so ticking idle traffic at ~12fps (not 60) keeps ~80% of the idle
+  // saving while the heavy blur hides the low fps. 0 = fully freeze idle traffic (the original Path B).
+  // Idle traffic only runs on a visible, motion-OK, capable context (see idleTrafficAllowed()).
+  const IDLE_TRAFFIC_FPS = 12;
 
   const cities = {
     kyiv:    {lat:50.44765,lng:30.52295},  // Khreshchatyk / Maidan area
@@ -3246,6 +3255,11 @@ body{
     let scrollVelocity = 0;
     let scheduled = false;
     let rafId = null;
+    // Path B (idle-traffic): handle for the low-rate setTimeout loop that keeps ONLY the cars moving
+    // (camera frozen) while the page is idle, and the timestamp of its last tick (for real-dt stepping).
+    // rafId (full 60fps) and idleTimer (~IDLE_TRAFFIC_FPS) are mutually exclusive; both null = fully frozen.
+    let idleTimer = null;
+    let idleLastTick = 0;
     // Path B (idle-freeze): timestamp of the last host __journeyProgress write. The render loop runs
     // only while there's recent motion (a write within ~250ms) OR the camera is still easing to target;
     // once settled AND quiet it stops the rAF so the glass backdrop-filter has a static surface to rest on.
@@ -3368,6 +3382,7 @@ body{
             const network = ensureTrafficNetwork();
             updateTrafficCars(network, reduced ? trafficDt * .5 : (mobileLike ? trafficDt * .82 : trafficDt));
             renderTraffic(network);
+            window.__trafficDraws = (window.__trafficDraws | 0) + 1;   // Path B: traffic-canvas redraw counter (all modes)
           }catch(err){
             TRAFFIC.renderErrorCount++;
             TRAFFIC.diagnostics.reason = 'traffic-render-error';
@@ -3379,31 +3394,91 @@ body{
 
       updateStoryAndHierarchy(target, camera, mobileLike);
 
-      // ───────────────────────── IDLE-FREEZE (Path B — the core change) ─────────────────────────
-      // Render ONLY while something moves. The camera eases toward `target` (above); once it has
-      // SETTLED on that target (within the SAME epsilons used for the snap above) AND the host hasn't
-      // written a new __journeyProgress for ~250ms, there is nothing left to animate — so we STOP the
-      // loop (schedule no further frame). The traffic canvas then holds its last drawn frame, giving
-      // the page's heavy backdrop-filter glass a STATIC surface and ending the perpetual idle repaint
-      // that was the proven GPU drain. The loop is WOKEN again (startLoop) on the next __journeyProgress
-      // write (scroll), on resize, or on visibilitychange — and because the wake resets the frame-time
-      // baselines and resumes easing from the camera's EXACT current state, there is no jump/reset: the
-      // during-scroll motion stays byte-for-byte the original. We only gate WHEN the loop runs, not HOW
-      // it moves.
+      // ──────────────────── IDLE: freeze the CAMERA, keep the CARS alive (Path B) ────────────────────
+      // Run the full-rate camera loop ONLY while something moves. The camera eases toward `target`
+      // (above); once it has SETTLED on that target (within the SAME epsilons used for the snap above)
+      // AND the host hasn't written a new __journeyProgress for ~250ms, there is nothing left to FLY — so
+      // we stop the 60fps rAF (schedule no further frame). The map tiles/canvas then hold static (no more
+      // map.jumpTo), giving the page's heavy backdrop-filter glass a STATIC base to rest on. But instead
+      // of freezing EVERYTHING, we hand off to a low-rate (~IDLE_TRAFFIC_FPS) setTimeout loop that keeps
+      // ONLY the cars moving: each idle tick advances + redraws the traffic canvas, so the page re-blurs
+      // ~12×/sec instead of 60 (~5× cheaper) while the cars still look alive (the heavy blur hides the low
+      // fps). The 60fps loop is WOKEN again (startLoop) on the next __journeyProgress write (scroll), on
+      // resize, or on visibilitychange — startLoop cancels the idle timer and resumes easing from the
+      // camera's EXACT current state, so the wake is hitch-free and the during-scroll motion stays
+      // byte-for-byte the original. We only gate WHEN/at-what-RATE each piece runs, not HOW it moves.
       const _settled = Math.abs(target.lat  - camera.lat)  <= 0.00001
                     && Math.abs(target.lng  - camera.lng)  <= 0.00001
                     && Math.abs(target.zoom - camera.zoom) <= 0.001;
       if(_settled && (performance.now() - lastProgressChangeTime) >= 250){
         rafId = null;
-        TRAFFIC.diagnostics.reason = 'idle-frozen';
-        return;   // freeze: no rAF rescheduled until woken
+        enterIdle();   // → low-rate idle traffic, or a full freeze on hidden/reduced-motion/low-power
+        return;        // no 60fps rAF rescheduled until woken
       }
       rafId = requestAnimationFrame(render);
+    }
+
+    // Idle traffic only runs on a context where it's both wanted and cheap-enough to be worth it: the knob
+    // is on (>0), the tab is visible, the map isn't host-paused, motion is allowed, and the device isn't
+    // the low-power tier. Otherwise the idle state is a FULL freeze (the original Path B — zero idle work).
+    function idleTrafficAllowed(){
+      return IDLE_TRAFFIC_FPS > 0
+          && !document.hidden
+          && !window.__mapPaused
+          && !reduced
+          && !lowPowerDevice;
+    }
+
+    // Enter the idle state from the (now-stopped) 60fps loop. Either kick the low-rate traffic ticker, or
+    // — if idle traffic isn't allowed here — fully freeze (draw nothing, schedule nothing).
+    function enterIdle(){
+      if(!idleTrafficAllowed()){
+        TRAFFIC.diagnostics.reason = 'idle-frozen';
+        return;   // original Path B: everything frozen, zero idle repaint
+      }
+      TRAFFIC.diagnostics.reason = 'idle-traffic';
+      idleLastTick = performance.now();
+      if(idleTimer == null) idleTimer = setTimeout(idleTrafficTick, 1000 / IDLE_TRAFFIC_FPS);
+    }
+
+    // One low-rate idle tick (~IDLE_TRAFFIC_FPS): advance + redraw ONLY the traffic with the REAL elapsed
+    // dt (so cars cover the same real-world distance per second, just in larger steps), then redraw the
+    // traffic canvas. Deliberately does NO camera ease and NO map.jumpTo, so the map tiles/canvas stay
+    // static and the glass isn't re-blurred by the MAP — only the cars change, ~12×/sec. Self-reschedules
+    // via setTimeout (NOT a 60fps rAF — ~12 wakeups/sec is the whole point).
+    function idleTrafficTick(){
+      idleTimer = null;
+      if(window.__mapPaused || rafId != null) return;     // paused, or the 60fps loop took over → stop idling
+      if(!idleTrafficAllowed()){ TRAFFIC.diagnostics.reason = 'idle-frozen'; return; }
+      const now = performance.now();
+      const rawMs = Math.max(8, now - (idleLastTick || now));
+      idleLastTick = now;
+      // Real elapsed seconds, capped only to absorb a delayed/throttled tick without a teleport. At 12fps
+      // a normal tick is ~0.083s; the same per-device speed scaling the 60fps loop uses is applied so the
+      // cars don't change speed between scrolling and idle (reduced-motion never reaches here → fully frozen).
+      const dt = Math.min(0.25, rawMs / 1000);
+      try{
+        const network = ensureTrafficNetwork();
+        updateTrafficCars(network, mobileLike ? dt * .82 : dt);
+        renderTraffic(network);
+        TRAFFIC.idleDraws = (TRAFFIC.idleDraws | 0) + 1;
+        window.__idleTrafficDraws = TRAFFIC.idleDraws;
+        window.__trafficDraws = (window.__trafficDraws | 0) + 1;   // shared traffic-canvas redraw counter (all modes)
+        if(!document.hidden) updateQaMetricsPanel();
+      }catch(err){
+        TRAFFIC.renderErrorCount++;
+        TRAFFIC.diagnostics.reason = 'traffic-render-error';
+        if(TRAFFIC.debug) console.warn('Idle traffic render error', err);
+      }
+      idleTimer = setTimeout(idleTrafficTick, 1000 / IDLE_TRAFFIC_FPS);
     }
 
     function startLoop(){
       // Guard so only one rAF is ever in flight (and never run while paused).
       if(rafId != null || window.__mapPaused) return;
+      // Leaving the low-rate idle traffic loop → cancel its pending tick so the cars don't double-advance
+      // (the 60fps loop drives them from here on; baselines reset just below so its first dt is normal).
+      if(idleTimer != null){ clearTimeout(idleTimer); idleTimer = null; }
       // Hitch-free wake after an idle freeze: reset the frame-time baselines to NOW so the first resumed
       // frame computes a normal one-frame dt (not a huge accumulated catch-up across the idle gap). The
       // camera then eases from its exact current position and the traffic advances one normal step — no
@@ -3429,7 +3504,10 @@ body{
             const nv = !!v;
             if(nv === paused) return;
             paused = nv;
-            if(nv){ if(rafId != null){ cancelAnimationFrame(rafId); rafId = null; } }
+            if(nv){
+              if(rafId != null){ cancelAnimationFrame(rafId); rafId = null; }
+              if(idleTimer != null){ clearTimeout(idleTimer); idleTimer = null; }
+            }
             else { startLoop(); }
           }
         });
@@ -3460,8 +3538,17 @@ body{
 
     window.addEventListener('scroll', requestTarget, {passive:true});
     window.addEventListener('resize', () => { map.resize(); resizeTrafficCanvas(); lastProgressChangeTime = performance.now(); requestTarget(); startLoop(); }, {passive:true});
-    // Wake on tab re-show so a repaint happens after the browser throttled/parked rAF while hidden.
-    document.addEventListener('visibilitychange', () => { if(!document.hidden){ lastProgressChangeTime = performance.now(); startLoop(); } }, {passive:true});
+    // Tab hidden → FULL freeze (cancel the idle traffic ticker too — no work behind a hidden tab). Tab
+    // re-shown → wake so a repaint happens after the browser throttled/parked rAF while it was hidden.
+    document.addEventListener('visibilitychange', () => {
+      if(document.hidden){
+        if(idleTimer != null){ clearTimeout(idleTimer); idleTimer = null; }
+        if(TRAFFIC.diagnostics.reason === 'idle-traffic') TRAFFIC.diagnostics.reason = 'idle-frozen';
+      }else{
+        lastProgressChangeTime = performance.now();
+        startLoop();
+      }
+    }, {passive:true});
     window.__mapState = function(){
       return {
         zoom:+camera.zoom.toFixed(2), lat:+camera.lat.toFixed(3), lng:+camera.lng.toFixed(3),
@@ -3471,8 +3558,12 @@ body{
         city:TRAFFIC.activeCityId, progress:window.__journeyProgress,
         realFrameMs:+(TRAFFIC.realFrameMs || 0).toFixed(1),
         fps:+(1000 / Math.max(1, TRAFFIC.realFrameMs || 16)).toFixed(0),
-        frames:TRAFFIC.frames | 0,        // Path B: cumulative render-frame count (flat ⇒ loop frozen)
-        running:(rafId != null)           // Path B: is the rAF loop currently scheduled?
+        frames:TRAFFIC.frames | 0,        // Path B: cumulative CAMERA rAF-frame count (flat ⇒ camera frozen)
+        running:(rafId != null),          // Path B: is the 60fps camera rAF loop currently scheduled?
+        idle:(idleTimer != null),         // Path B: is the low-rate idle traffic ticker running?
+        idleFps:IDLE_TRAFFIC_FPS,         // Path B: the idle-traffic knob (0 = full freeze)
+        idleDraws:TRAFFIC.idleDraws | 0,  // Path B: cumulative idle traffic redraws (climbs ~12/s when idle)
+        trafficDraws:window.__trafficDraws | 0   // Path B: cumulative traffic-canvas redraws (all modes)
       };
     };
     updateTarget();
