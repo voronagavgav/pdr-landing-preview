@@ -563,6 +563,21 @@ body{
       return;
     }
 
+    // WebGL guard: without a usable WebGL context (very old/blocked GPUs, WebGL disabled, or headless
+    // audit labs like PageSpeed Insights), MapLibre's constructor throws an uncaught "Failed to
+    // initialize WebGL" exception. Probe first and bail gracefully — the page keeps its pastel
+    // background, just no live map — rather than throwing. Real browsers always pass this.
+    if(!(function(){
+      try{
+        var c = document.createElement('canvas');
+        return !!(window.WebGLRenderingContext &&
+          (c.getContext('webgl') || c.getContext('experimental-webgl')));
+      }catch(e){ return false; }
+    })()){
+      if(loading) loading.style.display = 'none';
+      return;
+    }
+
     maplibregl.setMaxParallelImageRequests(36);
     // Loading speed: start directly at the host's resting view (passed as #p=<progress>) instead of
     // the country overview — the hero paints the right city immediately and we skip loading a whole
