@@ -296,13 +296,13 @@ body{
   // redraw (normal "map-app" cost). So phones/touch keep the cars ALIVE while idle too, at a gentler
   // ~10fps (battery-aware); real desktops stay at 12fps. The `lowPowerDevice` tier (low RAM / few cores)
   // is still fully frozen when idle via idleTrafficAllowed() — the safety floor.
-  // Idle cars move at this fps when the page is idle (Danil wants them moving on PC too). RAISED 12→24 desktop:
-  // the old 12fps relied on the heavy url(#lg) DISPLACEMENT lens to MASK the low-fps stepping; that glass was
-  // since dropped to plain blur (which doesn't mask motion), so 12fps + the ×1.6 car speed read as "baggy".
-  // 24fps halves the visible step. Affordable now — idle does NO map.jumpTo, just a traffic redraw behind the
-  // now-cheap plain blur (and the per-car update was de-projected, P2a). Phone (no glass) modest for battery.
+  // Idle cars move at this fps when the page is idle (Danil wants them moving on PC too).
+  // DESKTOP 24→8: at idle the cars CRAWL (~1.3px/sec at z14 ⇒ ~0.05px/frame at 24fps — invisible motion), yet
+  // every idle repaint forces the GPU to re-blur the glass backdrop above it. That re-blur IS the idle heat.
+  // The desktop glass blur SMEARS the per-frame step, so 8fps reads as smooth as 24 — but re-blurs the glass
+  // 3× less ⇒ ~⅓ the idle GPU/heat. (Mobile keeps 15: no glass blur there to hide low-fps stepping.)
   const IDLE_TRAFFIC_FPS = (window.matchMedia('(pointer: coarse)').matches
-                         || window.matchMedia('(max-width: 1024px)').matches) ? 15 : 24;
+                         || window.matchMedia('(max-width: 1024px)').matches) ? 15 : 8;
 
   // How many cars to keep CLEARLY VISIBLE in frame at a settled city (the adaptive density controller
   // tops the network up until ~this many are drawn). With the solid car opacity below, drawn ≈ visible,
