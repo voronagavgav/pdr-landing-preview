@@ -2843,10 +2843,13 @@ body{
 
         for(let i=0; i<cars.length; i++){
           const car = cars[i];
-          const ahead = cars[(i + 1) % cars.length];
-          let gap = ahead.progress - car.progress;
-          if(gap <= 0) gap += lane.length;
-          const safeGap = lane.major ? 30 : 24;
+          // The leader is the next car AHEAD on THIS lane (list is sorted ascending → cars[i+1]). The FRONT
+          // car has NO in-lane leader — it just proceeds and transitions off the lane end. The old
+          // `cars[(i+1) % cars.length]` ring-wrap invented a phantom leader: a LONE car followed ITSELF (→
+          // braked to a dead stop on any lane shorter than safeGap) and the front car braked for the REAR car
+          // across a fake wrap (→ whole occupied lanes gridlocked) — leaving ~10% of cars STUCK while the
+          // rest moved.
+          const ahead = (i + 1 < cars.length) ? cars[i + 1] : null;
 
           if(!Number.isFinite(car.speed)) car.speed = car.baseDesiredSpeed || car.desiredSpeed || 6;
           if(!Number.isFinite(car.progress)) car.progress = 0;
@@ -2859,9 +2862,13 @@ body{
             car.speed += (car.desiredSpeed - car.speed) * Math.min(1, dt * 1.8);
           }
 
-          if(gap < safeGap){
-            car.speed = Math.min(car.speed, Math.max(0, ahead.speed - 1.4));
-            if(gap < safeGap * .70) car.speed = Math.max(0, car.speed - 20 * dt);
+          if(ahead){
+            const gap = ahead.progress - car.progress;     // > 0 (sorted): a real leader on the same lane
+            const safeGap = lane.major ? 30 : 24;
+            if(gap < safeGap){
+              car.speed = Math.min(car.speed, Math.max(0, ahead.speed - 1.4));
+              if(gap < safeGap * .70) car.speed = Math.max(0, car.speed - 20 * dt);
+            }
           }
 
           const distToEnd = lane.length - car.progress;
