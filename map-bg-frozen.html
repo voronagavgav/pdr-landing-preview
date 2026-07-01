@@ -3242,8 +3242,9 @@ body{
 
     // ── Heat A/B diagnostic — cheap URL flags on the HOST page to localize the idle fan cost on a real GPU ──
     // (heat can't be benchmarked headless, so YOU feel the fans). Load variant-b.html?heat=...:
-    //   ?heat=nocars → idle still SIMULATES cars but skips the DRAW  → fans drop ⇒ car RENDERING is the cost.
+    //   ?heat=nocars → idle still SIMULATES cars but CLEARS the canvas + skips the DRAW → fans drop ⇒ car RENDERING is the cost.
     //   ?heat=noblur → disable every glass backdrop-filter on the host → fans drop ⇒ the glass RE-BLUR is the cost.
+    //   ?heat=nodrift→ pause the parent's infinite .drift blobs + mascot float → fans drop ⇒ a MOVING bg under the glass (perpetual re-blur) is the cost.
     // If nocars drops the fans but noblur doesn't, the fix is the car render path (→ GPU-instanced sprites).
     const HEAT = (function(){
       let s = '';
@@ -3261,7 +3262,17 @@ body{
         P.document.head.appendChild(st);
       }catch(e){}
     }
-    if(HEAT) try{ console.log('[heat-diag] flag=', HEAT, '| nocars(draw skipped)=', HEAT_NOCARS, '| noblur applied=', /noblur/.test(HEAT)); }catch(e){}
+    if(/nodrift/.test(HEAT)){
+      try{
+        const P = (window.parent && window.parent !== window) ? window.parent : window;
+        const st = P.document.createElement('style');
+        // Freeze the ONLY continuous parent animations: the 3 big .drift bg blobs + the mascot float/shadow.
+        // A moving background under a backdrop-filter panel forces the glass to re-blur every frame → idle heat.
+        st.textContent = '.drift,.mbody,.msh{animation:none!important}';
+        P.document.head.appendChild(st);
+      }catch(e){}
+    }
+    if(HEAT) try{ console.log('[heat-diag] flag=', HEAT, '| nocars=', HEAT_NOCARS, '| noblur=', /noblur/.test(HEAT), '| nodrift=', /nodrift/.test(HEAT), '| freeze=', HEAT_FREEZE); }catch(e){}
     // Idle throttle state for the adaptive density controller (see idleTrafficTick).
     let idleNet = null, idleNetAt = 0;
 
@@ -3651,7 +3662,8 @@ body{
           try{
             const network = ensureTrafficNetwork();
             updateTrafficCars(network, reduced ? trafficDt * .5 : (mobileLike ? trafficDt * .82 : trafficDt));
-            renderTraffic(network);
+            if(HEAT_NOCARS) trafficCtx.clearRect(0, 0, trafficCanvas.width, trafficCanvas.height);   // ?heat=nocars → clear + skip so cars truly vanish
+            else renderTraffic(network);
             window.__trafficDraws = (window.__trafficDraws | 0) + 1;   // Path B: traffic-canvas redraw counter (all modes)
           }catch(err){
             TRAFFIC.renderErrorCount++;
@@ -3744,7 +3756,8 @@ body{
         if(!idleNet || now - idleNetAt > 480){ network = ensureTrafficNetwork(); idleNet = network; idleNetAt = now; }
         else network = idleNet;
         updateTrafficCars(network, mobileLike ? dt * .82 : dt);
-        if(!HEAT_NOCARS) renderTraffic(network);   // ?heat=nocars → simulate but skip the DRAW (A/B diagnostic)
+        if(HEAT_NOCARS) trafficCtx.clearRect(0, 0, trafficCanvas.width, trafficCanvas.height);   // ?heat=nocars → clear + skip the DRAW so cars truly vanish (A/B diagnostic)
+        else renderTraffic(network);
         TRAFFIC.idleDraws = (TRAFFIC.idleDraws | 0) + 1;
         window.__idleTrafficDraws = TRAFFIC.idleDraws;
         window.__trafficDraws = (window.__trafficDraws | 0) + 1;   // shared traffic-canvas redraw counter (all modes)

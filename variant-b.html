@@ -157,6 +157,10 @@ button{font-family:inherit;cursor:pointer}
 .drift.b1{width:42vw;height:42vw;max-width:560px;max-height:560px;background:hsl(158 50% 80%);top:-8vh;left:-6vw;animation:drift1 14s ease-in-out infinite}
 .drift.b2{width:38vw;height:38vw;max-width:520px;max-height:520px;background:hsl(202 56% 80%);top:12vh;right:-8vw;animation:drift2 16s ease-in-out infinite}
 .drift.b3{width:40vw;height:40vw;max-width:560px;max-height:560px;background:hsl(28 62% 84%);bottom:-12vh;left:18vw;animation:drift3 18s ease-in-out infinite}
+/* Idle-freeze: while these ambient layers MOVE behind the frosted glass, the glass re-blurs every frame
+   (measured ~½ the idle GPU / fan cost). Pause them in place after ~1.2s of no interaction; JS resumes on
+   any input. Mirrors the map's own idle-freeze. (Reduced-motion already kills them via the block below.) */
+html.bg-idle .drift,html.bg-idle .mbody,html.bg-idle .msh{animation-play-state:paused}
 
 /* faint masked grid ONLY under the hero zone — fine high-contrast edges the lens can bend */
 .bg-detail{
@@ -2256,6 +2260,21 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     mqDevice.addEventListener('change', onEnv);
     mqReduceTransp.addEventListener('change', onEnv);
     mqReduceData.addEventListener('change', onEnv);
+  }
+
+  // Idle-freeze the ambient bg drift + mascot float (see the `.bg-idle` CSS rule). They animate `transform`
+  // behind the frosted glass, so while they move the glass re-blurs every frame — the confirmed idle GPU/fan
+  // cost (freezing them halved idle GPU on an M2 Pro). Pause them ~1.2s after the last input; resume instantly
+  // on any interaction; freeze immediately when the tab is hidden. Reduced-motion pauses them via CSS anyway.
+  if(!mqReduce.matches){
+    var __root=document.documentElement, __idleT=0, __isIdle=false;
+    var __setIdle=function(v){ if(v===__isIdle) return; __isIdle=v; __root.classList.toggle('bg-idle', v); };
+    var __activity=function(){ __setIdle(false); if(__idleT) clearTimeout(__idleT); __idleT=setTimeout(function(){ __setIdle(true); }, 1200); };
+    ['pointerdown','pointermove','mousemove','wheel','scroll','touchstart','keydown'].forEach(function(ev){
+      window.addEventListener(ev, __activity, {passive:true});
+    });
+    document.addEventListener('visibilitychange', function(){ if(document.hidden){ if(__idleT) clearTimeout(__idleT); __setIdle(true); } else __activity(); });
+    __activity();   // arm: goes idle 1.2s after load if the visitor never interacts
   }
 })();
 </script>
