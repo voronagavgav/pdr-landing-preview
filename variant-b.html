@@ -2130,7 +2130,15 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   // LITE mode (map-bg.html reduces car count, canvas pixel-ratio, max zoom & frame-rate for them).
   function tooWeak(){
     try{
-      if(typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory < 2) return true;
+      // STRICTER RAM floor on phones/touch: the scroll-driven WebGL map's fast-scroll tile burst
+      // (~up to 1 GB) + GPU heat punishes 2–3 GB budget phones, so only ≥4 GB phones run the live
+      // map — 2–3 GB phones fall back to the calm static pastel field. Desktop keeps the ≥2 GB floor.
+      // (navigator.deviceMemory is Chrome/Android-only & bucketed to [0.25,0.5,1,2,4,8]; iOS Safari
+      //  doesn't expose it → iPhones, with strong GPUs, aren't gated by this.)
+      var touch = false;
+      try{ touch = window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(max-width: 760px)').matches; }catch(e){}
+      var memFloor = touch ? 4 : 2;
+      if(typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory < memFloor) return true;
       if(typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency < 2) return true;
       // very slow link → don't pull ~1 MB MapLibre; fall back to the static field.
       var ct = navigator.connection && navigator.connection.effectiveType;
