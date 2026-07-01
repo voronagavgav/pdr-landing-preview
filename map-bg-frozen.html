@@ -686,7 +686,7 @@ body{
       refreshExpiredTiles:false,
       maxTileCacheSize: 300,   // was 3000→600→300 — caps RETAINED off-screen tile RAM; revisiting a city re-parses from the warm HTTP cache and behind the blur the re-parse is invisible. Bump up if tiles visibly re-pop while scrolling.
       maxTileCacheZoomLevels: mobileLike ? 8 : 10,
-      cancelPendingTileRequestsWhileZooming:false,
+      cancelPendingTileRequestsWhileZooming:true,   // was false → back to MapLibre's default: during the journey's fast zoom ramps, CANCEL tile requests for the intermediate viewports the camera flies PAST before they finish loading. Cuts the fast-scroll load BURST (the ~1GB spike) — a cancelled tile just overzooms its parent, invisible behind the blur.
       // MapLibre canvas resolution = container size × pixelRatio.
       // Kept at 1.0 — everything renders on ONE canvas, so lowering pixelRatio softens the LABEL TEXT too, and
       // the place-names must stay crisp (readable in the open, un-blurred runway areas). Per Danil: reduce BASEMAP
