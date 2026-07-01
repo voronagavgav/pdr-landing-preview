@@ -99,17 +99,6 @@ body{
   height:100%;
   pointer-events:none;
 }
-.maplibregl-map,
-.maplibregl-canvas-container,
-.maplibregl-canvas{
-  width:100%!important;
-  height:100%!important;
-  outline:0!important;
-}
-.maplibregl-canvas{
-  filter:saturate(.55) hue-rotate(-12deg) brightness(1.04) contrast(.94);
-}
-.maplibregl-control-container{display:none!important}
 .tint,
 .veil,
 .depth,
@@ -250,7 +239,6 @@ body{
 .loading-sub{font-size:13px;margin-top:4px}
 @media(max-width:760px){
   .journey{height:2850vh;min-height:14500px}
-  .maplibregl-canvas{filter:saturate(.50) hue-rotate(-10deg) brightness(1.08) contrast(.90)}
   .tint{opacity:.62}
   .veil{opacity:.30}
   .focus-softener{opacity:var(--focus-opacity,.20)}
