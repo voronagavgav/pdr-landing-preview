@@ -158,9 +158,13 @@ button{font-family:inherit;cursor:pointer}
 .drift.b2{width:38vw;height:38vw;max-width:520px;max-height:520px;background:hsl(202 56% 80%);top:12vh;right:-8vw;animation:drift2 16s ease-in-out infinite}
 .drift.b3{width:40vw;height:40vw;max-width:560px;max-height:560px;background:hsl(28 62% 84%);bottom:-12vh;left:18vw;animation:drift3 18s ease-in-out infinite}
 /* Idle-freeze: while these ambient layers MOVE behind the frosted glass, the glass re-blurs every frame
-   (measured ~½ the idle GPU / fan cost). Pause them in place after ~1.2s of no interaction; JS resumes on
-   any input. Mirrors the map's own idle-freeze. (Reduced-motion already kills them via the block below.) */
-html.bg-idle .drift,html.bg-idle .mbody,html.bg-idle .msh{animation-play-state:paused}
+   (measured ~½ the idle GPU / fan cost on an M2 Pro). REMOVE the animation after ~1.2s of no interaction;
+   JS resumes it on any input. NOTE: `animation:none` (not `animation-play-state:paused`) — a *paused*
+   compositor animation still keeps Chrome's frame loop / backdrop-filter alive, so it did NOT drop the fans;
+   fully removing it lets the compositor go quiet (confirmed: the console `animation:none` test dropped GPU
+   30→15, `paused` did not). Mirrors the reduced-motion "off" state below. Tiny reposition on toggle is
+   imperceptible (30%-opacity, 70px-blurred blobs behind glass). */
+html.bg-idle .drift,html.bg-idle .mbody,html.bg-idle .msh{animation:none!important}
 
 /* faint masked grid ONLY under the hero zone — fine high-contrast edges the lens can bend */
 .bg-detail{
