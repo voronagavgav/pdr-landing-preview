@@ -684,14 +684,15 @@ body{
       fadeDuration:0,   // snap tiles to full opacity the instant they load — no mid-fade "faint/disappearing" tiles during a fast zoom
       renderWorldCopies:false,
       refreshExpiredTiles:false,
-      maxTileCacheSize: 600,   // was 3000 — trimmed to cap idle RAM growth (this is the RETAINED off-screen tile cache; the prewarm warms the browser HTTP cache SEPARATELY, so revisiting a city re-parses from warm cache = no blanks, and behind the blur the re-parse is invisible). Bump up if tiles visibly re-pop while scrolling the journey.
-      maxTileCacheZoomLevels: mobileLike ? 12 : 15,
+      maxTileCacheSize: 300,   // was 3000→600→300 — caps RETAINED off-screen tile RAM; revisiting a city re-parses from the warm HTTP cache and behind the blur the re-parse is invisible. Bump up if tiles visibly re-pop while scrolling.
+      maxTileCacheZoomLevels: mobileLike ? 8 : 10,
       cancelPendingTileRequestsWhileZooming:false,
       // MapLibre canvas resolution = container size × pixelRatio (constructor MapOptions; defaults to
-      // devicePixelRatio). Hard-capped at 1.0 for EVERY device — the map is a blurred background, so 1x
-      // raster is plenty and fastest. This already undershoots the ≤1.5 "lite" cap, so phones/tablets
-      // never pay for retina map tiles. (The 2D traffic canvas pixel-ratio is capped separately below.)
-      pixelRatio:Math.min(window.devicePixelRatio || 1, 1.0),
+      // devicePixelRatio). Capped at 0.7 (was 1.0) for EVERY device — the map is a blurred+veiled background, so
+      // rendering at 70% resolution is INVISIBLE under the 70px blur (the blur radius dwarfs the pixel size) but
+      // shrinks the GL framebuffer + every tile render-target ⇒ real GPU-memory + heat saving at zero visible cost.
+      // (Dial toward 0.6 for more, or 0.8 if the open runway areas read soft. 2D traffic canvas capped separately.)
+      pixelRatio:Math.min(window.devicePixelRatio || 1, 0.7),
       canvasContextAttributes:{
         antialias:false,
         preserveDrawingBuffer:false,
