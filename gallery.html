@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drivers School — варіанти дизайну лендінга</title>
+<meta name="description" content="Порівняння варіантів дизайну лендінг-сторінки Drivers School (підготовка до іспиту з ПДР).">
+<meta property="og:title" content="Drivers School — варіанти дизайну лендінга">
+<meta property="og:description" content="Оберіть напрям дизайну: 3 фіналісти для порівняння.">
+<style>
+  :root{
+    --bg:#0f1216; --panel:#171b21; --panel2:#1e242c; --line:#2b323c;
+    --text:#eef2f7; --muted:#9aa6b6; --accent:#f59e0b; --accent2:#22d3ee;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+  header.top{padding:54px 0 26px;text-align:center;
+    background:radial-gradient(1100px 360px at 50% -120px, rgba(245,158,11,.16), transparent 70%)}
+  .brand{display:inline-flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.2px;margin-bottom:18px}
+  .badge{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+    background:linear-gradient(135deg,#f59e0b,#ff6b4a);color:#1b2430;font-weight:800;font-size:11px}
+  h1{font-size:clamp(28px,5vw,46px);line-height:1.08;margin:.1em 0 .35em;letter-spacing:-.02em}
+  .sub{color:var(--muted);max-width:640px;margin:0 auto;font-size:clamp(15px,2.2vw,18px)}
+  .meta{margin-top:18px;color:var(--muted);font-size:13.5px}
+  .meta b{color:var(--text)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:22px;margin:40px 0 8px}
+  @media(max-width:920px){.grid{grid-template-columns:1fr;max-width:520px;margin-inline:auto}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;
+    display:flex;flex-direction:column;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+  .card:hover{transform:translateY(-4px);border-color:#3c4654;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+  .shot{display:block;position:relative;aspect-ratio:16/10;overflow:hidden;background:#0b0e12;border-bottom:1px solid var(--line)}
+  .shot img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .tag{position:absolute;top:12px;left:12px;background:rgba(15,18,22,.82);backdrop-filter:blur(6px);
+    border:1px solid var(--line);color:var(--text);font-size:11.5px;font-weight:600;padding:5px 9px;border-radius:999px}
+  .fav{position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#f59e0b,#ff6b4a);
+    color:#1b2430;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px}
+  .newb{position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#9AD9B8,#8CC9EC);
+    color:#173b30;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px}
+  .body{padding:18px 18px 20px;display:flex;flex-direction:column;gap:9px;flex:1}
+  .name{font-size:20px;font-weight:700;letter-spacing:-.01em}
+  .vibe{color:var(--muted);font-size:14.5px;flex:1}
+  .open{margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--accent);color:#1b2430;font-weight:700;text-decoration:none;
+    padding:11px 14px;border-radius:11px;transition:filter .15s ease}
+  .open:hover{filter:brightness(1.06)}
+  .open.alt{background:transparent;color:var(--text);border:1px solid var(--line)}
+  .open.alt:hover{border-color:var(--accent2);color:var(--accent2)}
+
+  .more{margin:40px 0 10px;border-top:1px solid var(--line);padding-top:22px}
+  details{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 18px}
+  summary{cursor:pointer;font-weight:600;padding:12px 0;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸ ";color:var(--muted)}
+  details[open] summary::before{content:"▾ "}
+  .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:12px 0 18px}
+  @media(max-width:920px){.mini{grid-template-columns:1fr}}
+  .mini a{display:flex;gap:12px;align-items:center;background:var(--panel2);border:1px solid var(--line);
+    border-radius:12px;padding:10px;text-decoration:none}
+  .mini a:hover{border-color:#3c4654}
+  .mini img{width:74px;height:54px;object-fit:cover;object-position:top;border-radius:7px;flex:none}
+  .mini .mn{font-weight:600;font-size:14.5px}
+  .mini .mv{color:var(--muted);font-size:12.5px}
+
+  footer{color:var(--muted);font-size:13px;text-align:center;padding:34px 0 50px;line-height:1.7}
+  footer .note{max-width:680px;margin:0 auto}
+  .kbd{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:12px}
+  :focus-visible{outline:2px solid var(--accent2);outline-offset:3px;border-radius:8px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><span class="badge">ПДР</span> Drivers School</div>
+    <h1>Оберіть напрям дизайну лендінга</h1>
+    <p class="sub">Фіналісти дизайну для підготовки до теоретичного іспиту з ПДР. Відкрийте кожен, погортайте, поділіться — і вирішимо разом, який стиль наш. (Спокійний напрям — у двох стилях: м'які пастелі та «рідке скло».)</p>
+    <p class="meta">Натисніть <b>«Відкрити повністю»</b> на будь-якому варіанті · усі сторінки інтерактивні (спробуйте питання в герої) · адаптовані під телефон</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="grid" aria-label="Фіналісти">
+
+    <article class="card">
+      <a class="shot" href="variant-d.html" aria-label="Відкрити варіант D — Дорожні знаки">
+        <span class="tag">D · Дорожні знаки</span>
+        <img src="thumb-d.png" alt="Прев'ю варіанта D — дошка дорожніх знаків">
+      </a>
+      <div class="body">
+        <div class="name">D · Дорожні знаки 🚦</div>
+        <p class="vibe">Сміливий і впізнаваний: дорожні знаки — це сам інтерфейс. «Дошка знаків» як список режимів. Найбільш «про водіння».</p>
+        <a class="open" href="variant-d.html">Відкрити повністю ↗</a>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="shot" href="variant-e.html" aria-label="Відкрити варіант E — Sunrise × Signs">
+        <span class="tag">E · Sunrise × Signs</span>
+        <span class="fav">★ Фаворит</span>
+        <img src="thumb-e.png" alt="Прев'ю варіанта E — тепла база з дорогою і знаками">
+      </a>
+      <div class="body">
+        <div class="name">E · Sunrise × Signs 🌅🚦</div>
+        <p class="vibe">Мікс: тепла дружня база + «дорога до прав» як головний акцент + дошка знаків + офіційна печатка ГСЦ МВС. Тепло, впізнавано, з довірою.</p>
+        <a class="open" href="variant-e.html">Відкрити повністю ↗</a>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="shot" href="variant-f1.html" aria-label="Відкрити варіант F — Calm Pastel">
+        <span class="tag">F · Спокій · Pastel</span>
+        <img src="thumb-f1.png" alt="Прев'ю спокійного варіанта — м'які пастелі">
+      </a>
+      <div class="body">
+        <div class="name">F · Спокій · Pastel 🫧</div>
+        <p class="vibe">Спокійний напрям у м'яких пастелях (м'ятний / блакитний / персиковий), з м'яким зеленим CTA і маскотом Світлик.</p>
+        <a class="open" href="variant-f1.html">Відкрити повністю ↗</a>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="shot" href="variant-g.html" aria-label="Відкрити варіант G — Liquid Glass">
+        <span class="tag">G · Liquid Glass</span>
+        <span class="newb">✨ Нове</span>
+        <img src="thumb-g.png" alt="Прев'ю варіанта G — рідке скло, напівпрозорі панелі">
+      </a>
+      <div class="body">
+        <div class="name">G · Спокій · Рідке скло 🪟</div>
+        <p class="vibe">Той самий спокій у стилі Apple «Liquid Glass»: напівпрозорі скляні панелі, що заломлюють м'які пастельні кольори. Сучасно, легко, делікатно.</p>
+        <a class="open" href="variant-g.html">Відкрити повністю ↗</a>
+      </div>
+    </article>
+
+  </section>
+
+  <section class="more">
+    <details>
+      <summary>Ще 3 ранні варіанти (A · B · C)</summary>
+      <div class="mini">
+        <a href="variant-a.html"><img src="thumb-a.png" alt=""><span><span class="mn">A · Confident Sunrise ☀️</span><br><span class="mv">Тепла, дружня, найбезпечніша</span></span></a>
+        <a href="variant-b.html"><img src="thumb-b.png" alt=""><span><span class="mn">B · Рідке скло — жива версія 🪟</span><br><span class="mv">Активна оптимізована збірка (як G)</span></span></a>
+        <a href="variant-c.html"><img src="thumb-c.png" alt=""><span><span class="mn">C · Екзаменаційний білет 📄</span><br><span class="mv">Редакційна, офіційна, довіра</span></span></a>
+      </div>
+    </details>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p class="note">Прототипи для вибору візуального напряму. Відгуки, рейтинг, ціни та кількість учнів — <b>ілюстративні</b> й будуть замінені реальними даними. Навчальна платформа для підготовки; це не офіційна екзаменаційна система. Питання — з відкритої бази ГСЦ МВС.</p>
+  <p>© 2026 Drivers School · підготовка до теоретичного іспиту з ПДР</p>
+</footer>
+</body>
+</html>
