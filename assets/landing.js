@@ -337,6 +337,20 @@
   var mqReduceData = matchMedia('(prefers-reduced-data: reduce)');
   var mqReduceTransp = matchMedia('(prefers-reduced-transparency: reduce)');
   var mqContrast = matchMedia('(prefers-contrast: more)');   // CSS hides .mapbg for these users — gate the BOOT too (no invisible ~1MB MapLibre)
+
+  // ---- App hand-off (landing → application) ----------------------------------------------------
+  // APP_ORIGIN = the application's PUBLIC origin. '' = app not public yet → every <a data-app> keeps its
+  // in-page anchor behaviour (no dead links on the public preview). When set (or overridden via ?app=<origin>
+  // for testing, e.g. a cloudflared tunnel), each data-app link becomes a real deep link:
+  // data-app="/register" → <origin>/register. Flip APP_ORIGIN here when the production origin exists.
+  var APP_ORIGIN = '';
+  (function(){ try{
+    var q = new URLSearchParams(location.search).get('app');
+    if(q){ APP_ORIGIN = q.replace(/\/+$/,''); }
+    if(!APP_ORIGIN) return;
+    var links = document.querySelectorAll('a[data-app]');
+    for(var i=0;i<links.length;i++){ links[i].setAttribute('href', APP_ORIGIN + links[i].getAttribute('data-app')); }
+  }catch(e){} })();
   function saveData(){ try{ return !!(navigator.connection && navigator.connection.saveData) || mqReduceData.matches; }catch(e){ return mqReduceData.matches; } }
   // Only TRULY weak / ancient devices skip the map entirely; weak-but-usable devices still get it in
   // LITE mode (map-bg.html reduces car count, canvas pixel-ratio, max zoom & frame-rate for them).

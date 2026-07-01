@@ -38,9 +38,9 @@
      cyrillic Manrope faces the hero paints with are preloaded. -->
 <link rel="preload" href="assets/fonts/manrope-700-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/manrope-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/fonts.css?v=5">
+<link rel="stylesheet" href="assets/fonts.css?v=6">
 
-<link rel="stylesheet" href="assets/landing.css?v=5">
+<link rel="stylesheet" href="assets/landing.css?v=6">
 </head>
 <body class="lg-everywhere">
 
@@ -48,7 +48,7 @@
 
 <!-- LIVING MAP BACKGROUND — Ukraine map + traffic, driven by page scroll, refracted by the glass -->
 <div class="mapbg" id="mapbg" aria-hidden="true">
-  <iframe class="mapbg-frame" id="mapbgFrame" data-src="map-bg-frozen.html?v=5" title="Фонова мапа (декоративна)" tabindex="-1" scrolling="no" referrerpolicy="no-referrer" loading="lazy"></iframe>
+  <iframe class="mapbg-frame" id="mapbgFrame" data-src="map-bg-frozen.html?v=6" title="Фонова мапа (декоративна)" tabindex="-1" scrolling="no" referrerpolicy="no-referrer" loading="lazy"></iframe>
   <span class="mapbg-veil" aria-hidden="true"></span>
 </div>
 
@@ -123,8 +123,8 @@
         <a href="#faq">Питання</a>
       </div>
       <div class="nav-actions">
-        <a class="link-login" href="#top">Увійти</a>
-        <a class="btn cta-glass" href="#hero-cta"><span class="cta-full">Почати безкоштовно</span><span class="cta-short">Почати</span></a>
+        <a class="link-login" href="#top" data-app="/login">Увійти</a>
+        <a class="btn cta-glass" href="#hero-cta" data-app="/register"><span class="cta-full">Почати безкоштовно</span><span class="cta-short">Почати</span></a>
         <button class="nav-burger" type="button" aria-label="Меню" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span><span></span></button>
       </div>
     </nav>
@@ -133,7 +133,7 @@
       <a href="#game">Як це працює</a>
       <a href="#pricing">Тарифи</a>
       <a href="#faq">Питання</a>
-      <a href="#top">Увійти</a>
+      <a href="#top" data-app="/login">Увійти</a>
     </div>
   </div>
 </header>
@@ -152,8 +152,8 @@
         <p class="hero-sub">Усі офіційні питання іспиту, реальні дорожні ситуації та розумні тренування, що ведуть тебе від нуля до впевненого «склав».</p>
 
         <div class="hero-cta-row" id="hero-cta">
-          <a class="btn cta-glass btn-lg" href="#sample"><span>Почати безкоштовно</span></a>
-          <a class="btn btn-ghost btn-lg" href="#sample">Спробувати без реєстрації</a>
+          <a class="btn cta-glass btn-lg" href="#hero-cta" data-app="/register"><span>Почати безкоштовно</span></a>
+          <a class="btn btn-ghost btn-lg" href="#sample" data-app="/register">Спробувати без реєстрації</a>
         </div>
 
         <p class="micro-trust"><span style="white-space:nowrap"><b>2322</b> офіційні питання</span> · без картки · українською</p>
@@ -454,7 +454,7 @@
         <h2 id="ready-h">Не вгадуй, чи ти готовий&nbsp;— побач це.</h2>
         <p>Ми рахуємо твою готовність за останніми результатами й опануванням тем. Сідай за кермо іспиту тоді, коли цифра скаже «готовий».</p>
         <p class="ready-reassure"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20s-7-4.5-9.2-9C1.3 8 3 4.5 6.5 4.5c2 0 3.3 1.2 4 2.4l1.5 2.1 1.5-2.1c.7-1.2 2-2.4 4-2.4 3.5 0 5.2 3.5 3.7 6.5C19 15.5 12 20 12 20Z" fill="hsl(152 44% 72%)" stroke="var(--green-deep)" stroke-width="1.5" stroke-linejoin="round"/></svg> Тисячі вже склали з першого разу. І ти зможеш.</p>
-        <div style="margin-top:22px"><a class="btn cta-glass btn-lg" href="#sample"><span>Почати безкоштовно</span></a></div>
+        <div style="margin-top:22px"><a class="btn cta-glass btn-lg" href="#hero-cta" data-app="/register"><span>Почати безкоштовно</span></a></div>
       </div>
     </div>
   </div>
@@ -516,7 +516,7 @@
           <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Базовий прогрес</li>
         </ul>
         <p class="plan-note">Без картки. Назавжди.</p>
-        <a class="btn btn-ghost btn-block" href="#hero-cta">Почати безкоштовно</a>
+        <a class="btn btn-ghost btn-block" href="#hero-cta" data-app="/register">Почати безкоштовно</a>
       </div>
 
       <div class="glass plan pro reveal">
@@ -529,7 +529,7 @@
           <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Усі 734 фото</li>
           <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Без реклами</li>
         </ul>
-        <a class="btn cta-glass btn-block" href="#hero-cta"><span>Спробувати Преміум</span></a>
+        <a class="btn cta-glass btn-block" href="#hero-cta" data-app="/register"><span>Спробувати Преміум</span></a>
       </div>
     </div>
   </div>
@@ -577,7 +577,7 @@
       <svg class="final-mascot" viewBox="0 0 100 100" role="img" aria-label="Світлик — твій спокійний помічник"><use href="#svitlyk"/></svg>
       <h2 id="final-h">Твоє «склав» починається сьогодні.</h2>
       <p>Перше тренування — за 30 секунд.</p>
-      <a class="btn cta-glass btn-lg" href="#hero-cta"><span>Почати безкоштовно</span></a>
+      <a class="btn cta-glass btn-lg" href="#hero-cta" data-app="/register"><span>Почати безкоштовно</span></a>
       <p class="final-note">Навчальна платформа для підготовки. Це не офіційна екзаменаційна система.</p>
     </div>
   </div>
@@ -622,7 +622,7 @@
   </div>
 </footer>
 
-<script src="assets/landing.js?v=5"></script>
+<script src="assets/landing.js?v=6"></script>
 
 </body>
 </html>
