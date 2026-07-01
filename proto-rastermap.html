@@ -68,12 +68,14 @@ journey + ease as production. Watch fps stay ~60 and JS heap stay tiny. Toggle b
 
   // ---- raster tile cache (positron = carto light) ----
   const tiles=new Map(); const SUB=['a','b','c','d']; let loads=0, okc=0;
+  const NOTOK={ok:false}; let inFlight=0; const MAXLOAD=6;   // cap concurrent decodes → smooths lag + lowers the RAM peak
   function getTile(z,x,y){
     const k=z+'/'+x+'/'+y; let t=tiles.get(k);
     if(t){ tiles.delete(k); tiles.set(k,t); return t; }   // LRU touch
-    const img=new Image(); img.crossOrigin='anonymous';
+    if(inFlight>=MAXLOAD) return NOTOK;                   // throttled — parent-fallback covers it, retry a later frame
+    const img=new Image(); img.crossOrigin='anonymous'; inFlight++;
     t={img,ok:false};
-    img.onload=()=>{ t.ok=true; okc++; }; img.onerror=()=>{ t.ok=false; };
+    img.onload=()=>{ t.ok=true; okc++; inFlight--; }; img.onerror=()=>{ inFlight--; };
     img.src='https://'+SUB[(x+y)&3]+'.basemaps.cartocdn.com/light_all/'+z+'/'+x+'/'+y+'.png';
     tiles.set(k,t); loads++;
     return t;
@@ -89,6 +91,7 @@ journey + ease as production. Watch fps stay ~60 and JS heap stay tiny. Toggle b
 
   // ---- camera ----
   let cam={lng:stops[0].lng,lat:stops[0].lat,zoom:stops[0].zoom};
+  let velSmooth=0, prevL=cam.lng, prevA=cam.lat, prevZ=cam.zoom;   // camera velocity → coarse-while-moving
   function targetAt(p){
     p=Math.max(0,Math.min(routeEnd,p));
     let i=0; while(i<stops.length-2 && p>stops[i+1].p) i++;

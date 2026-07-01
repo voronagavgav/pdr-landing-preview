@@ -619,7 +619,7 @@ body{
     // ════════════════════════════════════════════════════════════════════════════════════════════════
     const rasterCv  = document.getElementById('mapraster');
     const rasterCtx = rasterCv.getContext('2d', {alpha:true});
-    const TILE = 256, MINZ = 3, MAXZ = 16, CACHE_CAP = 180;
+    const TILE = 256, MINZ = 3, MAXZ = 16, CACHE_CAP = 120, BASE_PROTECT_Z = 7;
     const worldX = (lng,Z) => (lng+180)/360 * TILE*Math.pow(2,Z);
     const worldY = (lat,Z) => { const s=Math.sin(lat*Math.PI/180);
       return (0.5 - Math.log((1+s)/(1-s))/(4*Math.PI)) * TILE*Math.pow(2,Z); };
@@ -644,7 +644,10 @@ body{
       tiles.set(k,t); __tLoads++;
       return t;
     }
-    function trimTiles(){ if(tiles.size<=CACHE_CAP) return; for(const k of tiles.keys()){ if(tiles.size<=CACHE_CAP) break; if((+k.slice(0,k.indexOf('/')))>9) tiles.delete(k); } }
+    function trimTiles(){   // HARD LRU cap: evict oldest, protecting ONLY the tiny country-overview level (z<=6, a
+      if(tiles.size<=CACHE_CAP) return;   // handful of tiles) so total tiles + their GPU textures stay bounded across the whole-Ukraine journey
+      for(const k of tiles.keys()){ if(tiles.size<=CACHE_CAP) break; if((+k.slice(0,k.indexOf('/')))>BASE_PROTECT_Z) tiles.delete(k); }
+    }
     function bumpTile(k,t){ tiles.delete(k); tiles.set(k,t); }
 
     // Draw every tile of `targetZ` visible in the viewport at the current camera. Missing tiles fall back to
@@ -662,7 +665,7 @@ body{
         const wx = ((tx%n)+n)%n;
         const sx = Math.round(tx*f-left), sy = Math.round(ty*f-top), sz = Math.ceil(f)+1;
         if(request){ const t = getTile(targetZ,wx,ty); if(t.ok){ rasterCtx.drawImage(t.img,sx,sy,sz,sz); drawn++; continue; } }
-        for(let lv=1; lv<=6 && targetZ-lv>=MINZ; lv++){
+        for(let lv=1; targetZ-lv>=MINZ; lv++){   // walk ALL the way to MINZ so the protected z<=6 base always covers
           const az = targetZ-lv, sub = 1<<lv, ax = wx>>lv, ay = ty>>lv;
           const k = az+'/'+ax+'/'+ay, a = tiles.get(k);
           if(a && a.ok){ const ss = TILE/sub;
