@@ -2079,7 +2079,10 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     return false;
   }
   // never load/run the WebGL map under reduced-transparency (glass refraction is the whole point) either.
-  function allowed(){ return mqDevice.matches && !mqReduce.matches && !mqReduceTransp.matches && !saveData() && !tooWeak(); }
+  // Diagnostic: ?map=off fully skips the map boot (iframe src never set → no MapLibre loads at all) → the
+  // "no-map floor" RAM, to measure the live map's true memory share before committing to a pre-render rebuild.
+  function mapOff(){ try{ return new URLSearchParams(location.search).get('map')==='off'; }catch(e){ return false; } }
+  function allowed(){ return !mapOff() && mqDevice.matches && !mqReduce.matches && !mqReduceTransp.matches && !saveData() && !tooWeak(); }
 
   var syncing = false, loaded = false, mapPref = true;
 
