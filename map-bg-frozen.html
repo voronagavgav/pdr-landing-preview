@@ -665,7 +665,7 @@ body{
       fadeDuration:0,   // snap tiles to full opacity the instant they load — no mid-fade "faint/disappearing" tiles during a fast zoom
       renderWorldCopies:false,
       refreshExpiredTiles:false,
-      maxTileCacheSize: 3000,   // Path B: healthy 3000 on EVERY device (an earlier mobile cut to 1200 thrashed tiles → re-decode → micro-jank)
+      maxTileCacheSize: 600,   // was 3000 — trimmed to cap idle RAM growth (this is the RETAINED off-screen tile cache; the prewarm warms the browser HTTP cache SEPARATELY, so revisiting a city re-parses from warm cache = no blanks, and behind the blur the re-parse is invisible). Bump up if tiles visibly re-pop while scrolling the journey.
       maxTileCacheZoomLevels: mobileLike ? 12 : 15,
       cancelPendingTileRequestsWhileZooming:false,
       // MapLibre canvas resolution = container size × pixelRatio (constructor MapOptions; defaults to
