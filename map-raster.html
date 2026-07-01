@@ -1,0 +1,3912 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ukraine Driving Practice Map — Path B (idle traffic) — OpenFreeMap base, camera freezes when idle but cars keep moving at ~12fps</title>
+<meta name="description" content="Path B: the smooth pre-PMTiles OpenFreeMap living map. When the scroll is idle the CAMERA/tiles freeze (the glass backdrop-filter rests on a static base) but the traffic CARS keep moving at a low ~12fps so the map still looks alive — ~5x cheaper than the 60fps loop. Full 60fps motion during scroll; full freeze when hidden / reduced-motion / low-power." />
+<link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossorigin />
+<link rel="preconnect" href="https://b.basemaps.cartocdn.com" crossorigin />
+<link rel="preconnect" href="https://c.basemaps.cartocdn.com" crossorigin />
+<link rel="preconnect" href="https://d.basemaps.cartocdn.com" crossorigin />
+<style>
+:root{
+  --radius:.625rem;
+  --background:oklch(97% .025 140);
+  --foreground:oklch(28% .05 150);
+  --card:oklch(100% 0 0);
+  --primary:oklch(62% .14 145);
+  --primary-foreground:oklch(98% .01 140);
+  --secondary:oklch(92% .05 145);
+  --secondary-foreground:oklch(30% .06 150);
+  --muted:oklch(94% .03 140);
+  --muted-foreground:oklch(45% .04 150);
+  --accent:oklch(85% .09 145);
+  --border:oklch(88% .04 145);
+  --pastel-sky:oklch(93% .04 220);
+  --pastel-mint:oklch(92% .06 160);
+  --pastel-sage:oklch(85% .08 145);
+  --pastel-cream:oklch(96% .03 95);
+  --map-land:oklch(88% .08 145);
+  --map-land-stroke:oklch(55% .13 145);
+  --map-water:oklch(90% .05 220);
+  --city-dot:oklch(55% .18 145);
+  --city-ring:oklch(55% .18 145/.3);
+  --gradient-sky:linear-gradient(180deg, var(--pastel-sky) 0%, var(--pastel-mint) 50%, var(--pastel-cream) 100%);
+  --glass:hsl(0 0% 100% / .7);
+}
+*{box-sizing:border-box}
+html{
+  min-height:100%;
+  background:var(--background);
+  scroll-behavior:auto;
+  scrollbar-width:none;            /* background-use: no scrollbar (host drives the journey) */
+}
+html::-webkit-scrollbar{display:none}
+body{
+  margin:0;
+  min-height:100%;
+  overflow-x:hidden;
+  background:var(--background);
+  color:var(--foreground);
+  font-family:Manrope,Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+.journey{
+  position:relative;
+  height:3150vh;
+  min-height:22000px;
+  background:var(--gradient-sky);
+}
+.stage{
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow:hidden;
+  isolation:isolate;
+  background:var(--gradient-sky);
+}
+#map{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  /* Match the map's own land/base colour (#f3f6ee) so a momentarily-missing tile during a fast zoom
+     blends into the surrounding land instead of flashing a contrasting mint void (softened by the glass). */
+  background:#f3f6ee;
+  outline:0;
+}
+/* Raster basemap canvas (replaces the WebGL MapLibre canvas). The tone filter matches what the vector
+   RECOLOR + the old .maplibregl-canvas filter produced: the Carto-light raster is tinted to the same
+   pastel-sage tone so a BLURRED crop is indistinguishable from the vector map at the same camera.
+   (Phase-2 tuned: extra desaturate + brightness lift + a hair of sepia warmth to hit the sage/mint base.) */
+#mapraster{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  filter:saturate(.42) sepia(.07) hue-rotate(-14deg) brightness(1.03) contrast(.92);
+}
+@media(max-width:760px){
+  #mapraster{filter:saturate(.40) sepia(.07) hue-rotate(-12deg) brightness(1.06) contrast(.90)}
+}
+#traffic{
+  position:absolute;
+  inset:0;
+  z-index:410;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+}
+.maplibregl-map,
+.maplibregl-canvas-container,
+.maplibregl-canvas{
+  width:100%!important;
+  height:100%!important;
+  outline:0!important;
+}
+.maplibregl-canvas{
+  filter:saturate(.55) hue-rotate(-12deg) brightness(1.04) contrast(.94);
+}
+.maplibregl-control-container{display:none!important}
+.tint,
+.veil,
+.depth,
+.grain{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+.tint{
+  z-index:400;
+  background:color-mix(in oklab, var(--pastel-sage) 18%, transparent);
+  mix-blend-mode:multiply;
+}
+.veil{
+  z-index:401;
+  background:radial-gradient(ellipse at center, transparent 55%, color-mix(in oklab, var(--pastel-mint) 45%, transparent) 100%);
+}
+.depth{display:none}
+.grain{display:none}
+
+
+.attribution{
+  position:absolute;
+  right:10px;
+  bottom:8px;
+  z-index:20;
+  font-size:10px;
+  line-height:1.2;
+  color:oklch(32% .025 150 / .44);
+  background:oklch(100% 0 0 / .52);
+  border:1px solid oklch(100% 0 0 / .65);
+  border-radius:999px;
+  padding:4px 8px;
+  -webkit-backdrop-filter:blur(12px) saturate(140%);
+  backdrop-filter:blur(12px) saturate(140%);
+}
+.attribution a{color:inherit;text-decoration:none}
+
+.qa-metrics{
+  position:absolute;
+  left:10px;
+  top:10px;
+  z-index:560;
+  display:none;
+  width:min(410px, calc(100vw - 20px));
+  max-height:min(70vh, 560px);
+  overflow:auto;
+  padding:10px 12px;
+  border-radius:18px;
+  border:1px solid color-mix(in oklab, white 72%, transparent);
+  background:color-mix(in oklab, white 72%, transparent);
+  color:color-mix(in oklab, var(--foreground) 90%, transparent);
+  font:11px/1.36 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  box-shadow:0 14px 36px color-mix(in oklab, var(--foreground) 12%, transparent);
+  -webkit-backdrop-filter:blur(14px) saturate(150%);
+  backdrop-filter:blur(14px) saturate(150%);
+  pointer-events:none;
+}
+.qa-metrics.is-visible{display:block}
+.qa-metrics b{font-weight:800}
+.qa-metrics .ok{color:#2f6842}
+.qa-metrics .warn{color:#a26116}
+.qa-metrics .bad{color:#9f1d1d}
+
+.focus-softener{
+  position:absolute;
+  inset:-1px;
+  z-index:402;
+  pointer-events:none;
+  opacity:var(--focus-opacity,.16);
+  transition:opacity .55s ease;
+  background:
+    radial-gradient(ellipse at 50% 48%,
+      transparent 0%,
+      transparent 48%,
+      color-mix(in oklab, var(--pastel-mint) 20%, transparent) 68%,
+      color-mix(in oklab, var(--pastel-mint) 48%, transparent) 100%);
+}
+.loading-card{
+  position:relative;
+  overflow:hidden;
+}
+.loading-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  transform:translateX(-100%);
+  background:linear-gradient(90deg, transparent, color-mix(in oklab, white 48%, transparent), transparent);
+  animation:loadingSweep 1.6s ease-in-out infinite;
+}
+.loading-route{
+  margin-top:12px;
+  height:4px;
+  border-radius:999px;
+  background:color-mix(in oklab, var(--pastel-sage) 26%, transparent);
+  overflow:hidden;
+}
+.loading-route::after{
+  content:"";
+  display:block;
+  width:42%;
+  height:100%;
+  border-radius:999px;
+  background:color-mix(in oklab, var(--primary) 64%, white 20%);
+  animation:loadingRoute 1.25s ease-in-out infinite;
+}
+@keyframes loadingSweep{
+  0%{transform:translateX(-100%)}
+  52%,100%{transform:translateX(100%)}
+}
+@keyframes loadingRoute{
+  0%{transform:translateX(-110%)}
+  100%{transform:translateX(245%)}
+}
+
+
+.loading{
+  position:absolute;
+  inset:0;
+  z-index:30;
+  display:grid;
+  place-items:center;
+  color:var(--muted);
+  background:linear-gradient(180deg,var(--pastel-sky),var(--pastel-mint));
+  transition:opacity .35s ease, visibility .35s ease;
+}
+.loading.is-hidden{opacity:0;visibility:hidden}
+.loading-card{
+  border:1px solid oklch(100% 0 0 / .72);
+  background:var(--glass);
+  border-radius:24px;
+  padding:18px 22px;
+  box-shadow:0 14px 34px oklch(42% .04 160 / .12);
+  -webkit-backdrop-filter:blur(14px) saturate(150%);
+  backdrop-filter:blur(14px) saturate(150%);
+}
+.loading-title{font-weight:700;color:var(--foreground);font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.loading-sub{font-size:13px;margin-top:4px}
+@media(max-width:760px){
+  .journey{height:2850vh;min-height:14500px}
+  .maplibregl-canvas{filter:saturate(.50) hue-rotate(-10deg) brightness(1.08) contrast(.90)}
+  .tint{opacity:.62}
+  .veil{opacity:.30}
+  .focus-softener{opacity:var(--focus-opacity,.20)}
+  .story-chip{left:12px;bottom:18px;width:min(240px, calc(100vw - 24px));padding:10px 12px;border-radius:18px}
+  .story-title{font-size:15px}
+  .story-line{font-size:11px}
+
+.attribution{font-size:9px;right:8px;bottom:8px;max-width:88vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+@media(prefers-reduced-motion:reduce){
+  .journey{height:1000vh;min-height:7200px}
+}
+</style>
+</head>
+<body>
+<main class="journey" id="journey" aria-label="Ukraine scroll map journey using a reduced-detail MapLibre Positron basemap">
+  <section class="stage" aria-label="Map stage">
+    <div id="map" aria-hidden="true"><canvas id="mapraster" aria-hidden="true"></canvas></div>
+    <canvas id="traffic" aria-hidden="true"></canvas>
+    <div class="tint" aria-hidden="true"></div>
+    <div class="veil" aria-hidden="true"></div>
+    <div class="focus-softener" id="focusSoftener" aria-hidden="true"></div>
+    <div class="depth" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="loading" id="loading" aria-live="polite">
+      <div class="loading-card">
+        <div class="loading-title">Ukraine map</div>
+        <div class="loading-sub">Preparing roads, labels and traffic…</div>
+        <div class="loading-route" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="qa-metrics" id="qaMetrics" aria-hidden="true"></div>
+  </section>
+</main>
+<!-- Tier-2 RASTER map: no MapLibre / no WebGL. Positron raster tiles (Carto light) on a 2D canvas +
+     Web-Mercator projection matched byte-for-byte to the old map.project. The scroll-driven journey,
+     the exponential camera ease, and the entire traffic simulation are kept VERBATIM from map-bg-frozen. -->
+<script>
+(function(){
+  'use strict';
+
+  const journey = document.getElementById('journey');
+  const loading = document.getElementById('loading');
+  const qaMetrics = document.getElementById('qaMetrics');
+  const focusSoftener = document.getElementById('focusSoftener');
+  const storyChip = document.getElementById('storyChip');
+  const storyKicker = document.getElementById('storyKicker');
+  const storyTitle = document.getElementById('storyTitle');
+  const storyLine = document.getElementById('storyLine');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── Path B idle-traffic knob (the one number to tune) ─────────────────────────────────────────
+  // When the page is idle (camera settled + no scroll for ≥250ms) the camera/tiles stay FROZEN, but the
+  // traffic cars keep moving at THIS frame rate so the map still looks alive. The cars sit behind the
+  // page's glass blur, so every car-frame forces a `backdrop-filter` re-blur (the expensive bit) — and
+  // that cost is gated by frame RATE, so ticking idle traffic at ~12fps (not 60) keeps ~80% of the idle
+  // saving while the heavy blur hides the low fps. 0 = fully freeze idle traffic (the original Path B).
+  // Idle traffic only runs on a visible, motion-OK, capable context (see idleTrafficAllowed()).
+  // DEVICE-SPLIT: the host page now DROPS its glass backdrop-filter on phones/touch, so an idle moving
+  // car no longer forces a full-screen `backdrop-filter` re-blur — it's just a cheap traffic-canvas
+  // redraw (normal "map-app" cost). So phones/touch keep the cars ALIVE while idle too, at a gentler
+  // ~10fps (battery-aware); real desktops stay at 12fps. The `lowPowerDevice` tier (low RAM / few cores)
+  // is still fully frozen when idle via idleTrafficAllowed() — the safety floor.
+  // Idle cars move at this fps when the page is idle (Danil wants them moving on PC too).
+  // NOTE: this is BOTH the physics-step rate AND the DRAW rate at idle, and the DRAW rate is what the eye
+  // sees. Tried 8fps to cut the idle glass re-blur (heat) — car POSITIONS stayed correct (measured: same
+  // crowd/gap distribution as 24fps), but the low DRAW rate read as visibly wrong on a real high-refresh
+  // display (the glass blur did NOT hide it). So fps is not a free heat lever — it trades against idle
+  // smoothness 1:1. Reverted to 24. The clean way to cut idle heat is to stop car motion from re-blurring
+  // the glass at all (decouple the car layer) — a structural change, not this knob.
+  const IDLE_TRAFFIC_FPS = (window.matchMedia('(pointer: coarse)').matches
+                         || window.matchMedia('(max-width: 1024px)').matches) ? 15 : 24;
+
+  // How many cars to keep CLEARLY VISIBLE in frame at a settled city (the adaptive density controller
+  // tops the network up until ~this many are drawn). With the solid car opacity below, drawn ≈ visible,
+  // so this is effectively "cars you see". Single knob — raise for a fuller city, lower for calmer.
+  const TRAFFIC_VISIBLE_TARGET = 140;
+
+  const cities = {
+    kyiv:    {lat:50.44765,lng:30.52295},  // Khreshchatyk / Maidan area
+    odesa:   {lat:46.48535,lng:30.73820},  // Deribasivska / city centre
+    kharkiv: {lat:50.00465,lng:36.23215},  // Sumska / Freedom Square
+    dnipro:  {lat:48.46490,lng:35.04690}   // Yavornytskoho avenue
+  };
+
+
+  const APP_CONFIG = {
+    camera:{
+      mobileStreetZoom:14.7,
+      desktopStreetZoom:15.35,
+      focusBase:.13,
+      focusStreet:.25
+    },
+    traffic:{
+      mobileDensity:.68,
+      desktopDensity:1,
+      mobileFrameDivisor:1.25
+    }
+  };
+
+  const PRODUCTION_PROFILE = {
+    trafficDensityLabel:'kyiv-odesa-extra-2x',
+    strictRoadOnly:true,
+    debugUi:false,
+    mobileBudgetScale:.78,
+    desktopBudgetScale:1,
+    fpsBudgetGuard:{
+      excellent:18,
+      good:22,
+      fair:28,
+      poor:34,
+      bad:42
+    }
+  };
+
+  const CITY_STORIES = {
+    kyiv:    {title:'Kyiv',    line:'Wide avenues, bridges and central driving scenarios around Khreshchatyk.',       range:[.300,.530]},
+    odesa:   {title:'Odesa',   line:'Coastal city streets, roundabouts and denser center traffic near Deribasivska.',   range:[.860,1.100]},
+    kharkiv: {title:'Kharkiv', line:'Longer avenues and broader intersections around the city center.',                 range:[1.440,1.690]},
+    dnipro:  {title:'Dnipro',  line:'River-city driving with bridge approaches and main avenue traffic.',               range:[1.960,2.170]}
+  };
+
+  const CITY_TRAFFIC_PROFILES = {
+    kyiv:    {density:1.10, majorBias:1.22, localBias:.92, centerPull:1.18, majorSpeed:9.6, localSpeed:6.7},
+    odesa:   {density:1.00, majorBias:1.10, localBias:.96, centerPull:1.05, majorSpeed:8.8, localSpeed:6.2},
+    kharkiv: {density:1.04, majorBias:1.30, localBias:.86, centerPull:.98, majorSpeed:10.2, localSpeed:6.9},
+    dnipro:  {density:1.02, majorBias:1.24, localBias:.90, centerPull:1.05, majorSpeed:9.8, localSpeed:6.8}
+  };
+
+  function cityTrafficMultiplier(cityId){
+    // Background-use: calm, light traffic — roughly the same modest density in every city.
+    return 1;
+  };
+
+  function cityLaneCoverageMultiplier(cityId){
+    // More Kyiv road coverage in the zoomed street region, not just more cars on the same few lanes.
+    return cityId === 'kyiv' ? 1.35 : 1;
+  };
+
+  // Journey keyframes [progress, lat, lng, zoom] — authored DIRECTLY in final zoom (no remap). Every city
+  // has the SAME shape so they all behave identically (this is what was making Odesa misbehave): fly in
+  // WIDE → a gentle multi-step zoom ramp → DISTRICT-level peak with a real DWELL (so the eased camera
+  // actually reaches the close view) → pull back wide → slow travel to the next city. Travel stays ~9–10
+  // (calm, never bare country overview). CAMERA peaks at z14, but the tile SOURCE is capped at z13 (see the
+  // map constructor) → MapLibre overzooms z13 tiles to fill the z14 view: z14 framing + road widths (cars
+  // fit the roads) WITHOUT downloading the z14 building/detail tiles. Under the heavy blur the stretch is
+  // invisible. 4-city route.
+  const stops = [
+    /* Ukraine intro → Kyiv */
+    [0.000,48.62,31.20,8.60], [0.060,48.62,31.20,9.00],
+    [0.140,cities.kyiv.lat,cities.kyiv.lng,9.60],     // arrive wide
+    [0.230,cities.kyiv.lat,cities.kyiv.lng,11.60],    // gentle ramp…
+    [0.320,cities.kyiv.lat,cities.kyiv.lng,13.20],
+    [0.410,cities.kyiv.lat,cities.kyiv.lng,14.00],    // z14 camera peak (overzooms z13 tiles)
+    [0.500,cities.kyiv.lat,cities.kyiv.lng,14.00],    // dwell — hold the close view
+    [0.560,cities.kyiv.lat,cities.kyiv.lng,10.00],    // pull back wide
+
+    /* Kyiv → Odesa (slow travel south) */
+    [0.640,48.55,30.62,9.20],                          // wide waypoint
+    [0.710,cities.odesa.lat,cities.odesa.lng,9.60],    // arrive wide
+    [0.800,cities.odesa.lat,cities.odesa.lng,11.60],   // gentle ramp…
+    [0.890,cities.odesa.lat,cities.odesa.lng,13.20],
+    [0.980,cities.odesa.lat,cities.odesa.lng,14.00],   // z14 camera peak
+    [1.070,cities.odesa.lat,cities.odesa.lng,14.00],   // dwell
+    [1.130,cities.odesa.lat,cities.odesa.lng,10.00],   // pull back wide
+
+    /* Odesa → Kharkiv (longest leg — extra travel room) */
+    [1.220,48.20,33.50,9.00],                          // wide waypoint
+    [1.290,cities.kharkiv.lat,cities.kharkiv.lng,9.60],
+    [1.380,cities.kharkiv.lat,cities.kharkiv.lng,11.60],
+    [1.470,cities.kharkiv.lat,cities.kharkiv.lng,13.20],
+    [1.560,cities.kharkiv.lat,cities.kharkiv.lng,14.00],// z14 camera peak
+    [1.650,cities.kharkiv.lat,cities.kharkiv.lng,14.00],// dwell
+    [1.710,cities.kharkiv.lat,cities.kharkiv.lng,10.00],// pull back wide
+
+    /* Kharkiv → Dnipro (short hop) */
+    [1.780,49.22,35.62,9.80],                          // wide waypoint (short hop → less zoom-out)
+    [1.850,cities.dnipro.lat,cities.dnipro.lng,9.80],  // arrive wide
+    [1.930,cities.dnipro.lat,cities.dnipro.lng,11.60], // gentle ramp…
+    [2.010,cities.dnipro.lat,cities.dnipro.lng,13.20],
+    [2.090,cities.dnipro.lat,cities.dnipro.lng,14.00], // z14 camera peak
+    [2.170,cities.dnipro.lat,cities.dnipro.lng,14.00]  // final dwell
+  ].map(s => ({p:s[0], lat:s[1], lng:s[2], zoom:s[3]}));
+
+  const routeEnd = stops[stops.length - 1].p;
+  const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+  const lerp = (a,b,t) => a + (b-a) * t;
+  const smoothstep = t => t*t*t*(t*(t*6 - 15) + 10);
+  const stepToward = (current, target, maxStep) => Math.abs(target - current) <= maxStep ? target : current + Math.sign(target - current) * maxStep;
+
+  function targetFromProgress(progress){
+    const p = progress * routeEnd;
+    let idx = 0;
+    while(idx < stops.length - 2 && p > stops[idx + 1].p) idx++;
+    const a = stops[idx];
+    const b = stops[idx + 1];
+    const local = smoothstep(clamp((p - a.p) / Math.max(0.0001, b.p - a.p), 0, 1));
+    return {
+      lat: lerp(a.lat, b.lat, local),
+      lng: lerp(a.lng, b.lng, local),
+      zoom: lerp(a.zoom, b.zoom, local),
+      routeP:p,
+      segmentIndex:idx,
+      segmentLocal:local
+    };
+  }
+
+  function nativeProgress(){
+    // Background-use override: the host page drives the journey via window.__journeyProgress (0..1).
+    if(typeof window.__journeyProgress === 'number'){
+      return clamp(window.__journeyProgress, 0, 1);
+    }
+    const rect = journey.getBoundingClientRect();
+    const scrollable = Math.max(1, rect.height - window.innerHeight);
+    return clamp(-rect.top / scrollable, 0, 1);
+  }
+
+
+  function storyForProgress(routeP){
+    let best = null;
+    for(const [id, story] of Object.entries(CITY_STORIES)){
+      const [a,b] = story.range;
+      if(routeP >= a && routeP <= b){
+        const mid = (a + b) * .5;
+        const half = Math.max(.0001, (b - a) * .5);
+        const dist = Math.abs(routeP - mid) / half;
+        best = {id, ...story, strength:1 - clamp(dist, 0, 1)};
+        break;
+      }
+    }
+    return best;
+  }
+
+  function updateStoryAndHierarchy(targetState, cameraState, isMobileLike){
+    const routeP = targetState.routeP || 0;
+    const story = storyForProgress(routeP);
+    const currentZoom = cameraState ? cameraState.zoom : 0;
+    const streetness = clamp((currentZoom - 9.6) / 5.7, 0, 1);
+    const focusOpacity = lerp(APP_CONFIG.camera.focusBase, APP_CONFIG.camera.focusStreet, streetness);
+
+    if(focusSoftener){
+      focusSoftener.style.setProperty('--focus-opacity', (isMobileLike ? focusOpacity * 1.15 : focusOpacity).toFixed(3));
+    }
+
+    if(!storyChip || !story){
+      if(storyChip){
+        storyChip.style.setProperty('--story-opacity', '0');
+        storyChip.style.setProperty('--story-y', '10px');
+      }
+      return;
+    }
+
+    const zoomStrength = clamp((currentZoom - 7.2) / 5.0, 0, 1);
+    const opacity = clamp(story.strength * zoomStrength, 0, .66);
+
+    if(storyTitle.textContent !== story.title){
+      storyTitle.textContent = story.title;
+      storyLine.textContent = story.line;
+      storyKicker.textContent = 'City practice route';
+    }
+
+    storyChip.style.setProperty('--story-opacity', opacity.toFixed(3));
+    storyChip.style.setProperty('--story-y', `${(1 - opacity) * 10}px`);
+  }
+
+  function simplifyStyle(map){
+    const style = map.getStyle();
+    if(!style || !style.layers) return;
+    for(const layer of style.layers){
+      const id = String(layer.id || '').toLowerCase();
+      try{
+        // The goal: keep a calm basemap like the reference — roads, parks, water, city labels;
+        // remove noisy micro-labels and utility layers.
+        if(/poi|housenumber|house-number|address|shop|amenity|parking|bus|tram|subway|railway|station|airport|aeroway|barrier|fence|power|contour|hillshade|minor-label|path-label/.test(id)){
+          map.setLayoutProperty(layer.id, 'visibility', 'none');
+          continue;
+        }
+
+        if(layer.type === 'fill'){
+          if(/water/.test(id)){
+            map.setPaintProperty(layer.id, 'fill-color', '#d9ecf2');
+            map.setPaintProperty(layer.id, 'fill-opacity', .78);
+          }else if(/park|wood|forest|green|grass|landcover|nature|national/.test(id)){
+            map.setPaintProperty(layer.id, 'fill-color', '#d7e8cf');
+            map.setPaintProperty(layer.id, 'fill-opacity', .52);
+          }else if(/building/.test(id)){
+            map.setPaintProperty(layer.id, 'fill-color', '#e9e6d9');
+            map.setPaintProperty(layer.id, 'fill-opacity', .16);
+          }else if(/land|background|earth/.test(id)){
+            map.setPaintProperty(layer.id, 'fill-color', '#f3f6ee');
+          }
+        }
+
+        if(layer.type === 'line'){
+          if(/road|street|highway|motorway|trunk|primary|secondary|tertiary|minor/.test(id)){
+            const isMajor = /motorway|trunk|primary|secondary/.test(id);
+            const isSmall = /minor|service|track|path|footway|pedestrian/.test(id);
+            if('line-color' in (layer.paint || {}) || true){
+              map.setPaintProperty(layer.id, 'line-color', isMajor ? '#ffffff' : '#efeadd');
+            }
+            map.setPaintProperty(layer.id, 'line-opacity', isMajor ? .82 : (isSmall ? .32 : .52));
+            if(isSmall && map.getZoom && map.getZoom() < 13.5){
+              // Do not hide, just keep small lines quiet at city zoom.
+            }
+          }else if(/boundary/.test(id)){
+            map.setPaintProperty(layer.id, 'line-color', '#b7cbb7');
+            map.setPaintProperty(layer.id, 'line-opacity', .42);
+          }else if(/water|river|stream/.test(id)){
+            map.setPaintProperty(layer.id, 'line-color', '#cfe8ef');
+            map.setPaintProperty(layer.id, 'line-opacity', .64);
+          }
+        }
+
+        if(layer.type === 'symbol'){
+          if(/place|city|town|country|state|settlement/.test(id)){
+            if((layer.paint || {})['text-color'] !== undefined) map.setPaintProperty(layer.id, 'text-color', '#3e5149');
+            if((layer.paint || {})['text-halo-color'] !== undefined) map.setPaintProperty(layer.id, 'text-halo-color', '#f7fbf1');
+            if((layer.paint || {})['text-halo-width'] !== undefined) map.setPaintProperty(layer.id, 'text-halo-width', 1.4);
+          }else if(/road|street|highway/.test(id)){
+            if((layer.paint || {})['text-color'] !== undefined) map.setPaintProperty(layer.id, 'text-color', '#657168');
+            if((layer.paint || {})['text-halo-color'] !== undefined) map.setPaintProperty(layer.id, 'text-halo-color', '#f6faf1');
+            if((layer.paint || {})['text-opacity'] !== undefined) map.setPaintProperty(layer.id, 'text-opacity', .56);
+          }else if(/water/.test(id)){
+            if((layer.paint || {})['text-color'] !== undefined) map.setPaintProperty(layer.id, 'text-color', '#6e9aa5');
+            if((layer.paint || {})['text-opacity'] !== undefined) map.setPaintProperty(layer.id, 'text-opacity', .55);
+          }else{
+            if((layer.paint || {})['text-opacity'] !== undefined) map.setPaintProperty(layer.id, 'text-opacity', .28);
+            if((layer.paint || {})['icon-opacity'] !== undefined) map.setPaintProperty(layer.id, 'icon-opacity', .22);
+          }
+        }
+      }catch(e){
+        // Different style versions expose different layer properties; ignore unsupported edits.
+      }
+    }
+  }
+
+  async function start(){
+    // No WebGL / no MapLibre guard needed: the raster renderer is a plain 2D canvas, so it works on
+    // every device (and renders truthfully in headless audit labs that block WebGL).
+
+    // Loading speed: start directly at the host's resting view (passed as #p=<progress>) instead of
+    // the country overview — the hero paints the right city immediately and we skip loading a whole
+    // set of overview tiles that would only be thrown away on the fly-in.
+    const startP = (function(){
+      var m = /[#&]p=([0-9.]+)/.exec(location.hash || '');
+      return m ? Math.max(0, Math.min(1, parseFloat(m[1]))) : 0;
+    })();
+    if(window.__journeyProgress == null) window.__journeyProgress = startP;
+    const initial = targetFromProgress(startP);
+
+    // ===== LITE map mode device profile (computed BEFORE the constructor so maxZoom/pixelRatio can use it).
+    // The parent page now loads this map on ALL capable devices (phones, tablets, desktop). Within that,
+    // non-desktop / weak hardware runs a lighter traffic + render profile: fewer cars, lower canvas
+    // pixel-ratio, tighter zoom/tile range, gentler frame-rate. We do NOT change the car movement / lane
+    // logic — only count, pixel-ratio, zoom and effect cost. `lowPowerDevice` (low RAM / few cores) gets
+    // the most aggressive trim; `mobileLike` (touch / small / low-power) gets the standard lite tier.
+    const lowPowerDevice = (function(){
+      try{
+        if(typeof navigator.deviceMemory === 'number' && navigator.deviceMemory > 0 && navigator.deviceMemory < 4) return true;
+        if(typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency < 4) return true;
+      }catch(e){}
+      return false;
+    })();
+    const mobileLike = window.matchMedia('(max-width: 1024px)').matches
+                    || window.matchMedia('(pointer: coarse)').matches
+                    || lowPowerDevice;
+
+    // ════════════════════════════════════════════════════════════════════════════════════════════════
+    // RASTER RENDERER (replaces the MapLibre WebGL map). Positron RASTER tiles (Carto light) drawn on a
+    // plain 2D canvas + Web-Mercator projection. The camera object (built below, same as the vector build)
+    // is read each frame; there is no map.jumpTo — the raster is REDRAWN from `camera` instead. The traffic
+    // sim is unchanged: it talks to a small `map` SHIM (below) that answers project()/getCanvas()/etc.
+    //
+    // Projection note: MapLibre's zoom is calibrated to 512px tiles, so at MapLibre zoom Z the on-screen
+    // scale equals a 256px-tile pyramid at zoom Z+1. We therefore draw 256px raster tiles and project at
+    // effective zoom = camera.zoom + 1. Verified: this reproduces the old map.project() to 0.000px, so
+    // the cars sit on the raster roads exactly as they sat on the vector roads.
+    // ════════════════════════════════════════════════════════════════════════════════════════════════
+    const rasterCv  = document.getElementById('mapraster');
+    const rasterCtx = rasterCv.getContext('2d', {alpha:true});
+    const TILE = 256, MINZ = 3, MAXZ = 16, CACHE_CAP = 180;
+    const worldX = (lng,Z) => (lng+180)/360 * TILE*Math.pow(2,Z);
+    const worldY = (lat,Z) => { const s=Math.sin(lat*Math.PI/180);
+      return (0.5 - Math.log((1+s)/(1-s))/(4*Math.PI)) * TILE*Math.pow(2,Z); };
+
+    // 1x canvas on purpose — behind the page's ~7px glass blur + veil, retina tiles are wasted memory.
+    function resizeRaster(){ rasterCv.width = Math.max(1, Math.round(window.innerWidth)); rasterCv.height = Math.max(1, Math.round(window.innerHeight)); }
+
+    // Raster tile cache (LRU, small cap → low RAM peak; coarse z<=9 base tiles protected so the
+    // parent-tile fallback always has coverage → no flicker when the zoom level changes).
+    const tiles = new Map(); const SUB = ['a','b','c','d']; let __tLoads = 0, __tOk = 0; const NOTOK = {ok:false}; let __inFlight = 0; const MAXLOAD = 8;
+    let __rasterRedrawQueued = false;
+    function scheduleRasterRedraw(){ if(__rasterRedrawQueued) return; __rasterRedrawQueued = true; requestAnimationFrame(()=>{ __rasterRedrawQueued = false; drawRaster(); }); }
+    function getTile(z,x,y){
+      const k = z+'/'+x+'/'+y; let t = tiles.get(k);
+      if(t){ tiles.delete(k); tiles.set(k,t); return t; }        // LRU touch
+      if(__inFlight >= MAXLOAD) return NOTOK;                    // throttled — parent-fallback covers it, retry a later frame
+      const img = new Image(); img.crossOrigin = 'anonymous'; __inFlight++;
+      t = {img, ok:false};
+      img.onload  = ()=>{ t.ok = true; __tOk++; __inFlight--; scheduleRasterRedraw(); };   // late tile → repaint even while the camera is idle
+      img.onerror = ()=>{ __inFlight--; };
+      img.src = 'https://'+SUB[(x+y)&3]+'.basemaps.cartocdn.com/light_all/'+z+'/'+x+'/'+y+'.png';
+      tiles.set(k,t); __tLoads++;
+      return t;
+    }
+    function trimTiles(){ if(tiles.size<=CACHE_CAP) return; for(const k of tiles.keys()){ if(tiles.size<=CACHE_CAP) break; if((+k.slice(0,k.indexOf('/')))>9) tiles.delete(k); } }
+    function bumpTile(k,t){ tiles.delete(k); tiles.set(k,t); }
+
+    // Draw every tile of `targetZ` visible in the viewport at the current camera. Missing tiles fall back to
+    // the best cached ANCESTOR (parent) tile scaled to fill — so a zoom-level cross never blanks/pops.
+    function drawLayer(targetZ, request){
+      const w = rasterCv.width, h = rasterCv.height, Z = camera.zoom + 1;
+      const f = TILE*Math.pow(2, Z-targetZ);
+      const left = worldX(camera.lng,Z) - w/2, top = worldY(camera.lat,Z) - h/2;
+      const n = Math.pow(2,targetZ);
+      const tx0 = Math.floor(left/f), tx1 = Math.floor((left+w)/f);
+      const ty0 = Math.floor(top/f),  ty1 = Math.floor((top+h)/f);
+      let drawn = 0;
+      for(let tx=tx0; tx<=tx1; tx++) for(let ty=ty0; ty<=ty1; ty++){
+        if(ty<0 || ty>=n) continue;
+        const wx = ((tx%n)+n)%n;
+        const sx = Math.round(tx*f-left), sy = Math.round(ty*f-top), sz = Math.ceil(f)+1;
+        if(request){ const t = getTile(targetZ,wx,ty); if(t.ok){ rasterCtx.drawImage(t.img,sx,sy,sz,sz); drawn++; continue; } }
+        for(let lv=1; lv<=6 && targetZ-lv>=MINZ; lv++){
+          const az = targetZ-lv, sub = 1<<lv, ax = wx>>lv, ay = ty>>lv;
+          const k = az+'/'+ax+'/'+ay, a = tiles.get(k);
+          if(a && a.ok){ const ss = TILE/sub;
+            rasterCtx.drawImage(a.img,(wx%sub)*ss,(ty%sub)*ss,ss,ss, sx,sy,sz,sz); bumpTile(k,a); drawn++; break; }
+        }
+      }
+      return drawn;
+    }
+    function drawRaster(){
+      if(!rasterCv.width) resizeRaster();
+      rasterCtx.clearRect(0,0,rasterCv.width,rasterCv.height);
+      const tz = Math.max(MINZ, Math.min(MAXZ, Math.round(camera.zoom + 1)));
+      drawLayer(Math.max(MINZ, tz-4), false);   // coarse base underneath (cached-only) → guaranteed coverage
+      const drawn = drawLayer(tz, true);        // sharp detail on top (request + parent-fallback)
+      trimTiles();
+      window.__rasterState = {tiles:tiles.size, ok:__tOk, loads:__tLoads, drawn, ez:+(camera.zoom+1).toFixed(2)};
+      return drawn;
+    }
+
+    // Screen projection — matches the old map.project([lng,lat]) to 0.000px (verified against the vector map).
+    function project(lng, lat){
+      const Z = camera.zoom + 1, w = window.innerWidth, h = window.innerHeight;
+      return { x: worldX(lng,Z) - worldX(camera.lng,Z) + w/2,
+               y: worldY(lat,Z) - worldY(camera.lat,Z) + h/2 };
+    }
+
+    // Static road source — extracted once from the vector map (queryRenderedFeatures at each city dwell) and
+    // saved as map/roads-<city>.json in the EXACT feature shape the lane-builder consumes. The shim's
+    // queryRenderedFeatures returns the active city's set; sampleRoadLanes then project()-culls it to the
+    // current viewport, reproducing the vector query. (Prod note: self-host the Carto tiles to avoid usage limits.)
+    const ROADS = {};
+    function loadRoads(){
+      return Promise.all(['kyiv','odesa','kharkiv','dnipro'].map(id =>
+        fetch('map/roads-'+id+'.json').then(r=>r.json()).then(j=>{ ROADS[id]=j; }).catch(()=>{ ROADS[id]=[]; })
+      ));
+    }
+
+    // The map SHIM: a tiny object the (verbatim) traffic sim talks to. No maplibregl anywhere.
+    const map = {
+      project(a){ return project(a[0], a[1]); },
+      getCanvas(){ return rasterCv; },
+      getZoom(){ return camera.zoom; },
+      getCenter(){ return {lng:camera.lng, lat:camera.lat}; },
+      // A minimal style so roadLayerIdsFromStyle() finds a line layer (keeps TRAFFIC.roadLayerIds non-empty).
+      getStyle(){ return { layers:[{id:'transportation', type:'line'}], sources:{} }; },
+      isStyleLoaded(){ return true; },
+      areTilesLoaded(){ return true; },   // raster tiles stream in fast; never gate the camera ease on them
+      loaded(){ return true; },
+      getSource(){ return null; },
+      getLayoutProperty(){ return undefined; },
+      getPaintProperty(){ return undefined; },
+      setPaintProperty(){}, setLayoutProperty(){}, setLayerZoomRange(){},
+      resize(){ resizeRaster(); drawRaster(); },
+      jumpTo(){ drawRaster(); },          // the camera object already moved; just repaint the raster from it
+      queryRenderedFeatures(){ return ROADS[(TRAFFIC && TRAFFIC.activeCityId) || activeCityId()] || []; },
+      on(){}, once(){}
+    };
+    resizeRaster();
+
+    const trafficCanvas = document.getElementById('traffic');
+    // NOTE: no `desynchronized:true` — it bypasses compositor vsync, which causes visible TEARING on
+    // this scroll-driven background (the canvas presents out of step with the WebGL map beneath it).
+    const trafficCtx = trafficCanvas.getContext('2d', {alpha:true});
+    // `mobileLike` / `lowPowerDevice` are computed above (before the map constructor) — the LITE
+    // traffic/quality profile: tablets, phones, any touch device, and low-RAM / low-core machines get
+    // fewer cars, fewer lanes, a lower canvas pixel-ratio and a gentler frame rate (battery-friendly).
+    const TRAFFIC = {
+      roadLayerIds: [],
+      networks: new Map(),
+      activeCityId: null,
+      lastVisibleNetwork: null,
+      lastRoadQuery: 0,
+      lastSourceRoadEnsure: 0,
+      lastRecoveryAttempt: 0,
+      lastFrame: 0,
+      smoothFrameMs: 16,
+      renderErrorCount: 0,
+      diagnostics: {reason:'init'},
+      stats: {drawn:0, cars:0, lanes:0, mode:'none'},
+      palette: ['#2b8a3e','#1864ab','#d9480f','#c92a2a','#087f5b','#5f3dc4','#a61e4d','#0b7285']
+    };
+
+    const CITY_ORDER = [
+      ['kyiv', cities.kyiv],
+      ['odesa', cities.odesa],
+      ['kharkiv', cities.kharkiv],
+      ['dnipro', cities.dnipro]
+    ];
+
+    function resizeTrafficCanvas(){
+      // LITE: render the traffic 2D canvas at 1x on touch / small / low-power (vs 1.25x on desktop) —
+      // ~36% fewer pixels to fill per frame on a 2x phone, and the cars sit behind the glass blur so the
+      // lower resolution is invisible. (Desktop keeps 1.25x for crisper cars at the same cost it had.)
+      const dpr = Math.min(window.devicePixelRatio || 1, mobileLike ? 1.0 : 1.25);
+      const rect = trafficCanvas.getBoundingClientRect();
+      trafficCanvas.width = Math.max(1, Math.round(rect.width * dpr));
+      trafficCanvas.height = Math.max(1, Math.round(rect.height * dpr));
+      trafficCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // Actual Russia-name override for large displays.
+    // This changes MapLibre symbol-layer text-field expressions once after style load.
+    // It does not add overlay/mask layers.
+    // Ukraine names are not in these target lists.
+    const RUSSIA_PLACE_TEXT = 'путiн хуйло';
+    const RUSSIA_REGION_TEXT = 'Свинська область';
+
+    // Safe polygon covering visible Russian territory east/north of Ukraine.
+    // It intentionally follows a conservative line east of Ukrainian cities and excludes Crimea/Ukraine.
+    const RUSSIA_VISIBLE_POLYGON = {
+      type:'Polygon',
+      coordinates:[[
+        [31.60,57.20],
+        [51.20,57.20],
+        [51.20,50.55],
+        [50.25,49.55],
+        [49.70,48.50],
+        [49.30,46.65],
+        [48.35,45.40],
+        [46.10,44.65],
+        [43.10,43.55],
+        [40.60,42.90],
+        [38.10,42.80],
+        [37.40,44.70],
+        [38.40,46.15],
+        [39.35,47.40],
+        [39.80,48.75],
+        [38.75,49.72],
+        [37.25,50.18],
+        [36.35,50.78],
+        [35.55,51.55],
+        [34.30,52.72],
+        [31.60,53.85],
+        [31.60,57.20]
+      ]]
+    };
+
+    const RUSSIA_PLACE_NAMES = [
+      "Russia",
+      "Russian Federation",
+      "Россия",
+      "Российская Федерация",
+      "Belgorod",
+      "Belogorod",
+      "Белгород",
+      "Valuyki",
+      "Valuiki",
+      "Валуйки",
+      "Rakitnoye",
+      "Rakitnoe",
+      "Ракитное",
+      "Stary Oskol",
+      "Старый Оскол",
+      "Gubkin",
+      "Губкин",
+      "Alexeyevka",
+      "Alekseyevka",
+      "Алексеевка",
+      "Novy Oskol",
+      "Novyy Oskol",
+      "Новый Оскол",
+      "Shebekino",
+      "Шебекино",
+      "Grayvoron",
+      "Graivoron",
+      "Грайворон",
+      "Biryuch",
+      "Бирюч",
+      "Korocha",
+      "Короча",
+      "Prokhorovka",
+      "Прохоровка",
+      "Borisovka",
+      "Борисовка",
+      "Tomarovka",
+      "Томаровка",
+      "Ivnya",
+      "Ивня",
+      "Chernyanka",
+      "Чернянка",
+      "Volokonovka",
+      "Волоконовка",
+      "Krasnaya Yaruga",
+      "Красная Яруга",
+      "Veydelevka",
+      "Veidelevka",
+      "Вейделевка",
+      "Rovenki",
+      "Ровеньки",
+      "Krasnogvardeyskoye",
+      "Красногвардейское",
+      "Razumnoye",
+      "Разумное",
+      "Maiskiy",
+      "Mayskiy",
+      "Майский",
+      "Severnyy",
+      "Северный",
+      "Kursk",
+      "Курск",
+      "Zheleznogorsk",
+      "Железногорск",
+      "Kurchatov",
+      "Курчатов",
+      "Lgov",
+      "Льгов",
+      "Rylsk",
+      "Рыльск",
+      "Sudzha",
+      "Sudja",
+      "Суджа",
+      "Oboyan",
+      "Обоянь",
+      "Fatezh",
+      "Фатеж",
+      "Shchigry",
+      "Щигры",
+      "Dmitriev",
+      "Дмитриев",
+      "Korenево",
+      "Koreneво",
+      "Korenевo",
+      "Koreneвo",
+      "Korenеvo",
+      "Korenevo",
+      "Коренево",
+      "Glushkovo",
+      "Глушково",
+      "Belaya",
+      "Белая",
+      "Gorshechnoye",
+      "Горшечное",
+      "Tim",
+      "Тим",
+      "Kastornoye",
+      "Касторное",
+      "Pristen",
+      "Пристень",
+      "Medvenka",
+      "Медвенка",
+      "Bolshesoldatskoye",
+      "Большесолдатское",
+      "Ponyri",
+      "Поныри",
+      "Solntsevo",
+      "Солнцево",
+      "Cheremisinovo",
+      "Черемисиново",
+      "Manturovo",
+      "Мантурово",
+      "Konyshevka",
+      "Конышевка",
+      "Khomutovka",
+      "Хомутовка",
+      "Tetkino",
+      "Тёткино",
+      "Теткино",
+      "Voronezh",
+      "Воронеж",
+      "Borisoglebsk",
+      "Борисоглебск",
+      "Rossosh",
+      "Россошь",
+      "Liski",
+      "Лиски",
+      "Ostrogozhsk",
+      "Острогожск",
+      "Novovoronezh",
+      "Нововоронеж",
+      "Pavlovsk",
+      "Павловск",
+      "Buturlinovka",
+      "Бутурлиновка",
+      "Semiluki",
+      "Семилуки",
+      "Kalach",
+      "Калач",
+      "Boguchar",
+      "Богучар",
+      "Povorino",
+      "Поворино",
+      "Bobrov",
+      "Бобров",
+      "Ertil",
+      "Эртиль",
+      "Novokhopersk",
+      "Новохопёрск",
+      "Новохоперск",
+      "Talovaya",
+      "Таловая",
+      "Ramon",
+      "Рамонь",
+      "Khokholsky",
+      "Хохольский",
+      "Nizhnedevitsk",
+      "Нижнедевицк",
+      "Anna",
+      "Анна",
+      "Gribanovskiy",
+      "Грибановский",
+      "Panino",
+      "Панино",
+      "Verkhnyaya Khava",
+      "Верхняя Хава",
+      "Petropavlovka",
+      "Петропавловка",
+      "Kantemirovka",
+      "Кантемировка",
+      "Podgorenskiy",
+      "Подгоренский",
+      "Bryansk",
+      "Брянск",
+      "Klintsy",
+      "Клинцы",
+      "Novozybkov",
+      "Новозыбков",
+      "Starodub",
+      "Стародуб",
+      "Unecha",
+      "Унеча",
+      "Trubchevsk",
+      "Трубчевск",
+      "Sevsk",
+      "Севск",
+      "Pogar",
+      "Погар",
+      "Pochep",
+      "Почеп",
+      "Dyatkovo",
+      "Дятьково",
+      "Fokino",
+      "Фокино",
+      "Karachev",
+      "Карачев",
+      "Zhukovka",
+      "Жуковка",
+      "Mglin",
+      "Мглин",
+      "Seltso",
+      "Сельцо",
+      "Navlya",
+      "Навля",
+      "Suzemka",
+      "Суземка",
+      "Oryol",
+      "Orel",
+      "Орёл",
+      "Орел",
+      "Lipetsk",
+      "Липецк",
+      "Tambov",
+      "Тамбов",
+      "Yelets",
+      "Елец",
+      "Tula",
+      "Тула",
+      "Ryazan",
+      "Рязань",
+      "Kaluga",
+      "Калуга",
+      "Smolensk",
+      "Смоленск",
+      "Rostov",
+      "Rostov-on-Don",
+      "Ростов",
+      "Ростов-на-Дону",
+      "Taganrog",
+      "Таганрог",
+      "Shakhty",
+      "Шахты",
+      "Novocherkassk",
+      "Новочеркасск",
+      "Volgodonsk",
+      "Волгодонск",
+      "Bataysk",
+      "Батайск",
+      "Novoshakhtinsk",
+      "Новошахтинск",
+      "Kamensk-Shakhtinsky",
+      "Каменск-Шахтинский",
+      "Azov",
+      "Азов",
+      "Gukovo",
+      "Гуково",
+      "Salsk",
+      "Сальск",
+      "Belaya Kalitva",
+      "Белая Калитва",
+      "Millerovo",
+      "Миллерово",
+      "Morozovsk",
+      "Морозовск",
+      "Aksay",
+      "Аксай",
+      "Zernograd",
+      "Зерноград",
+      "Tsimlyansk",
+      "Цимлянск",
+      "Konstantinovsk",
+      "Константиновск",
+      "Semikarakorsk",
+      "Семикаракорск",
+      "Proletarsk",
+      "Пролетарск",
+      "Zverevo",
+      "Зверево",
+      "Krasny Sulin",
+      "Красный Сулин",
+      "Matveyev Kurgan",
+      "Матвеев Курган",
+      "Chertkovo",
+      "Чертково",
+      "Tarasovsky",
+      "Тарасовский",
+      "Bokovskaya",
+      "Боковская",
+      "Oblivskaya",
+      "Обливская",
+      "Tatsinskaya",
+      "Тацинская",
+      "Vesely",
+      "Весёлый",
+      "Веселый",
+      "Kagalnik",
+      "Кагальник",
+      "Krasnodar",
+      "Краснодар",
+      "Novorossiysk",
+      "Новороссийск",
+      "Sochi",
+      "Сочи",
+      "Anapa",
+      "Анапа",
+      "Gelendzhik",
+      "Геленджик",
+      "Armavir",
+      "Армавир",
+      "Yeisk",
+      "Yeysk",
+      "Ейск",
+      "Tikhoretsk",
+      "Тихорецк",
+      "Kropotkin",
+      "Кропоткин",
+      "Slavyansk-na-Kubani",
+      "Славянск-на-Кубани",
+      "Tuapse",
+      "Туапсе",
+      "Timashevsk",
+      "Тимашевск",
+      "Belorechensk",
+      "Белореченск",
+      "Labinsk",
+      "Лабинск",
+      "Apsheronsk",
+      "Апшеронск",
+      "Temryuk",
+      "Темрюк",
+      "Krymsk",
+      "Крымск",
+      "Gulkevichi",
+      "Гулькевичи",
+      "Ust-Labinsk",
+      "Усть-Лабинск",
+      "Korenovsk",
+      "Кореновск",
+      "Kushchyovskaya",
+      "Kushchevskaya",
+      "Кущёвская",
+      "Кущевская",
+      "Kanevskaya",
+      "Каневская",
+      "Leningradskaya",
+      "Ленинградская",
+      "Pavlovskaya",
+      "Павловская",
+      "Starominskaya",
+      "Староминская",
+      "Bryukhovetskaya",
+      "Брюховецкая",
+      "Primorsko-Akhtarsk",
+      "Приморско-Ахтарск",
+      "Stavropol",
+      "Ставрополь",
+      "Pyatigorsk",
+      "Пятигорск",
+      "Kislovodsk",
+      "Кисловодск",
+      "Nevinnomyssk",
+      "Невинномысск",
+      "Essentuki",
+      "Ессентуки",
+      "Mineralnye Vody",
+      "Минеральные Воды",
+      "Georgiyevsk",
+      "Георгиевск",
+      "Budyonnovsk",
+      "Будённовск",
+      "Буденновск",
+      "Izobilny",
+      "Изобильный",
+      "Svetlograd",
+      "Светлоград",
+      "Neftekumsk",
+      "Нефтекумск",
+      "Novoalexandrovsk",
+      "Новоалександровск",
+      "Zelenokumsk",
+      "Зеленокумск",
+      "Mikhaylovsk",
+      "Михайловск",
+      "Blagodarny",
+      "Благодарный",
+      "Ipatovo",
+      "Ипатово",
+      "Novopavlovsk",
+      "Новопавловск",
+      "Lermontov",
+      "Лермонтов",
+      "Maykop",
+      "Майкоп",
+      "Elista",
+      "Элиста",
+      "Cherkessk",
+      "CHERKESSK",
+      "Черкесск",
+      "ЧЕРКЕССК",
+      "Karachayevsk",
+      "KARACHAYEVSK",
+      "Karachaevsk",
+      "KARACHAEVSK",
+      "Карачаевск",
+      "КАРАЧАЕВСК",
+      "Ust-Dzheguta",
+      "UST-DZHEGUTA",
+      "Усть-Джегута",
+      "УСТЬ-ДЖЕГУТА",
+      "Teberda",
+      "TEBERDA",
+      "Теберда",
+      "ТЕБЕРДА",
+      "Zelenchukskaya",
+      "ZELENCHUKSKAYA",
+      "Зеленчукская",
+      "ЗЕЛЕНЧУКСКАЯ",
+      "Pregradnaya",
+      "PREGRADNAYA",
+      "Преградная",
+      "ПРЕГРАДНАЯ",
+      "Adyge-Khabl",
+      "ADYGE-KHABL",
+      "Адыге-Хабль",
+      "АДЫГЕ-ХАБЛЬ",
+      "Khabez",
+      "KHABEZ",
+      "Хабез",
+      "ХАБЕЗ",
+      "Uchkeken",
+      "UCHKEKEN",
+      "Учкекен",
+      "УЧКЕКЕН",
+      "Kavkazsky",
+      "KAVKAZSKY",
+      "Кавказский",
+      "КАВКАЗСКИЙ",
+      "Mednogorsky",
+      "MEDNOGORSKY",
+      "Медногорский",
+      "МЕДНОГОРСКИЙ",
+      "KISLOVODSK",
+      "КИСЛОВОДСК",
+      "PYATIGORSK",
+      "ПЯТИГОРСК",
+      "Yessentuki",
+      "YESSENTUKI",
+      "ESSENTUKI",
+      "ЕССЕНТУКИ",
+      "MINERALNYE VODY",
+      "Mineralnye-Vody",
+      "MINERALNYE-VODY",
+      "МИНЕРАЛЬНЫЕ ВОДЫ",
+      "GEORGIYEVSK",
+      "Georgievsk",
+      "GEORGIEVSK",
+      "ГЕОРГИЕВСК",
+      "Nalchik",
+      "NALCHIK",
+      "Нальчик",
+      "НАЛЬЧИК",
+      "Prokhladny",
+      "PROKHLADNY",
+      "Прохладный",
+      "ПРОХЛАДНЫЙ",
+      "Baksan",
+      "BAKSAN",
+      "Баксан",
+      "БАКСАН",
+      "Tyrnyauz",
+      "TYRNYAUZ",
+      "Тырныауз",
+      "ТЫРНЫАУЗ",
+      "Vladikavkaz",
+      "VLADIKAVKAZ",
+      "Владикавказ",
+      "ВЛАДИКАВКАЗ",
+      "Beslan",
+      "BESLAN",
+      "Беслан",
+      "БЕСЛАН",
+      "Grozny",
+      "GROZNY",
+      "Грозный",
+      "ГРОЗНЫЙ",
+      "Magas",
+      "MAGAS",
+      "Магас",
+      "МАГАС",
+      "Nazran",
+      "NAZRAN",
+      "Назрань",
+      "НАЗРАНЬ",
+      "Makhachkala",
+      "MAKHACHKALA",
+      "Махачкала",
+      "МАХАЧКАЛА",
+      "Saratov",
+      "SARATOV",
+      "Саратов",
+      "САРАТОВ",
+      "Volsk",
+      "VOLSK",
+      "Вольск",
+      "ВОЛЬСК",
+      "Balakovo",
+      "BALAKOVO",
+      "Балаково",
+      "БАЛАКОВО",
+      "Engels",
+      "ENGELS",
+      "Энгельс",
+      "ЭНГЕЛЬС",
+      "Pallasovka",
+      "PALLASOVKA",
+      "Палласовка",
+      "ПАЛЛАСОВКА",
+      "Balashov",
+      "BALASHOV",
+      "Балашов",
+      "БАЛАШОВ",
+      "Rtishchevo",
+      "RTISHCHEVO",
+      "Ртищево",
+      "РТИЩЕВО",
+      "Marks",
+      "MARKS",
+      "Маркс",
+      "МАРКС",
+      "Petrovsk",
+      "PETROVSK",
+      "Петровск",
+      "ПЕТРОВСК",
+      "Krasnoarmeysk",
+      "KRASNOARMEYSK",
+      "Красноармейск",
+      "КРАСНОАРМЕЙСК",
+      "Kamyshin",
+      "KAMYSHIN",
+      "Камышин",
+      "КАМЫШИН",
+      "Mikhaylovka",
+      "MIKHAYLOVKA",
+      "Михайловка",
+      "МИХАЙЛОВКА",
+      "Frolovo",
+      "FROLOVO",
+      "Фролово",
+      "ФРОЛОВО",
+      "Uryupinsk",
+      "URYUPINSK",
+      "Урюпинск",
+      "УРЮПИНСК",
+      "Volzhsky",
+      "VOLZHSKY",
+      "Волжский",
+      "ВОЛЖСКИЙ",
+      "Leninsk",
+      "LENINSK",
+      "Ленинск",
+      "ЛЕНИНСК",
+      "Surovikino",
+      "SUROVIKINO",
+      "Суровикино",
+      "СУРОВИКИНО",
+      "Kalach-na-Donu",
+      "KALACH-NA-DONU",
+      "Калач-на-Дону",
+      "КАЛАЧ-НА-ДОНУ",
+      "Kotovo",
+      "KOTOVO",
+      "Котово",
+      "КОТОВО",
+      "Zhirnovsk",
+      "ZHIRNOVSK",
+      "Жирновск",
+      "ЖИРНОВСК",
+      "Astrakhan",
+      "ASTRAKHAN",
+      "Астрахань",
+      "АСТРАХАНЬ",
+      "Akhtubinsk",
+      "AKHTUBINSK",
+      "Ахтубинск",
+      "АХТУБИНСК",
+      "Znamensk",
+      "ZNAMENSK",
+      "Знаменск",
+      "ЗНАМЕНСК",
+      "Kharabali",
+      "KHARABALI",
+      "Харабали",
+      "ХАРАБАЛИ",
+      "Narimanov",
+      "NARIMANOV",
+      "Нариманов",
+      "НАРИМАНОВ",
+      "Kamyzyak",
+      "KAMYZYAK",
+      "Камызяк",
+      "КАМЫЗЯК",
+      "Yenotayevka",
+      "YENOTAYEVKA",
+      "Енотаевка",
+      "ЕНОТАЕВКА",
+      "Liman",
+      "LIMAN",
+      "Лиман",
+      "ЛИМАН",
+      "Krasny Yar",
+      "KRASNY YAR",
+      "Красный Яр",
+      "КРАСНЫЙ ЯР",
+      "Cherny Yar",
+      "CHERNY YAR",
+      "Черный Яр",
+      "ЧЕРНЫЙ ЯР",
+      "Чёрный Яр",
+      "ЧЁРНЫЙ ЯР",
+      "Novouzensk",
+      "NOVOUZENSK",
+      "Новоузенск",
+      "НОВОУЗЕНСК",
+      "Ershov",
+      "ERSHOV",
+      "Ершов",
+      "ЕРШОВ",
+      "Krasny Kut",
+      "KRASNY KUT",
+      "Красный Кут",
+      "КРАСНЫЙ КУТ",
+      "Atkarsk",
+      "ATKARSK",
+      "Аткарск",
+      "АТКАРСК",
+      "Pugachev",
+      "PUGACHEV",
+      "Пугачёв",
+      "ПУГАЧЁВ",
+      "Пугачев",
+      "ПУГАЧЕВ",
+      "Khvalynsk",
+      "KHVALYNSK",
+      "Хвалынск",
+      "ХВАЛЫНСК",
+      "Bazarnyy Karabulak",
+      "BAZARNYY KARABULAK",
+      "Bazarniy Karabulak",
+      "BAZARNIY KARABULAK",
+      "Базарный Карабулак",
+      "БАЗАРНЫЙ КАРАБУЛАК",
+      "Stepnoye",
+      "STEPNOYE",
+      "Степное",
+      "СТЕПНОЕ",
+      "Rovnoye",
+      "ROVNOYE",
+      "Ровное",
+      "РОВНОЕ",
+      "Dergachi",
+      "DERGACHI",
+      "Дергачи",
+      "ДЕРГАЧИ",
+      "Ozinki",
+      "OZINKI",
+      "Озинки",
+      "ОЗИНКИ"
+];
+
+    const RUSSIA_REGION_NAMES = [
+      "Belgorod Oblast",
+      "Belgorod Region",
+      "Voronezh Oblast",
+      "Voronezh Region",
+      "Kursk Oblast",
+      "Kursk Region",
+      "Oryol Oblast",
+      "Oryol Region",
+      "Orel Oblast",
+      "Orel Region",
+      "Lipetsk Oblast",
+      "Lipetsk Region",
+      "Tambov Oblast",
+      "Tambov Region",
+      "Rostov Oblast",
+      "Rostov Region",
+      "Bryansk Oblast",
+      "Bryansk Region",
+      "Krasnodar Krai",
+      "Stavropol Krai",
+      "Republic of Adygea",
+      "Adygea",
+      "Volgograd Oblast",
+      "Volgograd Region",
+      "Karachay-Cherkess Republic",
+      "Karachay-Cherkessia",
+      "Republic of Kalmykia",
+      "Kalmykia",
+      "Tula Oblast",
+      "Tula Region",
+      "Ryazan Oblast",
+      "Ryazan Region",
+      "Kaluga Oblast",
+      "Kaluga Region",
+      "Smolensk Oblast",
+      "Smolensk Region",
+      "Белгородская область",
+      "Воронежская область",
+      "Курская область",
+      "Орловская область",
+      "Липецкая область",
+      "Тамбовская область",
+      "Ростовская область",
+      "Брянская область",
+      "Краснодарский край",
+      "Ставропольский край",
+      "Республика Адыгея",
+      "Адыгея",
+      "Волгоградская область",
+      "Карачаево-Черкесская Республика",
+      "Республика Калмыкия",
+      "Калмыкия",
+      "Тульская область",
+      "Рязанская область",
+      "Калужская область",
+      "Смоленская область",
+      "Бєлгородська область",
+      "Воронезька область",
+      "Курська область",
+      "Орловська область",
+      "Липецька область",
+      "Тамбовська область",
+      "Ростовська область",
+      "Брянська область",
+      "Краснодарський край",
+      "Ставропольський край",
+      "Республіка Адигея",
+      "Волгоградська область",
+      "KARACHAY-CHERKESSIA",
+      "Karachay Cherkessia",
+      "KARACHAY CHERKESSIA",
+      "Karachay–Cherkessia",
+      "KARACHAY–CHERKESSIA",
+      "KARACHAY-CHERKESS REPUBLIC",
+      "Karachay–Cherkess Republic",
+      "KARACHAY–CHERKESS REPUBLIC",
+      "Karachayevo-Cherkessia",
+      "KARACHAYEVO-CHERKESSIA",
+      "Karachayevo-Cherkesiya",
+      "KARACHAYEVO-CHERKESIYA",
+      "Karachaevo-Cherkessia",
+      "KARACHAEVO-CHERKESSIA",
+      "Karachay-Cherkesskaya Republic",
+      "KARACHAY-CHERKESSKAYA REPUBLIC",
+      "Karachay-Cherkess Autonomous Oblast",
+      "KARACHAY-CHERKESS AUTONOMOUS OBLAST",
+      "Карачаево-Черкесия",
+      "КАРАЧАЕВО-ЧЕРКЕСИЯ",
+      "Карачаево-Черкессия",
+      "КАРАЧАЕВО-ЧЕРКЕССИЯ",
+      "КАРАЧАЕВО-ЧЕРКЕССКАЯ РЕСПУБЛИКА",
+      "Карачаєво-Черкесія",
+      "КАРАЧАЄВО-ЧЕРКЕСІЯ",
+      "Карачаєво-Черкеська Республіка",
+      "КАРАЧАЄВО-ЧЕРКЕСЬКА РЕСПУБЛІКА",
+      "Kabardino-Balkaria",
+      "KABARDINO-BALKARIA",
+      "Kabardino-Balkar Republic",
+      "KABARDINO-BALKAR REPUBLIC",
+      "Кабардино-Балкария",
+      "КАБАРДИНО-БАЛКАРИЯ",
+      "Кабардино-Балкарская Республика",
+      "КАБАРДИНО-БАЛКАРСКАЯ РЕСПУБЛИКА",
+      "North Ossetia-Alania",
+      "NORTH OSSETIA-ALANIA",
+      "North Ossetia–Alania",
+      "NORTH OSSETIA–ALANIA",
+      "Republic of North Ossetia-Alania",
+      "REPUBLIC OF NORTH OSSETIA-ALANIA",
+      "Северная Осетия",
+      "СЕВЕРНАЯ ОСЕТИЯ",
+      "Северная Осетия — Алания",
+      "СЕВЕРНАЯ ОСЕТИЯ — АЛАНИЯ",
+      "Республика Северная Осетия — Алания",
+      "РЕСПУБЛИКА СЕВЕРНАЯ ОСЕТИЯ — АЛАНИЯ",
+      "Chechen Republic",
+      "CHECHEN REPUBLIC",
+      "Chechnya",
+      "CHECHNYA",
+      "Чеченская Республика",
+      "ЧЕЧЕНСКАЯ РЕСПУБЛИКА",
+      "Чечня",
+      "ЧЕЧНЯ",
+      "Republic of Ingushetia",
+      "REPUBLIC OF INGUSHETIA",
+      "Ingushetia",
+      "INGUSHETIA",
+      "Республика Ингушетия",
+      "РЕСПУБЛИКА ИНГУШЕТИЯ",
+      "Ингушетия",
+      "ИНГУШЕТИЯ",
+      "Dagestan",
+      "DAGESTAN",
+      "Republic of Dagestan",
+      "REPUBLIC OF DAGESTAN",
+      "Республика Дагестан",
+      "РЕСПУБЛИКА ДАГЕСТАН",
+      "Дагестан",
+      "ДАГЕСТАН",
+      "Saratov Oblast",
+      "SARATOV OBLAST",
+      "Saratov Region",
+      "SARATOV REGION",
+      "Саратовская область",
+      "САРАТОВСКАЯ ОБЛАСТЬ",
+      "Саратовська область",
+      "САРАТОВСЬКА ОБЛАСТЬ",
+      "Astrakhan Oblast",
+      "ASTRAKHAN OBLAST",
+      "Astrakhan Region",
+      "ASTRAKHAN REGION",
+      "Астраханская область",
+      "АСТРАХАНСКАЯ ОБЛАСТЬ",
+      "Астраханська область",
+      "АСТРАХАНСЬКА ОБЛАСТЬ",
+      "VOLGOGRAD OBLAST",
+      "VOLGOGRAD REGION",
+      "ВОЛГОГРАДСКАЯ ОБЛАСТЬ",
+      "Penza Oblast",
+      "PENZA OBLAST",
+      "Penza Region",
+      "PENZA REGION",
+      "Пензенская область",
+      "ПЕНЗЕНСКАЯ ОБЛАСТЬ",
+      "Samara Oblast",
+      "SAMARA OBLAST",
+      "Samara Region",
+      "SAMARA REGION",
+      "Самарская область",
+      "САМАРСКАЯ ОБЛАСТЬ",
+      "Ulyanovsk Oblast",
+      "ULYANOVSK OBLAST",
+      "Ulyanovsk Region",
+      "ULYANOVSK REGION",
+      "Ульяновская область",
+      "УЛЬЯНОВСКАЯ ОБЛАСТЬ",
+      "Orenburg Oblast",
+      "ORENBURG OBLAST",
+      "Orenburg Region",
+      "ORENBURG REGION",
+      "Оренбургская область",
+      "ОРЕНБУРГСКАЯ ОБЛАСТЬ",
+      "Republic of Tatarstan",
+      "REPUBLIC OF TATARSTAN",
+      "Tatarstan",
+      "TATARSTAN",
+      "Республика Татарстан",
+      "РЕСПУБЛИКА ТАТАРСТАН",
+      "Татарстан",
+      "ТАТАРСТАН",
+      "Republic of Bashkortostan",
+      "REPUBLIC OF BASHKORTOSTAN",
+      "Bashkortostan",
+      "BASHKORTOSTAN",
+      "Республика Башкортостан",
+      "РЕСПУБЛИКА БАШКОРТОСТАН",
+      "Башкортостан",
+      "БАШКОРТОСТАН"
+];
+
+    const KAZAKHSTAN_LABEL_NAMES = [
+      "Kazakhstan",
+      "Republic of Kazakhstan",
+      "KAZAKHSTAN",
+      "West Kazakhstan Region",
+      "West Kazakhstan Oblast",
+      "Batys Kazakhstan Region",
+      "Batys Qazaqstan Region",
+      "Atyrau Region",
+      "Atyrau Oblast",
+      "Aktobe Region",
+      "Aktobe Oblast",
+      "Mangystau Region",
+      "Mangystau Oblast",
+      "Батыс-Казахстанская область",
+      "Западно-Казахстанская область",
+      "Батыс Қазақстан облысы",
+      "Атырауская область",
+      "Атырау облысы",
+      "Актюбинская область",
+      "Актобе область",
+      "Ақтөбе облысы",
+      "Мангистауская область",
+      "Маңғыстау облысы",
+      "Казахстан",
+      "Республика Казахстан",
+      "Қазақстан",
+      "Қазақстан Республикасы",
+      "Oral",
+      "Uralsk",
+      "Орал",
+      "Уральск",
+      "Atyrau",
+      "Атырау",
+      "Aktobe",
+      "Актобе",
+      "Ақтөбе",
+      "Aktau",
+      "Актау",
+      "Ақтау",
+      "Kulsary",
+      "Кульсары",
+      "Aksay",
+      "Аксай",
+      "Khromtau",
+      "Хромтау"
+];
+
+    function kazakhstanFeatureCondition(){
+      return ['any',
+        ['==', ['get','iso_a2'], 'KZ'],
+        ['==', ['get','iso_3166_1'], 'KZ'],
+        ['==', ['get','country_code'], 'kz'],
+        ['==', ['get','country_code'], 'KZ'],
+        ['==', ['get','adm0_a3'], 'KAZ'],
+        ['==', ['get','adm0_a3_us'], 'KAZ'],
+        ['==', ['get','iso_a3'], 'KAZ'],
+        ['==', ['get','admin'], 'Kazakhstan'],
+        ['==', ['get','admin'], 'Republic of Kazakhstan'],
+        anyFeatureNameMatches(KAZAKHSTAN_LABEL_NAMES)
+      ];
+    }
+
+
+    function anyFeatureNameMatches(names){
+      return ['any',
+        ['match', ['get','name'], names, true, false],
+        ['match', ['get','name:en'], names, true, false],
+        ['match', ['get','name_en'], names, true, false],
+        ['match', ['get','name:ru'], names, true, false],
+        ['match', ['get','name:uk'], names, true, false],
+        ['match', ['get','name:latin'], names, true, false],
+        ['match', ['get','name:nonlatin'], names, true, false],
+        ['match', ['get','name_int'], names, true, false]
+      ];
+    }
+
+    function russiaPropertyCondition(){
+      return ['any',
+        ['==', ['get','iso_a2'], 'RU'],
+        ['==', ['get','iso_3166_1'], 'RU'],
+        ['==', ['get','country_code'], 'ru'],
+        ['==', ['get','country_code'], 'RU'],
+        ['==', ['get','adm0_a3'], 'RUS'],
+        ['==', ['get','adm0_a3_us'], 'RUS'],
+        ['==', ['get','iso_a3'], 'RUS'],
+        ['==', ['get','admin'], 'Russia'],
+        ['==', ['get','admin'], 'Russian Federation']
+      ];
+    }
+
+    function russiaSpatialCondition(){
+      return ['within', RUSSIA_VISIBLE_POLYGON];
+    }
+
+    let actualRussiaNameOverrideApplied = false;
+
+    function applyActualRussiaNameOverride(){
+      if(actualRussiaNameOverrideApplied || !map || !map.getStyle || !map.isStyleLoaded()) return;
+
+      const style = map.getStyle();
+      if(!style || !style.layers) return;
+
+      const regionByName = anyFeatureNameMatches(RUSSIA_REGION_NAMES);
+      const placeByName = anyFeatureNameMatches(RUSSIA_PLACE_NAMES);
+      const byRussiaProperty = russiaPropertyCondition();
+      const byRussiaSpatial = russiaSpatialCondition();
+
+      let changed = 0;
+
+      for(const layer of style.layers){
+        if(!layer || layer.type !== 'symbol') continue;
+
+        const id = String(layer.id || '').toLowerCase();
+        const regionLike = /region|state|province|oblast|admin-1|admin1|boundary-admin|territory/.test(id);
+        const placeLike = /place|country|settlement|city|town|village|suburb|neighbourhood|neighborhood|poi|label|name/.test(id);
+
+        if(!regionLike && !placeLike) continue;
+
+        let originalTextField;
+        try{
+          originalTextField = map.getLayoutProperty(layer.id, 'text-field');
+        }catch(err){
+          originalTextField = undefined;
+        }
+
+        if(originalTextField === undefined || originalTextField === null) continue;
+
+        // For region-like label layers: region names -> region replacement.
+        // For place-like label layers: city/place names -> place replacement.
+        // Spatial/property fallback catches Russian labels on large screens whose exact property name varies by tile/style.
+        const notKazakhstan = ['!', kazakhstanFeatureCondition()];
+
+        // Kazakhstan safety:
+        // Region labels must never use the broad spatial fallback, because large Russia-side
+        // polygons can cross nearby Kazakhstan oblast labels on 4K/65-inch screens.
+        // Russian regions are still caught by explicit region names and Russia feature properties.
+        const regionCondition = regionLike
+          ? ['all', ['any', regionByName, byRussiaProperty], notKazakhstan]
+          : ['all', regionByName, notKazakhstan];
+
+        // Places can still use the Russia-side spatial fallback for broad coverage, but Kazakhstan
+        // labels are explicitly excluded by country/admin/name checks.
+        const placeCondition = placeLike
+          ? ['all', ['any', placeByName, byRussiaProperty, byRussiaSpatial], notKazakhstan]
+          : ['all', placeByName, notKazakhstan];
+
+        try{
+          map.setLayoutProperty(layer.id, 'text-field', [
+            'case',
+            regionCondition, RUSSIA_REGION_TEXT,
+            placeCondition, RUSSIA_PLACE_TEXT,
+            originalTextField
+          ]);
+          changed++;
+        }catch(err){
+          // Some older MapLibre expression combinations may reject `within`.
+          // Fallback to property/name-only matching for that layer.
+          try{
+            const notKazakhstanFallback = ['!', kazakhstanFeatureCondition()];
+            map.setLayoutProperty(layer.id, 'text-field', [
+              'case',
+              ['all', regionByName, notKazakhstanFallback], RUSSIA_REGION_TEXT,
+              ['all', placeByName, notKazakhstanFallback], RUSSIA_PLACE_TEXT,
+              originalTextField
+            ]);
+            changed++;
+          }catch(e){}
+        }
+      }
+
+      if(changed > 0) actualRussiaNameOverrideApplied = true;
+    }
+
+
+
+    function cityDistance(a, b){
+      const x = (a.lng - b.lng) * Math.cos(((a.lat + b.lat) * .5) * Math.PI / 180);
+      const y = a.lat - b.lat;
+      return Math.hypot(x, y);
+    }
+
+    function activeCityId(){
+      const current = {lat: camera.lat, lng: camera.lng};
+      let bestId = CITY_ORDER[0][0];
+      let bestDistance = Infinity;
+      for(const [id, city] of CITY_ORDER){
+        const d = cityDistance(current, city);
+        if(d < bestDistance){
+          bestDistance = d;
+          bestId = id;
+        }
+      }
+      return bestId;
+    }
+
+    function geoDistanceMeters(a, b){
+      const lat1 = a.lat * Math.PI / 180;
+      const lat2 = b.lat * Math.PI / 180;
+      const dLat = (b.lat - a.lat) * Math.PI / 180;
+      const dLng = (b.lng - a.lng) * Math.PI / 180;
+      const x = dLng * Math.cos((lat1 + lat2) * .5);
+      const y = dLat;
+      return Math.sqrt(x*x + y*y) * 6371000;
+    }
+
+    function roadLayerIdsFromStyle(){
+      const ids = [];
+      const style = map.getStyle();
+      if(!style || !style.layers) return ids;
+
+      for(const layer of style.layers){
+        const id = String(layer.id || '').toLowerCase();
+        if(layer.type !== 'line') continue;
+
+        // Robust local/production road discovery:
+        // OpenFreeMap/OpenMapTiles line layers are often named "transportation",
+        // not "road". Missing this layer makes cars disappear completely.
+        if(/transportation|transport|road|street|highway|motorway|trunk|primary|secondary|tertiary|minor/.test(id)){
+          ids.push(layer.id);
+        }
+      }
+
+      return [...new Set(ids)];
+    }
+
+    function useRoadFeature(feature){
+      if(!feature || !feature.geometry) return false;
+      const type = feature.geometry.type;
+      if(type !== 'LineString' && type !== 'MultiLineString') return false;
+
+      const layerId = String(feature.layer && feature.layer.id || '').toLowerCase();
+      const props = feature.properties || {};
+      const cls = String(props.class || props.type || props.kind || props.brunnel || props.subclass || '').toLowerCase();
+      const subclass = String(props.subclass || '').toLowerCase();
+      const all = `${layerId} ${cls} ${subclass}`;
+
+      if(!/transportation|transport|road|street|highway|motorway|trunk|primary|secondary|tertiary|minor|residential|service|living_street/.test(all)){
+        return false;
+      }
+
+      if(/rail|ferry|aerial|runway|taxiway|path|footway|cycleway|pedestrian|steps|track|boundary|water|river|admin/.test(all)){
+        return false;
+      }
+
+      return true;
+    }
+
+    function lineStrings(feature){
+      const g = feature.geometry;
+      if(!g) return [];
+      if(g.type === 'LineString') return [g.coordinates];
+      if(g.type === 'MultiLineString') return g.coordinates;
+      return [];
+    }
+
+    function buildLane(points, cityId, props, direction){
+      if(points.length < 2) return null;
+      const cumulative = [0];
+      let length = 0;
+      for(let i=1; i<points.length; i++){
+        length += geoDistanceMeters(points[i-1], points[i]);
+        cumulative.push(length);
+      }
+      if(length < 28) return null;
+
+      const roadClass = String(props.class || props.type || props.kind || '').toLowerCase();
+      return {
+        cityId,
+        points,
+        cumulative,
+        length,
+        direction,
+        major:/motorway|trunk|primary|secondary/.test(roadClass),
+        roadClass
+      };
+    }
+
+
+
+    let smoothMapApplied = false;
+
+    function opacityBase(value, fallback=1){
+      if(value === undefined || value === null) return fallback;
+      if(typeof value === 'number') return value;
+      if(Array.isArray(value)) return value;
+      return fallback;
+    }
+
+    function zoomFadeExpression(minzoom, maxzoom, spanIn, spanOut){
+      const min = Math.max(0, Number(minzoom || 0));
+      const start = Math.max(0, min - spanIn);
+      const full = Math.max(start + .05, min + spanIn * .28);
+
+      const stops = [start, 0, full, 1];
+
+      if(Number.isFinite(maxzoom) && maxzoom > full + .45 && maxzoom < 23.5){
+        const outStart = Math.max(full + .10, maxzoom - spanOut);
+        stops.push(outStart, 1, maxzoom, 0);
+      }
+
+      return ['interpolate', ['linear'], ['zoom'], ...stops];
+    }
+
+    function combineOpacityWithFade(base, fade){
+      // Must return a SINGLE top-level zoom interpolate (the only legal form). The old ['*', base, fade]
+      // nested a zoom curve inside '*' → MapLibre rejected it ("'zoom' expression may only be used as
+      // input to a top-level 'step'/'interpolate'"), and when `base` was itself a zoom curve it was two
+      // zoom curves ("Only one zoom-based subexpression"). Those rejections are the ~58 console errors.
+      //   • constant base → bake it into the fade's OUTPUT stops (identical to base*fade, but legal)
+      //   • base already an expression (the style's own zoom curve) → return null = skip, leave it as-is
+      //   • no base → use the fade as-is (0→1)
+      const b = (typeof base === 'number' && isFinite(base)) ? base : (base == null ? 1 : null);
+      if(b == null) return null;
+      if(b === 1) return fade;
+      const out = fade.slice(0, 3);                       // ['interpolate', ['linear'], ['zoom']]
+      for(let i = 3; i < fade.length; i += 2){
+        out.push(fade[i]);                                // zoom stop (input)
+        out.push(Math.max(0, Math.min(1, Number(fade[i + 1]) * b)));  // output scaled by the base opacity
+      }
+      return out;
+    }
+
+    function setLayerSmoothOpacity(layer, paintProperty, fadeExpression, duration){
+      try{
+        const base = map.getPaintProperty(layer.id, paintProperty);
+        const combined = combineOpacityWithFade(base, fadeExpression);
+        if(combined == null) return;   // base is already a zoom curve → leave the style's opacity untouched (no illegal double-zoom)
+        map.setPaintProperty(layer.id, paintProperty, combined);
+        map.setPaintProperty(layer.id, `${paintProperty}-transition`, {
+          duration: duration,
+          delay:0
+        });
+      }catch(err){}
+    }
+
+
+    function explicitBuildingFadeExpression(){
+      // Aggressive workaround: buildings are kept nearly invisible at their first available
+      // tile zoom, then fade in slowly. This reduces the perceptual "pop".
+      return ['interpolate', ['linear'], ['zoom'],
+        11.80, 0,
+        12.80, .00,
+        13.45, .035,
+        14.05, .12,
+        14.65, .38,
+        15.25, .78,
+        15.85, 1
+      ];
+    }
+
+    function explicitDetailFadeExpression(){
+      return ['interpolate', ['linear'], ['zoom'],
+        11.20, 0,
+        11.85, .18,
+        12.55, .58,
+        13.25, 1
+      ];
+    }
+
+    function explicitPoiFadeExpression(){
+      return ['interpolate', ['linear'], ['zoom'],
+        12.00, 0,
+        12.65, .14,
+        13.35, .55,
+        14.05, 1
+      ];
+    }
+
+    function getLayerSmoothProfile(layer){
+      const id = String(layer.id || '').toLowerCase();
+      const type = layer.type;
+      const minzoom = Number(layer.minzoom || 0);
+
+      const isBuilding = /building|house|structure/.test(id);
+      const isPoi = /poi|amenity|shop|tourism|museum|food|cafe|restaurant|hotel/.test(id);
+      const isPlace = /place|settlement|city|town|village|suburb|neighbourhood|neighborhood/.test(id);
+      const isRoadDetail = /road|street|highway|motorway|trunk|primary|secondary|tertiary|transport/.test(id);
+      const isParkLanduse = /park|landuse|green|forest|grass|area/.test(id);
+
+      let fadeIn = .75;
+      let fadeOut = .65;
+      let duration = mobileLike ? 420 : 680;
+
+      if(type === 'symbol'){
+        fadeIn = isPlace ? 1.25 : isPoi ? 1.15 : 1.0;
+        fadeOut = isPlace ? 1.0 : .85;
+        duration = mobileLike ? 440 : 720;
+      }
+
+      if(isBuilding){
+        fadeIn = 1.6;
+        fadeOut = .95;
+        duration = mobileLike ? 460 : 820;
+      }else if(isRoadDetail){
+        fadeIn = minzoom >= 10 ? 1.2 : .8;
+        fadeOut = .85;
+      }else if(isPoi){
+        fadeIn = 1.25;
+        fadeOut = .9;
+      }else if(isParkLanduse){
+        fadeIn = .95;
+        fadeOut = .7;
+      }
+
+      return {isBuilding, isPoi, isPlace, isRoadDetail, isParkLanduse, fadeIn, fadeOut, duration};
+    }
+
+    function applySmoothMapLayerTransitions(){
+      if(smoothMapApplied || !map || !map.getStyle || !map.isStyleLoaded()) return;
+      const style = map.getStyle();
+      if(!style || !style.layers) return;
+
+      smoothMapApplied = true;
+
+      // DISABLED: the per-layer zoom-opacity fades + minzoom-lowering made the map build up "layer by
+      // layer" on zoom (a stepped/banded look) instead of feeling smooth. Off = standard MapLibre zoom
+      // rendering (smooth) with our custom colours preserved (those are applied separately). The console
+      // stays clean because we now set no opacity expressions at all. Flip to true + re-tune to revisit.
+      const SMOOTH_LAYER_FADES = false;
+      if(!SMOOTH_LAYER_FADES) return;
+
+      for(const layer of style.layers){
+        if(!layer || !layer.id || layer.type === 'background') continue;
+
+        const id = String(layer.id || '').toLowerCase();
+        const sourceLayer = String(layer['source-layer'] || '').toLowerCase();
+        const minzoom = Number(layer.minzoom || 0);
+        const maxzoom = layer.maxzoom === undefined ? Infinity : Number(layer.maxzoom);
+        const profile = getLayerSmoothProfile(layer);
+
+        const isBuildingLayer =
+          /building|buildings|house|structure/.test(id) ||
+          /building|buildings|house|structure/.test(sourceLayer);
+
+        const isPoiLayer =
+          /poi|amenity|shop|tourism|museum|food|cafe|restaurant|hotel/.test(id) ||
+          /poi|amenity|shop|tourism/.test(sourceLayer);
+
+        const isDetailRoadLayer =
+          /minor|service|path|street|road_name|road-name|road label|transportation_name|transportation-name/.test(id) ||
+          (/transport|road/.test(sourceLayer) && minzoom >= 10);
+
+        let fade = zoomFadeExpression(minzoom, maxzoom, profile.fadeIn, profile.fadeOut);
+
+        if(isBuildingLayer){
+          fade = explicitBuildingFadeExpression();
+
+          // Critical part: if the style layer itself has minzoom 14/15, opacity expressions
+          // cannot help because MapLibre refuses to render the layer before minzoom.
+          // Lower the layer minzoom so the fade curve can begin earlier whenever the vector
+          // tile already contains building features.
+          try{
+            map.setLayerZoomRange(layer.id, 11.75, Number.isFinite(maxzoom) ? maxzoom : 24);
+          }catch(err){}
+        }else if(isPoiLayer){
+          fade = explicitPoiFadeExpression();
+          try{
+            if(minzoom > 11.6) map.setLayerZoomRange(layer.id, Math.max(10.8, minzoom - 1.2), Number.isFinite(maxzoom) ? maxzoom : 24);
+          }catch(err){}
+        }else if(isDetailRoadLayer){
+          fade = explicitDetailFadeExpression();
+          try{
+            if(minzoom > 10.8) map.setLayerZoomRange(layer.id, Math.max(9.8, minzoom - 1.0), Number.isFinite(maxzoom) ? maxzoom : 24);
+          }catch(err){}
+        }
+
+        if(layer.type === 'symbol'){
+          const layout = layer.layout || {};
+          if(layout['text-field'] !== undefined || map.getPaintProperty(layer.id, 'text-opacity') !== undefined){
+            setLayerSmoothOpacity(layer, 'text-opacity', fade, profile.duration);
+          }
+          if(layout['icon-image'] !== undefined || map.getPaintProperty(layer.id, 'icon-opacity') !== undefined){
+            setLayerSmoothOpacity(layer, 'icon-opacity', fade, profile.duration);
+          }
+        }else if(layer.type === 'line'){
+          setLayerSmoothOpacity(layer, 'line-opacity', fade, profile.duration);
+        }else if(layer.type === 'fill'){
+          if(minzoom >= 4.5 || isBuildingLayer || isPoiLayer || isDetailRoadLayer || profile.isParkLanduse || profile.isPlace){
+            setLayerSmoothOpacity(layer, 'fill-opacity', fade, profile.duration);
+          }
+        }else if(layer.type === 'circle'){
+          setLayerSmoothOpacity(layer, 'circle-opacity', fade, profile.duration);
+        }else if(layer.type === 'fill-extrusion'){
+          setLayerSmoothOpacity(layer, 'fill-extrusion-opacity', fade, profile.duration);
+        }else if(layer.type === 'raster'){
+          setLayerSmoothOpacity(layer, 'raster-opacity', fade, profile.duration);
+        }
+      }
+    }
+
+    function angleBetween(a, b){
+      let d = b - a;
+      while(d > Math.PI) d -= Math.PI * 2;
+      while(d < -Math.PI) d += Math.PI * 2;
+      return d;
+    }
+
+    function bearingBetween(a, b){
+      const p1 = map.project([a.lng, a.lat]);
+      const p2 = map.project([b.lng, b.lat]);
+      return Math.atan2(p2.y - p1.y, p2.x - p1.x);
+    }
+
+    function connectLaneGraph(lanes){
+      const starts = lanes.map((lane, index) => ({
+        index,
+        point: lane.points[0],
+        angle: lane.points.length > 1 ? bearingBetween(lane.points[0], lane.points[1]) : 0
+      }));
+
+      lanes.forEach((lane, index) => {
+        lane.index = index;
+        lane.connections = [];
+        lane.deadEndUturn = false;
+
+        const end = lane.points[lane.points.length - 1];
+        const endAngle = bearingBetween(lane.points[Math.max(0, lane.points.length - 2)], end);
+        const nearby = [];
+        const uturns = [];
+
+        for(const start of starts){
+          if(start.index === index) continue;
+
+          const distance = geoDistanceMeters(end, start.point);
+          if(distance > 52) continue;
+
+          const turn = angleBetween(endAngle, start.angle);
+
+          if(Math.abs(turn) <= 2.65){
+            nearby.push({
+              index:start.index,
+              turn,
+              distance,
+              score: Math.abs(turn) * 15 + distance
+            });
+          }else if(distance <= 18){
+            // Dead-end continuity: use the reverse lane instead of wrapping to lane start.
+            uturns.push({
+              index:start.index,
+              turn,
+              distance,
+              score: 120 + distance
+            });
+          }
+        }
+
+        nearby.sort((a,b) => a.score - b.score);
+        uturns.sort((a,b) => a.score - b.score);
+
+        lane.connections = nearby.slice(0, 6);
+        if(!lane.connections.length && uturns.length){
+          lane.connections = uturns.slice(0, 2);
+          lane.deadEndUturn = true;
+        }
+      });
+
+      return lanes;
+    }
+
+    function chooseNextLane(lane, car){
+      if(!lane || !lane.connections || !lane.connections.length) return null;
+
+      const options = lane.connections;
+      // Genuine per-junction randomness so cars EXPLORE the city instead of settling into a fixed,
+      // deterministic circuit. The old sin(seed, progress) choice was repeatable — a car re-entering the
+      // same junction always picked the same exit, so it looped one route and "reappeared at its start".
+      // Keep the natural weighting below (mostly straight, sometimes a turn), just make the draw random.
+      const r = Math.random();
+
+      let pool;
+      if(r < .60){
+        // Mostly go straight or take the softest bend.
+        pool = options.slice(0, Math.min(2, options.length));
+      }else if(r < .86){
+        // Sometimes turn.
+        pool = options.filter(o => Math.abs(o.turn) > .28 && Math.abs(o.turn) < 1.72);
+        if(!pool.length) pool = options;
+      }else{
+        // Rarely take any legal-feeling exit.
+        pool = options;
+      }
+
+      const choice = pool[Math.floor(Math.random() * pool.length)] || options[0];
+      return choice || null;
+    }
+
+    function turnSignalFromTurn(turn){
+      if(Math.abs(turn) < .32) return null;
+      return turn > 0 ? 'right' : 'left';
+    }
+
+    function smoothstep(edge0, edge1, x){
+      const t = clamp((x - edge0) / Math.max(.0001, edge1 - edge0), 0, 1);
+      return t * t * (3 - 2 * t);
+    }
+
+    function lodBlend(zoom){
+      // Country/travel view: dots. City/district view: little CAPSULE cars. Close street view: full cars.
+      // The dot→capsule transition was lowered (was 13.15–13.85) so the z13-CAPPED journey shows small
+      // car shapes at its city dwell instead of plain dots — by z12.9 it's fully capsule. (Below ~12.2,
+      // out at the country/travel zooms, it stays dots so far-away traffic doesn't render heavy bodies.)
+      const dotOut = 1 - smoothstep(12.2, 12.9, zoom);
+      const capsuleIn = smoothstep(12.2, 12.9, zoom);
+      const capsuleOut = 1 - smoothstep(14.25, 14.75, zoom);
+      const carIn = smoothstep(14.25, 14.75, zoom);
+
+      return {
+        dot: dotOut,
+        capsule: capsuleIn * capsuleOut,
+        car: carIn
+      };
+    }
+
+    function sampleRoadLanes(cityId){
+      if(!TRAFFIC.roadLayerIds.length || camera.zoom >= 10.8){
+        // Refresh layer IDs at city zoom in case style layers became available after first load.
+        const discovered = roadLayerIdsFromStyle();
+        if(discovered.length) TRAFFIC.roadLayerIds = discovered;
+      }
+      if(!TRAFFIC.roadLayerIds.length){
+        TRAFFIC.diagnostics.reason = 'waiting-road-layers';
+        return [];
+      }
+
+      const w = map.getCanvas().clientWidth;
+      const h = map.getCanvas().clientHeight;
+      let features = [];
+      try{
+        features = map.queryRenderedFeatures([[0,0],[w,h]], {layers: TRAFFIC.roadLayerIds});
+      }catch(err){
+        return [];
+      }
+
+      const lanes = [];
+      const seen = new Set();
+
+      for(const feature of features){
+        if(!useRoadFeature(feature)) continue;
+        const props = feature.properties || {};
+        const oneWayRaw = String(props.oneway || props.one_way || '').toLowerCase();
+        const oneWay = oneWayRaw === 'true' || oneWayRaw === 'yes' || oneWayRaw === '1';
+        const reverseOnly = oneWayRaw === '-1' || oneWayRaw === 'reverse';
+
+        for(const coords of lineStrings(feature)){
+          if(!coords || coords.length < 2) continue;
+
+          const points = [];
+          for(const coord of coords){
+            if(!Array.isArray(coord) || coord.length < 2) continue;
+            const pt = {lng:+coord[0], lat:+coord[1]};
+            const px = map.project([pt.lng, pt.lat]);
+            if(px.x < -320 || px.y < -320 || px.x > w + 320 || px.y > h + 320) continue;
+            const prev = points[points.length - 1];
+            if(!prev || geoDistanceMeters(prev, pt) > 4) points.push(pt);
+          }
+
+          if(points.length < 2) continue;
+
+          const key = points.slice(0, 6).map(p => `${p.lng.toFixed(5)},${p.lat.toFixed(5)}`).join('|');
+          if(seen.has(key)) continue;
+          seen.add(key);
+
+          const forward = buildLane(points, cityId, props, 1);
+          if(forward && !reverseOnly) lanes.push(forward);
+
+          if(!oneWay || reverseOnly){
+            const reverse = buildLane([...points].reverse(), cityId, props, -1);
+            if(reverse) lanes.push(reverse);
+          }
+        }
+      }
+
+      const maxLanes = Math.round((mobileLike ? 220 : 340) * cityLaneCoverageMultiplier(cityId));
+      const selected = [];
+      const selectedSet = new Set();
+      const grid = new Map();
+      const canvas = map.getCanvas();
+      const cell = mobileLike ? 120 : 145;
+
+      lanes.forEach((lane, index) => {
+        const mid = lane.points[Math.floor(lane.points.length / 2)];
+        const px = map.project([mid.lng, mid.lat]);
+        const gx = Math.floor(px.x / cell);
+        const gy = Math.floor(px.y / cell);
+        const key = `${gx}:${gy}`;
+        if(!grid.has(key)) grid.set(key, []);
+        grid.get(key).push(index);
+      });
+
+      // Pass 1: one good representative per screen cell, so cars are not concentrated in one blob.
+      for(const list of grid.values()){
+        list.sort((ia, ib) => (lanes[ib].major - lanes[ia].major) || (lanes[ib].length - lanes[ia].length));
+        const index = list[0];
+        if(index !== undefined && !selectedSet.has(index)){
+          selected.push(index);
+          selectedSet.add(index);
+        }
+      }
+
+      // Pass 2: add major roads across the whole visible city.
+      const major = lanes
+        .map((lane, index) => ({lane, index}))
+        .filter(item => item.lane.major)
+        .sort((a,b) => b.lane.length - a.lane.length);
+      for(const item of major){
+        if(selected.length >= maxLanes) break;
+        if(!selectedSet.has(item.index)){
+          selected.push(item.index);
+          selectedSet.add(item.index);
+        }
+      }
+
+      // Pass 3: fill remaining capacity with a mix of local streets and long roads.
+      const rest = lanes
+        .map((lane, index) => ({lane, index}))
+        .sort((a,b) => b.lane.length - a.lane.length);
+      for(const item of rest){
+        if(selected.length >= maxLanes) break;
+        if(!selectedSet.has(item.index)){
+          selected.push(item.index);
+          selectedSet.add(item.index);
+        }
+      }
+
+      return connectLaneGraph(selected.map(index => lanes[index]));
+    }
+
+    function createCarsForLanes(cityId, lanes, previousCars=[], targetOverride, keepLanes=false){
+      const cars = [];
+      if(!lanes.length) return cars;
+
+      const now = performance.now();
+      const profile = CITY_TRAFFIC_PROFILES[cityId] || CITY_TRAFFIC_PROFILES.kyiv;
+      const densityScale = profile.density * (mobileLike ? APP_CONFIG.traffic.mobileDensity : APP_CONFIG.traffic.desktopDensity);
+      const cityCenter = cities[cityId] || {lat:0, lng:0};
+      const weightedLaneIndices = [];
+      let weightedLength = 0;
+
+      lanes.forEach((lane, index) => {
+        const mid = lane.points[Math.floor(lane.points.length / 2)] || lane.points[0];
+        const dist = cityDistance(mid, cityCenter);
+        const centrality = Math.max(0.42, 1.20 - dist * 12.0 * profile.centerPull);
+        const classWeight = lane.major ? profile.majorBias : profile.localBias;
+        const riverBridgeBoost = /bridge|trunk|primary|secondary/.test(lane.roadClass || '') ? 1.08 : 1;
+        const weight = lane.length * classWeight * centrality * riverBridgeBoost;
+        weightedLength += weight;
+
+        const repeats = Math.max(
+          1,
+          Math.min(lane.major ? 9 : 5, Math.round(weight / (lane.major ? 158 : 225)))
+        ) + (lane.major ? 1 : 0);
+
+        for(let r = 0; r < repeats; r++) weightedLaneIndices.push(index);
+      });
+
+      const dynamicCount = Math.round(weightedLength / (mobileLike ? 120 : 74) * densityScale);
+      const cityMultiplier = cityTrafficMultiplier(cityId);
+      // Background-use: light traffic (~60 cars in frame at city zoom) — a calm living texture
+      // behind the glass, not a full rush-hour grid. LITE: genuinely low-power devices (low RAM / few
+      // cores) get a further ~18% trim on top of the mobileLike reduction (count only — the movement /
+      // lane logic is untouched). Normal phones/tablets keep the tuned mobileLike count.
+      const liteCarScale = lowPowerDevice ? 0.82 : 1;
+      // INITIAL build count — kept BELOW TRAFFIC_VISIBLE_TARGET on purpose: the adaptive controller ramps the
+      // network UP to the target on dwell and stops, so the visible count converges TO the target instead of
+      // overshooting from a high initial seed. (A fast scroll-by shows this lighter initial; a pause fills it.)
+      const baseMinCars = Math.round((mobileLike ? 70 : 80) * liteCarScale);
+      const baseMaxCars = Math.round((mobileLike ? 110 : 110) * liteCarScale);
+      // The adaptive controller (ensureTrafficNetwork) passes a per-city total tuned to land
+      // ~60-70 cars *visible* in frame; without it, fall back to the road-density estimate.
+      const count = (typeof targetOverride === 'number')
+        ? Math.max(40, Math.min(440, Math.round(targetOverride)))
+        : Math.max(
+            Math.round(baseMinCars * cityMultiplier),
+            Math.min(
+              Math.round(baseMaxCars * cityMultiplier),
+              Math.round(dynamicCount * 2.80 * cityMultiplier)
+            )
+          );
+
+      const coverageCount = Math.min(count, lanes.length);
+      const chosenLaneIndices = [];
+
+      for(let i=0; i<coverageCount; i++){
+        const laneIndex = Math.floor(i * lanes.length / coverageCount);
+        chosenLaneIndices.push(laneIndex);
+      }
+
+      for(let i=coverageCount; i<count; i++){
+        chosenLaneIndices.push(weightedLaneIndices[(i - coverageCount) % weightedLaneIndices.length] ?? (i % lanes.length));
+      }
+
+      const laneLoadMap = new Map();
+      chosenLaneIndices.forEach(idx => laneLoadMap.set(idx, (laneLoadMap.get(idx) || 0) + 1));
+      const seenChosen = new Map();   // P3: running counter so `sameBefore` is O(1), not an O(i) slice+filter
+
+      for(let i=0; i<count; i++){
+        const previous = previousCars && i < previousCars.length ? previousCars[i] : null;
+
+        // Continuity: when re-populating the SAME lanes (a density top-up), keep each existing car
+        // exactly where it is so nothing visibly jumps — only brand-new cars are placed + fade in.
+        let laneIndex, keptInPlace = false;
+        if(keepLanes && previous && Number.isFinite(previous.laneIndex) && previous.laneIndex < lanes.length && lanes[previous.laneIndex]){
+          laneIndex = previous.laneIndex;
+          keptInPlace = true;
+        }else{
+          laneIndex = chosenLaneIndices[i] ?? (i % lanes.length);
+        }
+        const lane = lanes[laneIndex];
+        const laneLoad = laneLoadMap.get(laneIndex) || 1;
+        const sameBefore = seenChosen.get(laneIndex) || 0;   // P3: was chosenLaneIndices.slice(0,i).filter(...).length (O(n²))
+        const _ci = chosenLaneIndices[i]; if(_ci != null) seenChosen.set(_ci, (seenChosen.get(_ci) || 0) + 1);
+
+        const seed = previous ? previous.seed : (i + 1) * 0.61803398875 + cityId.length * .137;
+        const stagger = ((sameBefore + 0.16 + ((i * .071) % .22)) / laneLoad) % 1;
+        const baseSpeed = lane.major ? profile.majorSpeed : profile.localSpeed;
+        const speedJitter = ((i * 17) % 8) * .25;
+
+        const chosenColor = previous && previous.color
+          ? previous.color
+          : TRAFFIC.palette[(i + Math.floor(profile.density * 10)) % TRAFFIC.palette.length];
+        const flowColor = hexToRgb(chosenColor);
+        const previousRatio = previous && previous.laneLength ? ((previous.progress / Math.max(1, previous.laneLength)) % 1) : null;
+        const isNewCar = !previous;
+
+        cars.push({
+          cityId,
+          laneIndex,
+          nextLaneIndex:null,
+          turnSignal:previous ? previous.turnSignal : null,
+          turnSignalUntil:previous ? previous.turnSignalUntil : 0,
+          progress: keptInPlace
+            ? (((previous.progress % lane.length) + lane.length) % lane.length)
+            : ((previousRatio !== null ? previousRatio : stagger) * lane.length),
+          speed:previous ? Math.min(previous.speed || baseSpeed, baseSpeed + speedJitter) : baseSpeed + speedJitter,
+          desiredSpeed:baseSpeed + speedJitter,
+          baseDesiredSpeed:baseSpeed + speedJitter,
+          color:chosenColor,
+          colorRgb:hexToRgb(chosenColor),
+          flowRgb:flowColor,
+          length:previous ? previous.length : 8 + (i % 4),
+          width:previous ? previous.width : 4.2 + (i % 3) * .35,
+          laneLength:lane.length,
+          stopTimer:0,
+          stopBias:previous ? previous.stopBias : ((i * 19) % 100) / 100,
+          blinkPhase:previous ? previous.blinkPhase : (i * .31) % 1,
+          braking:false,
+          seed,
+          visualAlpha:previous && Number.isFinite(previous.visualAlpha) ? previous.visualAlpha : 0,
+          bornAt:previous && previous.bornAt ? previous.bornAt : now,
+          spawnDelay:previous ? 0 : (Math.floor(i / 12) * 38 + (i % 12) * 16),
+          spawnDuration:previous ? 1 : (mobileLike ? 620 : 760)
+        });
+      }
+
+      return cars;
+    }
+
+    function ensureTrafficNetwork(){
+      // Robust local/production traffic:
+      // Do not require map.isStyleLoaded(); it can remain false while tiles continue loading,
+      // even though rendered road features are already queryable. Requiring it caused zero
+      // cars in local downloaded builds.
+      if(!map || !map.getStyle || !map.getStyle() || !map.getCanvas) return TRAFFIC.lastVisibleNetwork || null;
+
+      const cityId = activeCityId();
+      TRAFFIC.activeCityId = cityId;
+
+      let network = TRAFFIC.networks.get(cityId);
+      const now = performance.now();
+
+      const city = cities[cityId];
+      const distanceToCity = city ? cityDistance({lat:camera.lat, lng:camera.lng}, city) : 999;
+
+      // Build only once the camera is actually approaching/centered on the city.
+      // The previous "fast load" could build too early from country-level roads,
+      // leaving no cars on Kyiv streets.
+      // Build a touch earlier on approach (lower zoom gate) so the destination city has time to
+      // populate before you arrive — the quality re-sample refines it to street geometry on arrival.
+      const cityIsActuallyVisible = camera.zoom >= 8.8 && distanceToCity < .80;
+
+      const shouldInitialBuild =
+        !network &&
+        cityIsActuallyVisible &&
+        now - TRAFFIC.lastRoadQuery > 160;
+
+      // Upgrade once at closer zoom, replacing early/coarse road geometry with actual city streets.
+      // Also re-sample once we're truly centred (the approach build samples a wide area, which makes
+      // the on-screen car fraction read too low and the density controller overshoot).
+      const shouldQualityRebuild =
+        !!network &&
+        camera.zoom >= 11.35 &&
+        distanceToCity < .45 &&
+        now - TRAFFIC.lastRoadQuery > 620 &&
+        (!network.qualityPass || network.buildZoom < 11.25 ||
+         ((network.buildDist || 0) > .15 && distanceToCity < .12));
+
+      // Adaptive density controller: keep ~60-70 cars visible in every city. Because each city has a
+      // different on-screen fraction (road layout), a flat total can't do this. When parked & centred
+      // we measure how many actually drew and, if too few, TOP UP the network — adding cars that fade
+      // in while every existing car keeps driving in place. It only ever adds (never wipes/respawns),
+      // reuses the current lanes for continuity, and is capped per city so it settles and stays put.
+      if(!TRAFFIC.cityTargetCars) TRAFFIC.cityTargetCars = {};
+      if(!TRAFFIC.cityAdjusts) TRAFFIC.cityAdjusts = {};
+      const cameraParked = scrollVelocity < 0.00016;
+      const parkedCentred = !!network && cameraParked && camera.zoom >= 14.0 && distanceToCity < .12;
+      // Dwell gate: the visible-car count is only trustworthy once the view has actually settled
+      // (camera centred + cars eased in). Adjusting on a transient low reading mid-settle caused
+      // runaway over-adding. So require it to have been parked-centred on THIS city for a moment.
+      if(TRAFFIC.parkedCity !== cityId){ TRAFFIC.parkedCity = cityId; TRAFFIC.parkedSince = 0; }
+      if(parkedCentred){ if(!TRAFFIC.parkedSince) TRAFFIC.parkedSince = now; }
+      else TRAFFIC.parkedSince = 0;
+      const settledMs = TRAFFIC.parkedSince ? now - TRAFFIC.parkedSince : 0;
+      const drawnNow = TRAFFIC.stats.drawn || 0;
+      const starved = drawnNow < 12;     // network's cars are off-screen → need a fresh viewport
+      let adjustTarget = null;
+      const adjustsDone = TRAFFIC.cityAdjusts[cityId] || 0;
+      const canAdjust =
+        parkedCentred && network.qualityPass &&
+        settledMs > 600 &&            // fill faster on a brief pause (was 1600) — z14 cities need topping up
+        adjustsDone < 9 &&            // allow a bigger ramp (was 5)
+        now - TRAFFIC.lastRoadQuery > 850 &&
+        now - (TRAFFIC.lastCountAdjust || 0) > 650;   // (was 1500) ramp in ~2s of dwell, not ~7s
+      if(canAdjust && drawnNow < TRAFFIC_VISIBLE_TARGET){
+        const cur = network.cars.length;
+        // Step toward TRAFFIC_VISIBLE_TARGET cars visible at the z14 view, bigger per-step jumps so a short
+        // pause fills it; cap re-measures the true centred fraction each time so it can't overshoot.
+        adjustTarget = Math.min(680, cur + TRAFFIC_VISIBLE_TARGET, Math.round(cur * TRAFFIC_VISIBLE_TARGET / Math.max(10, drawnNow)));
+        if(adjustTarget - cur < 6) adjustTarget = null;   // already close enough
+      }
+      const shouldAdjustRebuild = adjustTarget != null;
+
+      if(shouldInitialBuild || shouldQualityRebuild || shouldAdjustRebuild){
+        const adjustOnly = shouldAdjustRebuild && !shouldInitialBuild && !shouldQualityRebuild;
+        // Reuse the current lanes for a continuity-preserving top-up (no pop); resample only when we
+        // need a fresh viewport (initial/quality build, or a starved network whose cars are off-screen).
+        const reuseLanes = adjustOnly && !starved && network.lanes && network.lanes.length >= 6;
+        TRAFFIC.lastRoadQuery = now;
+        const lanes = reuseLanes ? network.lanes : sampleRoadLanes(cityId);
+
+        const enoughForInitial = shouldInitialBuild && lanes.length >= 4;
+        const enoughForUpgrade =
+          shouldQualityRebuild &&
+          lanes.length >= 8 &&
+          (network.buildZoom < 11.25 || lanes.length >= Math.round(network.lanes.length * .72));
+        const enoughForAdjust = shouldAdjustRebuild && lanes.length >= 6;
+
+        if(enoughForInitial || enoughForUpgrade || enoughForAdjust){
+          const doAdjust = enoughForAdjust && !enoughForInitial && !enoughForUpgrade;
+          // A centred quality re-sample gives an accurate on-screen fraction — drop any stored target
+          // from the earlier wide-area estimate so the controller re-converges cleanly.
+          if(enoughForUpgrade){ TRAFFIC.cityAdjusts[cityId] = 0; delete TRAFFIC.cityTargetCars[cityId]; }
+          if(doAdjust){
+            TRAFFIC.lastCountAdjust = now;
+            TRAFFIC.cityAdjusts[cityId] = adjustsDone + 1;
+            TRAFFIC.cityTargetCars[cityId] = adjustTarget;
+          }
+          const target = TRAFFIC.cityTargetCars[cityId];
+          network = {
+            cityId,
+            lanes,
+            // Always carry existing cars forward; on a same-lane top-up keep them exactly in place.
+            cars: createCarsForLanes(cityId, lanes, network ? network.cars : [], target, reuseLanes),
+            createdAt: network ? network.createdAt : now,
+            buildZoom: camera.zoom,
+            buildDist: distanceToCity,
+            qualityPass: camera.zoom >= 11.35
+          };
+          if(!reuseLanes) warmTrafficNetwork(network, network.createdAt === now ? .9 : .35);
+          TRAFFIC.networks.set(cityId, network);
+          TRAFFIC.diagnostics.reason = doAdjust ? 'density-tuned' : 'real-road-network';
+        }
+      }
+
+      if(network){
+        TRAFFIC.lastVisibleNetwork = network;
+        return network;
+      }
+
+      return TRAFFIC.lastVisibleNetwork || null;
+    }
+
+    function laneSample(lane, distance){
+      const d = ((distance % lane.length) + lane.length) % lane.length;
+      let idx = 1;
+      while(idx < lane.cumulative.length && lane.cumulative[idx] < d) idx++;
+      const i1 = Math.min(idx, lane.points.length - 1);
+      const i0 = Math.max(0, i1 - 1);
+      const segLen = Math.max(.0001, lane.cumulative[i1] - lane.cumulative[i0]);
+      const t = clamp((d - lane.cumulative[i0]) / segLen, 0, 1);
+
+      const a = lane.points[i0];
+      const b = lane.points[i1];
+
+      const lng = lerp(a.lng, b.lng, t);
+      const lat = lerp(a.lat, b.lat, t);
+
+      const aPx = map.project([a.lng, a.lat]);
+      const bPx = map.project([b.lng, b.lat]);
+      const x = lerp(aPx.x, bPx.x, t);
+      const y = lerp(aPx.y, bPx.y, t);
+      const dx = bPx.x - aPx.x;
+      const dy = bPx.y - aPx.y;
+      const screenLen = Math.hypot(dx, dy) || 1;
+
+      return {lng, lat, x, y, dx:dx/screenLen, dy:dy/screenLen, vertexIndex:i1};
+    }
+
+    // Cheap vertex-index ONLY (no map.project) — for the per-car UPDATE path, which uses only
+    // sample.vertexIndex. The full laneSample (2× map.project) stays reserved for the RENDER path. This
+    // halves the projection load per traffic frame (was ~4 projections/car: 2 in update + 2 in render).
+    function laneVertexIndex(lane, distance){
+      const d = ((distance % lane.length) + lane.length) % lane.length;
+      let idx = 1;
+      while(idx < lane.cumulative.length && lane.cumulative[idx] < d) idx++;
+      return Math.min(idx, lane.points.length - 1);
+    }
+
+    function trafficOpacity(zoom, network){
+      if(!network) return 0;
+
+      // Faint early flow appears before close zoom; it should no longer feel like cars load late.
+      // Softened curve: traffic stays more present through the mid zooms so that pulling out of a
+      // city fades the cars gradually (as small dots) instead of dropping them abruptly.
+      if(zoom < 6.4) return 0;
+      if(zoom < 8.5) return (zoom - 6.4) / 2.1 * .26;
+      if(zoom < 11.0) return .26 + (zoom - 8.5) / 2.5 * .18;
+      if(zoom < 13.0) return .44 + (zoom - 11.0) / 2.0 * .30;
+      if(zoom < 14.4) return .74 + (zoom - 13.0) / 1.4 * .16;
+      return .90;   // solid cars at the city view so "drawn" ≈ "clearly visible" (was .68 → many read faint)
+    }
+
+    function trafficVisibleDensity(zoom){
+      // 2x city traffic version: much fuller cities while keeping the same smooth reveal logic.
+      if(zoom < 6.9) return 0;
+      if(zoom < 8.8) return smoothstep(6.9, 8.8, zoom) * .30;
+      if(zoom < 10.4) return .30 + smoothstep(8.8, 10.4, zoom) * .28;
+      if(zoom < 12.8) return .58 + smoothstep(10.4, 12.8, zoom) * .24;
+      if(zoom < 13.8) return .82 + smoothstep(12.8, 13.8, zoom) * .12;
+      if(zoom < 14.75) return .94 + smoothstep(13.8, 14.75, zoom) * .06;
+      return 1.0;
+    }
+
+    function trafficMinimumCarFade(zoom){
+      // Higher minimum fade so the 2x version stays visibly denser through city zooms.
+      if(zoom < 9.4) return 0;
+      if(zoom < 11.8) return smoothstep(9.4, 11.8, zoom) * .095;
+      if(zoom < 13.2) return .095 + smoothstep(11.8, 13.2, zoom) * .085;
+      if(zoom < 14.5) return .180 + smoothstep(13.2, 14.5, zoom) * .080;
+      return .26;
+    }
+
+    function trafficRenderBudget(zoom){
+      // Continuous budget to avoid sudden mass appearance at zoom thresholds.
+      const mobileBudget =
+        56 +
+        smoothstep(8.4, 11.4, zoom) * 68 +
+        smoothstep(11.4, 13.2, zoom) * 84 +
+        smoothstep(13.2, 14.75, zoom) * 60;
+
+      const desktopBudget =
+        100 +
+        smoothstep(8.4, 11.4, zoom) * 136 +
+        smoothstep(11.4, 13.2, zoom) * 156 +
+        smoothstep(13.2, 14.75, zoom) * 104;
+
+      return Math.max(mobileLike ? 14 : 24, Math.round((mobileLike ? mobileBudget : desktopBudget) * trafficAdaptiveBudgetScale()));
+    }
+
+    function stableUnit(value){
+      const x = Math.sin((value || 1) * 12.9898) * 43758.5453123;
+      return x - Math.floor(x);
+    }
+
+    function carDensityFade(car, density){
+      // Stable-cars v4:
+      // At street zoom, every generated car should stay visible. Density fade is only for
+      // wide/transition views, otherwise cars look like they randomly disappear.
+      if(camera.zoom >= 12.85) return 1;
+      const reveal = stableUnit((car.seed || 1) * 91.7 + (car.laneIndex || 0) * .37);
+      return smoothstep(reveal - .42, reveal + .18, density);
+    }
+
+    function carSpawnFade(car){
+      if(!car || !car.bornAt) return 1;
+      const elapsed = performance.now() - car.bornAt - (car.spawnDelay || 0);
+      if(elapsed <= 0) return 0;
+      return smoothstep(0, car.spawnDuration || 1000, elapsed);
+    }
+
+    function carBudgetFade(car, budget, total){
+      // Stable-cars v4:
+      // Do not hide cars at street zoom because of adaptive render budget.
+      // Budget fade remains active only while zoomed out, where density should be softer.
+      if(camera.zoom >= 12.85) return 1;
+      if(!total || budget >= total) return 1;
+      const ratio = clamp(budget / Math.max(1, total), 0, 1);
+      const reveal = stableUnit((car.seed || 1) * 43.91 + (car.laneIndex || 0) * .13);
+      return smoothstep(reveal - .14, reveal + .20, ratio);
+    }
+
+    function smoothCarAlpha(car, targetAlpha){
+      const current = Number.isFinite(car.visualAlpha) ? car.visualAlpha : 0;
+      const frameMs = TRAFFIC.smoothFrameMs || 16.7;
+      const base = targetAlpha > current ? .075 : .115;
+      const k = 1 - Math.pow(1 - base, frameMs / 16.7);
+      car.visualAlpha = current + (targetAlpha - current) * clamp(k, .035, .24);
+
+      if(car.visualAlpha < .001 && targetAlpha <= .001) car.visualAlpha = 0;
+      if(car.visualAlpha > .995 && targetAlpha >= .995) car.visualAlpha = 1;
+      return car.visualAlpha;
+    }
+
+    function trafficVisualMode(zoom){
+      if(zoom < 13.15) return 'dots';
+      if(zoom < 13.85) return 'dots→capsules';
+      if(zoom < 14.25) return 'capsules';
+      if(zoom < 14.75) return 'capsules→cars';
+      return 'cars';
+    }
+
+    function trafficZoomScale(zoom){
+      if(zoom < 9.0) return .56;
+      if(zoom < 10.8) return .64;
+      if(zoom < 12.7) return .76;
+      if(zoom < 14.15) return .92;
+      return 1.08;
+    }
+
+    function trafficZoomAlphaMultiplier(zoom){
+      if(zoom < 10.2) return .48;
+      if(zoom < 11.8) return .58;
+      if(zoom < 12.7) return .68;
+      if(zoom < 13.8) return .95;   // z13 cap rests here — near-full opacity so the little cars read with contrast
+      return 1;
+    }
+
+    function cityLabelFadeFactor(network, x, y){
+      // Car continuity fix:
+      // The old native-label protection fade made cars look like they disappeared at a fixed point.
+      // Keep all traffic visible; map label collisions are less important than continuity.
+      return 1;
+    }
+
+    function laneOffsetPixels(zoom){
+      if(zoom < 9.5) return .28;
+      if(zoom < 11.5) return .62;
+      if(zoom < 13.5) return 1.24;
+      return 2.15;
+    }
+
+    // When a car reaches a true DEAD-END (no road to flow onto + no u-turn), the old code snapped its
+    // progress back to the segment START — the visible backward "loop"/jump in dense grids (cars looping
+    // short segments). Instead, retire the car and fade a replacement in partway along a normal CONNECTED
+    // lane → the dead-end stops looping, traffic count stays alive, and there's no gap/direction logic
+    // change (just a relocation hidden by the spawn fade-in).
+    function respawnCarToFlow(car, lanes){
+      if(!lanes || !lanes.length){ car.progress = 0; return; }
+      let li = -1;
+      for(let t=0; t<10; t++){ const c = (Math.random()*lanes.length)|0; const L = lanes[c]; if(L && L.connections && L.connections.length){ li = c; break; } }
+      if(li < 0){ car.progress = 0; return; }   // no connected lane anywhere (rare) → just reset to start
+      const L = lanes[li];
+      car.laneIndex   = li;
+      car.nextLaneIndex = null;
+      car.laneLength  = L.length;
+      // ENTER at the lane start (not a random mid-lane spot that could land ON another car → both lock to a
+      // stop, the "stuck in each other" bug). A small seed-based offset keeps simultaneous respawns from
+      // stacking at exactly 0; start STOPPED so the car-following gap logic spaces it behind anything ahead.
+      car.progress    = (((car.seed || 0.5) % 1) * 26);
+      car.speed       = 0;
+      car.brT         = 1;                       // not mid-bridge
+      car.visualAlpha = 0;                       // fade in at the new spot so the relocation is invisible
+      car.bornAt      = performance.now();
+      car.spawnDelay  = 0;
+    }
+
+    // Shortest-arc angle ease (handles the ±π wrap) — used to glide a car's RENDERED heading toward the
+    // lane direction instead of snapping it at a corner.
+    function angleLerp(a, b, t){
+      let d = b - a;
+      while(d > Math.PI) d -= 2 * Math.PI;
+      while(d < -Math.PI) d += 2 * Math.PI;
+      return a + d * t;
+    }
+
+    // RENDER-ONLY corner smoothing. A junction's next-lane START can sit a few metres from the prev-lane END
+    // (the lane graph connects within a tolerance), so on transition the car used to POP across that gap —
+    // the visible "jumping on corners". startBridge records the crossing so the DRAW path glides the car
+    // across it over a few frames at driving speed. Movement / car-following / distribution logic is
+    // untouched (the car's logical lane+progress are already set) — only the rendered x/y/heading is eased.
+    function startBridge(car, fromLane, toLane, fromIdx){
+      try{
+        const a = fromLane.points[fromLane.points.length - 1];
+        const b = toLane.points[0];
+        const gap = geoDistanceMeters(a, b);
+        if(gap > 4){ car.brFromLane = fromIdx; car.brT = 0; car.brGap = gap; }
+        else car.brT = 1;   // coincident endpoints: nothing to bridge
+      }catch(e){ car.brT = 1; }
+    }
+
+    function updateTrafficCars(network, dt){
+      if(!network) return;
+      const SPEED_MULT = 1.0;   // global "drive faster" knob — scales every car's target speed (and the
+                                // car-following/gap logic with it, since they all key off desiredSpeed).
+                                // (Reverted 1.3→1.0 with the distribution experiments; junction gaps still
+                                // GLIDE via startBridge, so raising this again later stays corner-safe.)
+      const laneGroups = new Map();
+
+      for(const car of network.cars){
+        if(!laneGroups.has(car.laneIndex)) laneGroups.set(car.laneIndex, []);
+        laneGroups.get(car.laneIndex).push(car);
+      }
+
+      for(const [laneIndex, cars] of laneGroups){
+        const lane = network.lanes[laneIndex];
+        if(!lane) continue;
+
+        cars.sort((a,b) => a.progress - b.progress);
+
+        for(let i=0; i<cars.length; i++){
+          const car = cars[i];
+          // The leader is the next car AHEAD on THIS lane (list is sorted ascending → cars[i+1]). The FRONT
+          // car has NO in-lane leader — it just proceeds and transitions off the lane end. The old
+          // `cars[(i+1) % cars.length]` ring-wrap invented a phantom leader: a LONE car followed ITSELF (→
+          // braked to a dead stop on any lane shorter than safeGap) and the front car braked for the REAR car
+          // across a fake wrap (→ whole occupied lanes gridlocked) — leaving ~10% of cars STUCK while the
+          // rest moved.
+          const ahead = (i + 1 < cars.length) ? cars[i + 1] : null;
+
+          if(!Number.isFinite(car.speed)) car.speed = car.baseDesiredSpeed || car.desiredSpeed || 6;
+          if(!Number.isFinite(car.progress)) car.progress = 0;
+          car.desiredSpeed = (car.baseDesiredSpeed || car.desiredSpeed || 6) * SPEED_MULT;
+
+          if(car.stopTimer > 0){
+            car.stopTimer = Math.max(0, car.stopTimer - dt);
+            car.speed = Math.max(0, car.speed - 20 * dt);
+          }else{
+            car.speed += (car.desiredSpeed - car.speed) * Math.min(1, dt * 1.8);
+          }
+
+          if(ahead){
+            const gap = ahead.progress - car.progress;     // > 0 (sorted): a real leader on the same lane
+            const safeGap = lane.major ? 30 : 24;
+            if(gap < safeGap){
+              car.speed = Math.min(car.speed, Math.max(0, ahead.speed - 1.4));
+              if(gap < safeGap * .70) car.speed = Math.max(0, car.speed - 20 * dt);
+            }
+          }
+
+          const distToEnd = lane.length - car.progress;
+          if(distToEnd < 42 && car.nextLaneIndex == null){
+            const nextChoice = chooseNextLane(lane, car);
+            if(nextChoice){
+              car.nextLaneIndex = nextChoice.index;
+              const signal = turnSignalFromTurn(nextChoice.turn);
+              if(signal){
+                car.turnSignal = signal;
+                car.turnSignalUntil = performance.now() + 1400;
+              }
+            }
+          }
+
+          const _vi = laneVertexIndex(lane, car.progress);   // no map.project in the update path (P2a)
+          const vertexDist = lane.cumulative[_vi] || lane.length;
+          const distToVertex = Math.abs(vertexDist - (car.progress % lane.length));
+          const hasIntersection = lane.connections && lane.connections.length > 1;
+
+          if(distToVertex < 10 && hasIntersection && car.stopBias < .13 && Math.random() < dt * .26){
+            car.stopTimer = .16 + car.stopBias * 1.0;
+          }
+
+          car.braking = car.stopTimer > 0 || car.speed < car.desiredSpeed * .56;
+          car.progress += car.speed * dt;
+          // Advance any active junction-gap glide (render-only). max(speed,4) so a car braking at the
+          // junction still finishes crossing instead of stalling visually mid-gap.
+          if(car.brT != null && car.brT < 1){ car.brT += (Math.max(car.speed, 4) * dt) / Math.max(3, car.brGap); }
+
+          if(car.progress >= lane.length){
+            const overflow = car.progress - lane.length;
+            const _fromIdx = car.laneIndex;
+            if(car.nextLaneIndex != null && network.lanes[car.nextLaneIndex]){
+              car.laneIndex = car.nextLaneIndex;
+              car.progress = overflow;
+              car.nextLaneIndex = null;
+              startBridge(car, lane, network.lanes[car.laneIndex], _fromIdx);
+            }else if(lane.connections && lane.connections.length){
+              const nextChoice = chooseNextLane(lane, car);
+              if(nextChoice && network.lanes[nextChoice.index]){
+                car.laneIndex = nextChoice.index;
+                car.progress = overflow;
+                startBridge(car, lane, network.lanes[car.laneIndex], _fromIdx);
+              }else{
+                respawnCarToFlow(car, network.lanes);   // dead-end → fade-respawn on a flowing lane (no snap-back loop)
+              }
+            }else{
+              respawnCarToFlow(car, network.lanes);     // isolated segment → fade-respawn (no segment looping)
+            }
+          }
+
+          if(car.turnSignalUntil && performance.now() > car.turnSignalUntil){
+            car.turnSignal = null;
+            car.turnSignalUntil = 0;
+          }
+        }
+      }
+    }
+
+    function roundedRect(ctx, x, y, w, h, r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr,y);
+      ctx.lineTo(x+w-rr,y);
+      ctx.quadraticCurveTo(x+w,y,x+w,y+rr);
+      ctx.lineTo(x+w,y+h-rr);
+      ctx.quadraticCurveTo(x+w,y+h,x+w-rr,y+h);
+      ctx.lineTo(x+rr,y+h);
+      ctx.quadraticCurveTo(x,y+h,x,y+h-rr);
+      ctx.lineTo(x,y+rr);
+      ctx.quadraticCurveTo(x,y,x+rr,y);
+      ctx.closePath();
+    }
+
+    function hexToRgb(hex){
+      const raw = String(hex || '').replace('#','').trim();
+      const full = raw.length === 3 ? raw.split('').map(ch => ch + ch).join('') : raw;
+      const n = Number.parseInt(full || '6fa487', 16);
+      return {
+        r:(n >> 16) & 255,
+        g:(n >> 8) & 255,
+        b:n & 255
+      };
+    }
+
+    function mixRgb(a, b, t){
+      const k = clamp(t, 0, 1);
+      return {
+        r:Math.round(lerp(a.r, b.r, k)),
+        g:Math.round(lerp(a.g, b.g, k)),
+        b:Math.round(lerp(a.b, b.b, k))
+      };
+    }
+
+    function rgbCss(rgb){
+      return `rgb(${rgb.r},${rgb.g},${rgb.b})`;
+    }
+
+    function trafficColorProgress(zoom){
+      // No gray/green tint anymore: preserve actual car colors at every zoom.
+      return 1;
+    }
+
+    function trafficColorForZoom(car, zoom){
+      const flow = car.flowRgb || {r:135,g:172,b:151};
+      const body = car.colorRgb || hexToRgb(car.color);
+      return mixRgb(flow, body, trafficColorProgress(zoom));
+    }
+
+
+    function drawTrafficCar(x, y, angle, car, opacity){
+      const blend = lodBlend(camera.zoom);
+      const scale = trafficZoomScale(camera.zoom);
+      const len = car.length * scale;
+      const wid = car.width * scale;
+      const bodyColor = rgbCss(trafficColorForZoom(car, camera.zoom));
+
+      trafficCtx.save();
+      trafficCtx.translate(x, y);
+      trafficCtx.rotate(angle);
+
+      if(blend.dot > .01){
+        // z13 cap: the journey now rests in pure-dot mode (lodBlend dot=1 at z13), so the dot is the car.
+        // Floor it bigger at the city-arrival zoom (≥12.6 → ~2.5px) so traffic READS at the district view
+        // instead of collapsing to a ~1px speck; far/country zooms keep the small 1.05 floor.
+        const radius = Math.max(camera.zoom >= 12.6 ? 2.5 : 1.05, wid * (camera.zoom < 12.4 ? .24 : .30));
+        trafficCtx.globalAlpha = opacity * blend.dot;
+
+        // Dot mode only: no dash/trail. This keeps zoomed-out traffic light and readable.
+        trafficCtx.fillStyle = bodyColor;
+        trafficCtx.beginPath();
+        trafficCtx.arc(0, 0, radius, 0, Math.PI * 2);
+        trafficCtx.fill();
+
+        if(camera.zoom >= 12.45){
+          trafficCtx.globalAlpha = opacity * blend.dot * .28;
+          trafficCtx.fillStyle = 'rgba(255,255,255,.42)';
+          trafficCtx.beginPath();
+          trafficCtx.arc(-radius * .28, -radius * .24, radius * .32, 0, Math.PI * 2);
+          trafficCtx.fill();
+        }
+      }
+
+      if(blend.capsule > .01){
+        trafficCtx.globalAlpha = opacity * blend.capsule;
+
+        trafficCtx.fillStyle = 'rgba(33,65,45,.075)';
+        roundedRect(trafficCtx, -len*.35, -wid*.18 + 1.0, len*.70, wid*.38, 1.3);
+        trafficCtx.fill();
+
+        trafficCtx.fillStyle = bodyColor;
+        roundedRect(trafficCtx, -len*.44, -wid*.32, len*.88, wid*.64, Math.min(2.0, wid*.44));
+        trafficCtx.fill();
+
+        trafficCtx.globalAlpha = opacity * blend.capsule * .54;
+        trafficCtx.fillStyle = 'rgba(255,255,255,.42)';
+        roundedRect(trafficCtx, -len*.10, -wid*.22, len*.28, wid*.44, 1.0);
+        trafficCtx.fill();
+
+        if(car.braking && camera.zoom >= 13.0){
+          trafficCtx.globalAlpha = opacity * blend.capsule * .75;
+          trafficCtx.fillStyle = 'rgba(210,88,88,.85)';
+          trafficCtx.fillRect(len*.34, -wid*.16, 1.0, wid*.12);
+          trafficCtx.fillRect(len*.34, wid*.04, 1.0, wid*.12);
+        }
+      }
+
+      if(blend.car > .01){
+        trafficCtx.globalAlpha = opacity * blend.car;
+
+        trafficCtx.fillStyle = 'rgba(33,65,45,.12)';
+        roundedRect(trafficCtx, -len*.45, -wid*.26 + 1.6, len*.90, wid*.56, 1.8);
+        trafficCtx.fill();
+
+        trafficCtx.fillStyle = bodyColor;
+        roundedRect(trafficCtx, -len/2, -wid/2, len, wid, Math.min(2.5, wid*.52));
+        trafficCtx.fill();
+
+        trafficCtx.fillStyle = 'rgba(255,255,255,.54)';
+        roundedRect(trafficCtx, -len*.18, -wid*.30, len*.44, wid*.60, 1.4);
+        trafficCtx.fill();
+
+        trafficCtx.fillStyle = 'rgba(255,255,255,.18)';
+        roundedRect(trafficCtx, -len*.42, -wid*.22, len*.18, wid*.44, 1.0);
+        trafficCtx.fill();
+
+        if(camera.zoom >= 14.0){
+          trafficCtx.fillStyle = car.braking ? 'rgba(220,80,80,.88)' : 'rgba(190,90,90,.50)';
+          trafficCtx.fillRect(len*.31, -wid*.18, 1.2, wid*.12);
+          trafficCtx.fillRect(len*.31,  wid*.06, 1.2, wid*.12);
+
+          const blinkOn = car.turnSignal && Math.floor((performance.now() + car.blinkPhase * 400) / 260) % 2 === 0;
+          if(blinkOn){
+            trafficCtx.fillStyle = 'rgba(223,164,70,.95)';
+            const sideY = car.turnSignal === 'right' ? -wid*.30 : wid*.18;
+            trafficCtx.fillRect(len*.31, sideY, 1.3, wid*.12);
+            trafficCtx.fillRect(-len*.39, sideY, 1.2, wid*.12);
+          }
+        }
+      }
+
+      trafficCtx.restore();
+    }
+
+    function cityTrafficFade(network){
+      if(!network) return 0;
+      const city = cities[network.cityId];
+      if(!city) return 1;
+      const d = cityDistance({lat:camera.lat, lng:camera.lng}, city);
+      if(camera.zoom < 7.8) return .28;
+      if(d < .18) return 1;
+      if(d < .52) return 1 - (d - .18) / .34 * .45;
+      if(camera.zoom < 9.2) return .42;
+      return Math.max(.10, 1 - (d - .52) / .88);
+    }
+
+
+    function recoverVisibleRoadNetwork(currentNetwork){
+      if(camera.zoom < 10.85) return null;
+
+      const now = performance.now();
+      if(now - TRAFFIC.lastRecoveryAttempt < 900) return null;
+      TRAFFIC.lastRecoveryAttempt = now;
+
+      const cityId = activeCityId();
+      let lanes = [];
+
+      try{
+        lanes = sampleRoadLanes(cityId);
+      }catch(e){
+        lanes = [];
+      }
+
+      // Recovery is now logic-only: rebuild from real road lanes, but do not force cars
+      // onto the visible viewport. Forced reseeding made cars look fake and laggy.
+      if(lanes.length >= 6){
+        const recovered = {
+          cityId,
+          lanes,
+          cars:createCarsForLanes(cityId, lanes, currentNetwork ? currentNetwork.cars : []),
+          createdAt:currentNetwork ? currentNetwork.createdAt : now,
+          buildZoom:camera.zoom,
+          qualityPass:camera.zoom >= 11.0,
+          recovered:true
+        };
+
+        warmTrafficNetwork(recovered, .8);
+        TRAFFIC.networks.set(cityId, recovered);
+        TRAFFIC.lastVisibleNetwork = recovered;
+        TRAFFIC.diagnostics.reason = 'road-logic-recovered';
+        return recovered;
+      }
+
+      TRAFFIC.diagnostics.reason = 'waiting-real-road-geometry';
+      return currentNetwork || null;
+    }
+
+
+
+    function warmTrafficNetwork(network, seconds=.6){
+      if(!network || !network.cars || !network.cars.length) return;
+      // Warm a newly rebuilt network very lightly so spacing / speeds settle before the cars fade in.
+      // This runs only on rebuild, not every frame.
+      const steps = Math.min(14, Math.max(4, Math.round(seconds / .08)));
+      for(let i=0; i<steps; i++){
+        updateTrafficCars(network, .06);
+      }
+    }
+
+    function validateTrafficNetwork(network){
+      if(!network || !Array.isArray(network.lanes) || !Array.isArray(network.cars)) return false;
+      if(!network.lanes.length || !network.cars.length) return false;
+
+      let validCars = 0;
+      for(const car of network.cars){
+        if(!car) continue;
+        if(!Number.isFinite(car.laneIndex) || car.laneIndex < 0 || car.laneIndex >= network.lanes.length) continue;
+        const lane = network.lanes[car.laneIndex];
+        if(!lane || !lane.length || !Array.isArray(lane.points) || lane.points.length < 2) continue;
+        if(!Number.isFinite(car.progress)) car.progress = 0;
+        if(!Number.isFinite(car.speed)) car.speed = car.desiredSpeed || 6;
+        validCars++;
+      }
+
+      return validCars > 0;
+    }
+
+    function trafficAdaptiveBudgetScale(){
+      const ms = TRAFFIC.realFrameMs || TRAFFIC.smoothFrameMs || 16;
+      const guard = PRODUCTION_PROFILE.fpsBudgetGuard;
+      let scale = 1;
+
+      if(ms > guard.bad) scale = .38;
+      else if(ms > guard.poor) scale = .50;
+      else if(ms > guard.fair) scale = .66;
+      else if(ms > guard.good) scale = .82;
+      else if(ms > guard.excellent) scale = .94;
+
+      return scale * (mobileLike ? PRODUCTION_PROFILE.mobileBudgetScale : PRODUCTION_PROFILE.desktopBudgetScale);
+    }
+
+    function trafficAdaptiveDensityScale(){
+      const ms = TRAFFIC.realFrameMs || TRAFFIC.smoothFrameMs || 16;
+      const guard = PRODUCTION_PROFILE.fpsBudgetGuard;
+      if(ms > guard.bad) return .72;
+      if(ms > guard.poor) return .80;
+      if(ms > guard.fair) return .88;
+      if(ms > guard.good) return .94;
+      return 1;
+    }
+
+    // ── Decouple cars from the host page's glass (idle-heat fix) ──────────────────────────────────────────
+    // The map+cars are the page BACKGROUND; the host's frosted-glass panels (.glass/.nav with an actual
+    // backdrop-filter) sit OVER them. A car moving behind a panel forces the GPU to re-blur that panel every
+    // frame — and at idle the cars are the only thing still moving, so that re-blur IS the idle heat. We
+    // erase the cars wherever a real glass panel covers them: behind the panel the car layer is then constant
+    // ⇒ a settled panel's blurred backdrop never changes ⇒ no re-blur while idle. Cars keep moving in the
+    // open (no glass there). Only works when embedded same-origin; standalone just draws everywhere.
+    let glassOccluders = [];          // {x,y,w,h,r} in #traffic-canvas CSS px (iframe is inset:-2vw/-2vh)
+    let occludersDirty = true;
+    function computeGlassOccluders(){
+      occludersDirty = false;
+      const out = [];
+      try{
+        const P = window.parent;
+        if(!P || P === window) { glassOccluders = out; return; }
+        const doc = P.document;                       // throws on cross-origin → caught → no occlusion
+        const offX = 0.02 * P.innerWidth;             // map host-viewport px → this oversized iframe's px
+        const offY = 0.02 * P.innerHeight;
+        const els = doc.querySelectorAll('.glass, .nav');
+        const hasBlur = (s) => { const v = (s.backdropFilter || s.webkitBackdropFilter || ''); return v && v !== 'none'; };
+        for(const el of els){
+          const cs = P.getComputedStyle(el);
+          // The blur lives on the element OR on its ::before lens (.glass::before{ backdrop-filter }).
+          if(!hasBlur(cs) && !hasBlur(P.getComputedStyle(el, '::before'))) continue;
+          const r = el.getBoundingClientRect();
+          if(r.width < 6 || r.height < 6) continue;
+          if(r.bottom < -60 || r.top > P.innerHeight + 60) continue;  // off-screen → can't occlude
+          const rad = parseFloat(cs.borderTopLeftRadius) || 14;
+          out.push({ x:r.left + offX, y:r.top + offY, w:r.width, h:r.height, r:Math.min(rad, r.width/2, r.height/2) });
+        }
+      }catch(e){ /* cross-origin / detached → draw everywhere */ }
+      glassOccluders = out;
+      window.__lgOccluders = out;   // read-only: lets an automated test confirm the glass panels are masked
+    }
+    function eraseGlassOccluders(ctx){
+      if(occludersDirty) computeGlassOccluders();
+      if(!glassOccluders.length) return;
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = '#000';
+      for(const o of glassOccluders){ roundedRect(ctx, o.x, o.y, o.w, o.h, o.r); ctx.fill(); }
+      ctx.restore();
+    }
+    try{
+      const P = window.parent;
+      if(P && P !== window){
+        P.addEventListener('scroll', () => { occludersDirty = true; }, {passive:true});
+        P.addEventListener('resize', () => { occludersDirty = true; }, {passive:true});
+      }
+    }catch(e){ /* cross-origin: occluders stay empty, cars draw everywhere */ }
+
+    // ── Heat A/B diagnostic — cheap URL flags on the HOST page to localize the idle fan cost on a real GPU ──
+    // (heat can't be benchmarked headless, so YOU feel the fans). Load variant-b.html?heat=...:
+    //   ?heat=nocars → idle still SIMULATES cars but CLEARS the canvas + skips the DRAW → fans drop ⇒ car RENDERING is the cost.
+    //   ?heat=noblur → disable every glass backdrop-filter on the host → fans drop ⇒ the glass RE-BLUR is the cost.
+    //   ?heat=nodrift→ pause the parent's infinite .drift blobs + mascot float → fans drop ⇒ a MOVING bg under the glass (perpetual re-blur) is the cost.
+    // If nocars drops the fans but noblur doesn't, the fix is the car render path (→ GPU-instanced sprites).
+    const HEAT = (function(){
+      let s = '';
+      try{ if(window.parent && window.parent !== window) s = window.parent.location.search || ''; }catch(e){}
+      if(!s) s = location.search || '';
+      try{ return (new URLSearchParams(s).get('heat') || '').toLowerCase(); }catch(e){ return ''; }
+    })();
+    const HEAT_NOCARS = /nocars/.test(HEAT);   // skip the car DRAW at idle (sim still runs)
+    const HEAT_FREEZE = /freeze/.test(HEAT);   // skip the WHOLE idle car tick — no sim, no draw (Path-B full freeze)
+    if(/noblur/.test(HEAT)){
+      try{
+        const P = (window.parent && window.parent !== window) ? window.parent : window;
+        const st = P.document.createElement('style');
+        st.textContent = '*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}';
+        P.document.head.appendChild(st);
+      }catch(e){}
+    }
+    if(/nodrift/.test(HEAT)){
+      try{
+        const P = (window.parent && window.parent !== window) ? window.parent : window;
+        const st = P.document.createElement('style');
+        // Freeze the ONLY continuous parent animations: the 3 big .drift bg blobs + the mascot float/shadow.
+        // A moving background under a backdrop-filter panel forces the glass to re-blur every frame → idle heat.
+        st.textContent = '.drift,.mbody,.msh{animation:none!important}';
+        P.document.head.appendChild(st);
+      }catch(e){}
+    }
+    if(HEAT) try{ console.log('[heat-diag] flag=', HEAT, '| nocars=', HEAT_NOCARS, '| noblur=', /noblur/.test(HEAT), '| nodrift=', /nodrift/.test(HEAT), '| freeze=', HEAT_FREEZE); }catch(e){}
+    // Idle throttle state for the adaptive density controller (see idleTrafficTick).
+    let idleNet = null, idleNetAt = 0;
+
+    function renderTraffic(network, allowRecovery=true){
+      const w = trafficCanvas.clientWidth;
+      const h = trafficCanvas.clientHeight;
+      trafficCtx.clearRect(0, 0, w, h);
+
+      if(network && !validateTrafficNetwork(network)){
+        TRAFFIC.diagnostics.reason = 'invalid-network';
+        network = null;
+      }
+
+      const opacity = trafficOpacity(camera.zoom, network);
+      if((opacity <= .01 || !network) && allowRecovery && camera.zoom >= 10.85){
+        const recovered = recoverVisibleRoadNetwork(network);
+        if(recovered){
+          updateTrafficCars(recovered, 0);
+          renderTraffic(recovered, false);
+          return;
+        }
+      }
+
+      if(opacity <= .01 || !network){
+        TRAFFIC.stats = {drawn:0, cars:0, lanes:network ? network.lanes.length : 0, mode:'none'};
+        updateTrafficDebug(network);
+        return;
+      }
+
+      const offset = laneOffsetPixels(camera.zoom);
+      const margin = 72;
+      const visibleDensity = clamp(trafficVisibleDensity(camera.zoom) * trafficAdaptiveDensityScale(), .035, 1);
+      const minimumCarFade = trafficMinimumCarFade(camera.zoom);
+      const baseRenderBudget = Math.round(trafficRenderBudget(camera.zoom) * cityTrafficMultiplier(network.cityId));
+      const renderBudget = camera.zoom >= 12.85 ? network.cars.length : baseRenderBudget;
+      const zoomAlpha = trafficZoomAlphaMultiplier(camera.zoom);
+      const cityFade = cityTrafficFade(network);
+      let drawn = 0;
+
+      for(let i = 0; i < network.cars.length; i++){
+        const car = network.cars[i];
+        const densityFade = Math.max(carDensityFade(car, visibleDensity), minimumCarFade);
+        const budgetFade = carBudgetFade(car, renderBudget, network.cars.length);
+        const lane = network.lanes[car.laneIndex];
+        if(!lane) continue;
+        const sample = laneSample(lane, car.progress);
+        let x = sample.x + sample.dy * offset;
+        let y = sample.y - sample.dx * offset;
+        let hx = sample.dx, hy = sample.dy;
+        // Render-only junction glide: ease the drawn position + heading across the gap so the car flows
+        // around the corner instead of popping to the next lane's start.
+        if(car.brT != null && car.brT < 1){
+          const fromLane = network.lanes[car.brFromLane];
+          if(fromLane){
+            // *0.999: laneSample() WRAPS at distance==length back to 0 (the lane START), so sampling exactly
+            // fromLane.length would glide the car from the wrong end. Sample just before the end.
+            const fs = laneSample(fromLane, fromLane.length * 0.999);
+            const fx = fs.x + fs.dy * offset, fy = fs.y - fs.dx * offset;
+            const t = car.brT * car.brT * (3 - 2 * car.brT);
+            x = fx + (x - fx) * t; y = fy + (y - fy) * t;
+            hx = fs.dx + (sample.dx - fs.dx) * t; hy = fs.dy + (sample.dy - fs.dy) * t;
+          }
+        }
+
+        if(x < -margin || y < -margin || x > w + margin || y > h + margin) continue;
+
+        const labelFactor = cityLabelFadeFactor(network, x, y);
+        if(labelFactor <= .01) continue;
+
+        const spawnFade = carSpawnFade(car);
+        const targetAlpha = opacity * zoomAlpha * labelFactor * cityFade * densityFade * spawnFade * budgetFade;
+        const localOpacity = smoothCarAlpha(car, targetAlpha);
+
+        if(localOpacity <= .006) continue;
+        // Ease the rendered heading toward the lane direction so corners turn smoothly (no rotation snap).
+        const targetAng = Math.atan2(hy, hx);
+        car.rAng = (car.rAng == null) ? targetAng : angleLerp(car.rAng, targetAng, .28);
+        drawTrafficCar(x, y, car.rAng, car, localOpacity);
+        drawn++;
+      }
+
+      // Cut cars OUT from behind the parent page's frosted-glass panels. The car layer there becomes constant
+      // (transparent), so a settled panel's blurred backdrop never changes ⇒ the GPU stops re-blurring it
+      // every idle frame (the idle heat). Open areas — where there is no glass — keep their moving cars.
+      eraseGlassOccluders(trafficCtx);
+
+      TRAFFIC.stats = {drawn, cars:network.cars.length, lanes:network.lanes.length, mode:trafficVisualMode(camera.zoom)};
+
+      if(drawn < 3 && camera.zoom >= 11.2 && performance.now() - TRAFFIC.lastRoadQuery > 1100){
+        // Stable-cars v4:
+        // Do not reset lastRoadQuery here. Resetting it can trigger repeated network rebuilds,
+        // which makes many cars vanish/reappear. Keep the existing real-road network stable.
+        TRAFFIC.diagnostics.reason = 'low-visible-keep-existing-network';
+      }
+
+      updateTrafficDebug(network);
+    }
+
+    function updateTrafficDebug(){
+      // Production build: debug UI removed.
+    }
+
+    resizeTrafficCanvas();
+
+
+    let didStyle = false;
+    function hideLoading(){
+      if(loading) loading.classList.add('is-hidden');
+    }
+
+
+    const QA_METRICS_ENABLED = /[?&]qa=1/.test(location.search);
+    let lastQaMetricsUpdate = 0;
+    let qaWorstFrameMs = 0;
+    let qaFrameSamples = 0;
+    let qaFrameSum = 0;
+
+    function qaStatus(value, good, warn){
+      if(value <= good) return 'ok';
+      if(value <= warn) return 'warn';
+      return 'bad';
+    }
+
+    function updateQaMetricsPanel(){
+      if(!QA_METRICS_ENABLED || !qaMetrics) return;
+      const now = performance.now();
+      qaWorstFrameMs = Math.max(qaWorstFrameMs, TRAFFIC.smoothFrameMs || 0);
+      qaFrameSamples++;
+      qaFrameSum += TRAFFIC.smoothFrameMs || 0;
+      if(now - lastQaMetricsUpdate < 260) return;
+      lastQaMetricsUpdate = now;
+
+      const network = TRAFFIC.lastVisibleNetwork;
+      const active = TRAFFIC.activeCityId || activeCityId();
+      const stats = TRAFFIC.stats || {};
+      const frameMs = TRAFFIC.smoothFrameMs || 16.7;
+      const fps = 1000 / Math.max(1, frameMs);
+      const avgFrame = qaFrameSamples ? qaFrameSum / qaFrameSamples : frameMs;
+      const multiplier = cityTrafficMultiplier(active);
+      const roadQueryAge = now - (TRAFFIC.lastRoadQuery || 0);
+      const sourceEnsureAge = now - (TRAFFIC.lastSourceRoadEnsure || 0);
+      const frameClass = qaStatus(frameMs, 22, 34);
+
+      qaMetrics.classList.add('is-visible');
+      qaMetrics.innerHTML =
+        `<b>QA metrics</b> <span class="${frameClass}">${fps.toFixed(1)} fps / ${frameMs.toFixed(1)}ms</span><br>` +
+        `build: ${window.__UKRAINE_MAP_BUILD_ID__ || 'unknown'}<br>` +
+        `avg: ${avgFrame.toFixed(1)}ms · worst: ${qaWorstFrameMs.toFixed(1)}ms<br>` +
+        `city: ${active || 'none'} · car multiplier: ${multiplier}x · lane coverage: ${cityLaneCoverageMultiplier(active).toFixed(2)}x · zoom: ${camera.zoom.toFixed(2)}<br>` +
+        `cars drawn: ${stats.drawn || 0} / ${stats.cars || (network ? network.cars.length : 0)}<br>` +
+        `lanes: ${stats.lanes || (network ? network.lanes.length : 0)} · road layers: ${TRAFFIC.roadLayerIds.length} · mode: ${stats.mode || 'n/a'}<br>` +
+        `network city: ${network ? network.cityId : 'none'} · quality: ${network && network.qualityPass ? 'yes' : 'no'}<br>` +
+        `traffic reason: ${(TRAFFIC.diagnostics && TRAFFIC.diagnostics.reason) || 'n/a'}<br>` +
+        `road query age: ${Math.round(roadQueryAge)}ms · sourcedata age: ${Math.round(sourceEnsureAge)}ms<br>` +
+        `Russia override applied: ${actualRussiaNameOverrideApplied ? '<span class="ok">yes</span>' : '<span class="warn">not yet</span>'}<br>` +
+        `checks: strict roads <span class="ok">on</span>, fake fallback <span class="ok">off</span>, styledata relabel <span class="ok">off</span>`;
+    }
+
+
+    // ── Pre-warm the journey's tiles into the browser HTTP cache after the first city renders, so a later
+    //    fast scroll hits WARM cache (tiles appear instantly) instead of fetching over the network and
+    //    blanking. The journey is fixed (known cities + zooms), so we warm each city across the zoom bands
+    //    the fly crosses (7/9/11/13, letting MapLibre overzoom fill the between-levels) + a country overview.
+    //    Capable-desktop only (the whole map is already gated); skipped on Save-Data; best-effort + silent.
+    function prewarmJourneyTiles(){
+      try{
+        if(window.__journeyTilesWarmed) return; window.__journeyTilesWarmed = true;
+        const conn = navigator.connection; if(conn && conn.saveData) return;
+        const style = map.getStyle(); if(!style || !style.sources) return;
+        let tmpl = null;
+        for(const id in style.sources){
+          const s = style.sources[id];
+          if(s && s.type === 'vector'){
+            const src = map.getSource(id);
+            if(src && src.tiles && src.tiles.length){ tmpl = src.tiles[0]; break; }
+            if(s.tiles && s.tiles.length){ tmpl = s.tiles[0]; break; }
+          }
+        }
+        if(!tmpl || !/\{z\}.*\{x\}.*\{y\}/.test(tmpl)){ window.__journeyTilesTmpl = tmpl || 'none'; return; }
+        window.__journeyTilesTmpl = tmpl;
+        const lon2x = (lng,z)=>Math.floor((lng+180)/360*Math.pow(2,z));
+        const lat2y = (lat,z)=>{ const r=lat*Math.PI/180; return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*Math.pow(2,z)); };
+        const urls = [];
+        const add = (z,x,y)=>{ const n=Math.pow(2,z); if(x<0||y<0||x>=n||y>=n) return; urls.push(tmpl.replace('{z}',z).replace('{x}',x).replace('{y}',y)); };
+        const centers = []; const seen = {};
+        for(const k in cities){ const c=cities[k]; if(!c||typeof c.lat!=='number') continue; const key=c.lat.toFixed(2)+','+c.lng.toFixed(2); if(!seen[key]){ seen[key]=1; centers.push(c); } }
+        // Travel band: the WHOLE Ukraine bbox at the low zooms the camera flies between cities at (~6-7),
+        // so panning across the country during a fast scroll never hits an unloaded tile.
+        const BB = {n:52.8, s:44.0, w:21.5, e:40.6};
+        const bboxTiles = (z)=>{ const x0=lon2x(BB.w,z), x1=lon2x(BB.e,z), y0=lat2y(BB.n,z), y1=lat2y(BB.s,z); for(let x=x0;x<=x1;x++) for(let y=y0;y<=y1;y++) add(z,x,y); };
+        // Order matters — the queue is fetched front-to-back, so cache the most-needed tiles FIRST.
+        // 1) DISTRICT tiles (z13 only now — the zoom-capped peak; was z13–14, a 5×5 block per city) — these
+        //    render the close city view; if not pre-cached they abort mid-fly and the city shows BLANK.
+        centers.forEach(c=>[13].forEach(z=>{ const cx=lon2x(c.lng,z), cy=lat2y(c.lat,z); for(let dx=-2;dx<=2;dx++) for(let dy=-2;dy<=2;dy++) add(z,cx+dx,cy+dy); }));
+        // 2) the city approach band (z9–12, 3×3),
+        centers.forEach(c=>[9,10,11,12].forEach(z=>{ const cx=lon2x(c.lng,z), cy=lat2y(c.lat,z); for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) add(z,cx+dx,cy+dy); }));
+        // 3) the wide travel-band parents last (overzoom covers the fly even before these land).
+        [7,8].forEach(bboxTiles);
+        const queue = Array.from(new Set(urls)).slice(0, 560);
+        window.__journeyTilesQueued = queue.length;
+        let i=0; const CONC=6;
+        const pump = ()=>{ if(i>=queue.length) return; const u=queue[i++]; fetch(u,{mode:'cors',priority:'low'}).catch(()=>{}).finally(pump); };
+        for(let j=0;j<CONC;j++) pump();
+      }catch(e){ window.__journeyTilesErr = String(e && e.message || e); }
+    }
+
+    let target = {...initial};
+    let camera = {...initial};
+    let last = {...initial};
+
+    // ── Direct init (no MapLibre 'load'/'idle' events to wait on). Draw the first raster frame, size the
+    //    traffic canvas, fetch the static road sets, then seed the traffic network on the same cadence the
+    //    old load handler used. The static-source relabel / smooth-layer transitions were vector-only and
+    //    produce no visible change on the raster, so they're dropped. (Placed AFTER `camera` is declared —
+    //    drawRaster()/ensureTrafficNetwork() read it.)
+    resizeTrafficCanvas();
+    drawRaster();
+    didStyle = true;
+    loadRoads().then(() => { try { ensureTrafficNetwork(); } catch(e) {} });
+    setTimeout(() => { try { ensureTrafficNetwork(); } catch(e) {} }, 160);
+    setTimeout(() => { try { ensureTrafficNetwork(); } catch(e) {} }, 420);
+    setTimeout(() => { try { ensureTrafficNetwork(); } catch(e) {} }, 980);
+    setTimeout(() => { try { ensureTrafficNetwork(); } catch(e) {} }, 1650);
+    setTimeout(hideLoading, 900);
+    let lastProgress = 0;
+    let lastProgressTime = performance.now();
+    let scrollVelocity = 0;
+    let scheduled = false;
+    let rafId = null;
+    // Path B (idle-traffic): handle for the low-rate setTimeout loop that keeps ONLY the cars moving
+    // (camera frozen) while the page is idle, and the timestamp of its last tick (for real-dt stepping).
+    // rafId (full 60fps) and idleTimer (~IDLE_TRAFFIC_FPS) are mutually exclusive; both null = fully frozen.
+    let idleTimer = null;
+    let idleLastTick = 0;
+    // Path B (idle-freeze): timestamp of the last host __journeyProgress write. The render loop runs
+    // only while there's recent motion (a write within ~250ms) OR the camera is still easing to target;
+    // once settled AND quiet it stops the rAF so the glass backdrop-filter has a static surface to rest on.
+    let lastProgressChangeTime = performance.now();
+
+    function updateTarget(){
+      scheduled = false;
+      const now = performance.now();
+      const progress = nativeProgress();
+      const dt = Math.max(16, now - lastProgressTime);
+      scrollVelocity = Math.abs(progress - lastProgress) / dt;
+      lastProgress = progress;
+      lastProgressTime = now;
+      target = targetFromProgress(progress);
+    }
+
+    function requestTarget(){
+      if(!scheduled){
+        scheduled = true;
+        requestAnimationFrame(updateTarget);
+      }
+    }
+
+    function render(){
+      rafId = null;
+      // Background-use: when the host pauses the map (tweak off / reduced-motion), do no work and
+      // stop the loop entirely — no rAF is rescheduled, so we burn zero frame callbacks while
+      // paused. startLoop() (called from the __mapPaused resume hook below) restarts it.
+      if(window.__mapPaused){ return; }
+
+      // Path B render-frame counter (read by the verify harness to prove ZERO frames while idle).
+      TRAFFIC.frames = (TRAFFIC.frames | 0) + 1;
+      window.__rafFrames = TRAFFIC.frames;
+
+      // GPU load signal: the real full-rate frame cadence (includes the page's glass compositing).
+      const _raf = performance.now();
+      if(TRAFFIC.lastRaf){
+        const d = Math.min(120, _raf - TRAFFIC.lastRaf);
+        TRAFFIC.realFrameMs = TRAFFIC.realFrameMs ? TRAFFIC.realFrameMs * 0.9 + d * 0.1 : d;
+      }
+      TRAFFIC.lastRaf = _raf;
+
+      // When the host drives progress, poll it every frame so the camera tracks
+      // even without internal scroll events.
+      if(typeof window.__journeyProgress === 'number') updateTarget();
+
+      // ───────────────────────── CAMERA CALIBRATION (the only knobs) ─────────────────────────
+      // The `stops` keyframes ALREADY encode the whole cinematography (pull back to a wide view between
+      // cities, then zoom in on arrival), interpolated with smoothstep in targetFromProgress(). So the
+      // camera's only job is to SMOOTHLY follow that interpolated target — a single time-constant
+      // exponential ease, frame-rate independent, no per-frame caps, no velocity hacks, no stepping.
+      //   • bigger TAU = slower / calmer follow.  • zoom has its own (gentler) TAU than the pan.
+      //   • PACE_LOADING stretches the time-constant while tiles stream so the camera can't outrun
+      //     tile loading (and blank the map); 1.0 = full speed.
+      const PAN_TAU_MS   = 600;    // fly (pan) follow time-constant
+      // Zoom follows MUCH slower than the pan on purpose → "fly first, then zoom in": the camera reaches
+      // the city at a wide zoom and only creeps toward max detail if you linger, so the journey is mostly
+      // flown at mid zoom (not maxed). Bigger = enters max even slower / spends even less time maxed.
+      const ZOOM_TAU_MS  = 700;    // zoom follow time-constant — responsive so the camera actually REACHES the street-level keyframes (heavy lag was the bug: it never caught up). Calm/gentle now comes from the spread-out keyframe ramp + wide travel keyframes, NOT from lag. Still slightly > pan so zoom trails the fly a touch (fly-then-zoom).
+      const PACE_LOADING = 0.80;   // ease multiplier while tiles stream — kept HIGH so the tile-pace no
+                                   // longer caps how far cities zoom in (it was stalling the climb to street
+                                   // zoom at ~12). Blank is now guarded by the prewarm (city street tiles
+                                   // are pre-cached), so the camera no longer needs to crawl for tiles.
+      // ───────────────────────────────────────────────────────────────────────────────────────
+
+      const _now = performance.now();
+      const fdt = Math.min(64, Math.max(8, _now - (TRAFFIC.lastEaseTs || _now)));
+      TRAFFIC.lastEaseTs = _now;
+
+      let tilesReady = true;
+      try{
+        tilesReady = (typeof map.areTilesLoaded === 'function') ? map.areTilesLoaded()
+                   : (typeof map.loaded === 'function') ? map.loaded() : true;
+      }catch(e){}
+      const pace  = tilesReady ? 1 : PACE_LOADING;
+      // SETTLE-FASTER-WHEN-STOPPED: while the user is actively scrolling (a progress write <400ms ago) the
+      // follow is EXACTLY the tuned cinematic ease (boost = 1). Once they STOP, gently shorten the follow
+      // time-constant (ramped over 400→1000ms of quiet, up to 2.4×) so the camera homes onto its target in
+      // ~1-2s instead of creeping its near-invisible tail for ~6s — that long tail kept the 60fps loop +
+      // the page's heavy glass re-blur alive the whole time (the "heavier the longer you stay" heat). The
+      // exponential ease still never overshoots, and the ramp avoids any visible speed-jump, so the active
+      // fly feel is unchanged — only the post-scroll settle finishes more decisively.
+      const _settleBoost = 1 + 1.4 * Math.min(1, Math.max(0, (_now - lastProgressChangeTime - 400) / 600));
+      const kPan  = 1 - Math.exp(-(fdt * pace * _settleBoost) / PAN_TAU_MS);
+      const kZoom = 1 - Math.exp(-(fdt * pace * _settleBoost) / ZOOM_TAU_MS);
+
+      camera.lat  += (target.lat  - camera.lat)  * kPan;
+      camera.lng  += (target.lng  - camera.lng)  * kPan;
+      camera.zoom += (target.zoom - camera.zoom) * kZoom;
+
+      // snap when essentially arrived (prevents endless sub-pixel easing)
+      if(Math.abs(target.lat  - camera.lat)  < 0.00001) camera.lat  = target.lat;
+      if(Math.abs(target.lng  - camera.lng)  < 0.00001) camera.lng  = target.lng;
+      if(Math.abs(target.zoom - camera.zoom) < 0.001)   camera.zoom = target.zoom;
+
+      // debug instrumentation (read by the e2b calibration harness; harmless in prod)
+      window.__camZoom = camera.zoom; window.__camLat = camera.lat; window.__camLng = camera.lng;
+      window.__camTargetZoom = target.zoom;
+
+      // Did the camera actually move this frame? This drives BOTH the map jump AND (critically) the
+      // traffic redraw below — so the cars are re-projected on every frame the map moves and can never
+      // detach from the roads during a fast scroll/zoom (the cause of the "torn" look). When the camera
+      // is settled, the traffic falls back to its ~30fps throttle to save GPU.
+      const cameraMoved = Math.abs(camera.lat-last.lat) > 0.00001 || Math.abs(camera.lng-last.lng) > 0.00001 || Math.abs(camera.zoom-last.zoom) > 0.0001;
+      if(cameraMoved){
+        map.jumpTo({center:[camera.lng, camera.lat], zoom:camera.zoom});
+        last = {...camera};
+      }
+
+      // Background-use throttle: the traffic sim + canvas draw is the expensive part, so run it at
+      // a GPU-adaptive rate — ~30fps with headroom, stepping down to ~15fps when real frames are slow
+      // (weak GPU, or the page's glass is heavy). Camera easing above stays full-rate.
+      const trafficNow = performance.now();
+      if(!TRAFFIC.lastFrame) TRAFFIC.lastFrame = trafficNow;
+      const rfm = TRAFFIC.realFrameMs || 16;
+      const baseInterval = lowPowerDevice ? 50 : (mobileLike ? 42 : 32);   // ~20fps low-power, ~24fps tablets/touch (battery), ~30fps desktop
+      const TRAFFIC_INTERVAL = reduced ? 90 : (rfm > 40 ? 72 : rfm > 28 ? 52 : rfm > 22 ? 40 : baseInterval);
+      if(cameraMoved || trafficNow - TRAFFIC.lastFrame >= TRAFFIC_INTERVAL - 2){
+        const rawFrameMs = Math.max(8, trafficNow - TRAFFIC.lastFrame);
+        const trafficDt = Math.min(.080, rawFrameMs / 1000);
+        TRAFFIC.smoothFrameMs = TRAFFIC.smoothFrameMs
+          ? lerp(TRAFFIC.smoothFrameMs, rawFrameMs, .08)
+          : rawFrameMs;
+        TRAFFIC.lastFrame = trafficNow;
+
+        if(!document.hidden){
+          try{
+            const network = ensureTrafficNetwork();
+            updateTrafficCars(network, reduced ? trafficDt * .5 : (mobileLike ? trafficDt * .82 : trafficDt));
+            if(HEAT_NOCARS) trafficCtx.clearRect(0, 0, trafficCanvas.width, trafficCanvas.height);   // ?heat=nocars → clear + skip so cars truly vanish
+            else renderTraffic(network);
+            window.__trafficDraws = (window.__trafficDraws | 0) + 1;   // Path B: traffic-canvas redraw counter (all modes)
+          }catch(err){
+            TRAFFIC.renderErrorCount++;
+            TRAFFIC.diagnostics.reason = 'traffic-render-error';
+            if(TRAFFIC.debug) console.warn('Traffic render error', err);
+          }
+          updateQaMetricsPanel();
+        }
+      }
+
+      updateStoryAndHierarchy(target, camera, mobileLike);
+
+      // ──────────────────── IDLE: freeze the CAMERA, keep the CARS alive (Path B) ────────────────────
+      // Run the full-rate camera loop ONLY while something moves. The camera eases toward `target`
+      // (above); once it has SETTLED on that target (within the SAME epsilons used for the snap above)
+      // AND the host hasn't written a new __journeyProgress for ~250ms, there is nothing left to FLY — so
+      // we stop the 60fps rAF (schedule no further frame). The map tiles/canvas then hold static (no more
+      // map.jumpTo), giving the page's heavy backdrop-filter glass a STATIC base to rest on. But instead
+      // of freezing EVERYTHING, we hand off to a low-rate (~IDLE_TRAFFIC_FPS) setTimeout loop that keeps
+      // ONLY the cars moving: each idle tick advances + redraws the traffic canvas, so the page re-blurs
+      // ~12×/sec instead of 60 (~5× cheaper) while the cars still look alive (the heavy blur hides the low
+      // fps). The 60fps loop is WOKEN again (startLoop) on the next __journeyProgress write (scroll), on
+      // resize, or on visibilitychange — startLoop cancels the idle timer and resumes easing from the
+      // camera's EXACT current state, so the wake is hitch-free and the during-scroll motion stays
+      // byte-for-byte the original. We only gate WHEN/at-what-RATE each piece runs, not HOW it moves.
+      // Freeze the instant the camera stops moving VISIBLY — i.e. when this frame's per-frame delta is
+      // below the `cameraMoved` thresholds above (~sub-pixel pan / sub-% zoom) — NOT when the
+      // exponential ease reaches a mathematically-tiny ABSOLUTE gap. The old absolute-gap epsilons
+      // (1e-5° pan / 1e-3 zoom) had a multi-second tail: after a fly the camera kept the 60fps loop
+      // (and the page's heavy glass re-blur) running ~9s easing an already-invisible last bit, and with
+      // intermittent scrolling it ~never reached that gap → the loop never froze → sustained GPU load →
+      // the page felt "heavier the longer you stay" + spun the fans. The per-frame test freezes right
+      // when the fly visually ends: <1s after a normal scroll-stop, the moment a big fly arrives. The
+      // ease is a monotonic decay toward a FIXED target while quiet, so once the delta drops below the
+      // threshold it stays there — no flicker. The camera holds where it visually arrived (sub-perceptual
+      // residual on the blurred background) and eases on seamlessly when the next scroll wakes it.
+      if(!cameraMoved && (performance.now() - lastProgressChangeTime) >= 250){
+        rafId = null;
+        enterIdle();   // → low-rate idle traffic, or a full freeze on hidden/reduced-motion/low-power
+        return;        // no 60fps rAF rescheduled until woken
+      }
+      rafId = requestAnimationFrame(render);
+    }
+
+    // Idle traffic only runs on a context where it's both wanted and cheap-enough to be worth it: the knob
+    // is on (>0), the tab is visible, the map isn't host-paused, motion is allowed, and the device isn't
+    // the low-power tier. Otherwise the idle state is a FULL freeze (the original Path B — zero idle work).
+    function idleTrafficAllowed(){
+      return IDLE_TRAFFIC_FPS > 0
+          && !document.hidden
+          && !window.__mapPaused
+          && !reduced
+          && !lowPowerDevice;
+    }
+
+    // Enter the idle state from the (now-stopped) 60fps loop. Either kick the low-rate traffic ticker, or
+    // — if idle traffic isn't allowed here — fully freeze (draw nothing, schedule nothing).
+    function enterIdle(){
+      if(!idleTrafficAllowed()){
+        TRAFFIC.diagnostics.reason = 'idle-frozen';
+        return;   // original Path B: everything frozen, zero idle repaint
+      }
+      TRAFFIC.diagnostics.reason = 'idle-traffic';
+      idleLastTick = performance.now();
+      if(idleTimer == null) idleTimer = setTimeout(idleTrafficTick, 1000 / IDLE_TRAFFIC_FPS);
+    }
+
+    // One low-rate idle tick (~IDLE_TRAFFIC_FPS): advance + redraw ONLY the traffic with the REAL elapsed
+    // dt (so cars cover the same real-world distance per second, just in larger steps), then redraw the
+    // traffic canvas. Deliberately does NO camera ease and NO map.jumpTo, so the map tiles/canvas stay
+    // static and the glass isn't re-blurred by the MAP — only the cars change, ~12×/sec. Self-reschedules
+    // via setTimeout (NOT a 60fps rAF — ~12 wakeups/sec is the whole point).
+    function idleTrafficTick(){
+      idleTimer = null;
+      if(window.__mapPaused || rafId != null) return;     // paused, or the 60fps loop took over → stop idling
+      if(!idleTrafficAllowed()){ TRAFFIC.diagnostics.reason = 'idle-frozen'; return; }
+      if(HEAT_FREEZE){ TRAFFIC.diagnostics.reason = 'idle-frozen(heat=freeze)'; return; }  // no reschedule ⇒ cars fully static
+      const now = performance.now();
+      const rawMs = Math.max(8, now - (idleLastTick || now));
+      idleLastTick = now;
+      // Real elapsed seconds, capped only to absorb a delayed/throttled tick without a teleport. At 12fps
+      // a normal tick is ~0.083s; the same per-device speed scaling the 60fps loop uses is applied so the
+      // cars don't change speed between scrolling and idle (reduced-motion never reaches here → fully frozen).
+      const dt = Math.min(0.25, rawMs / 1000);
+      try{
+        // Throttle the adaptive density controller at idle: once the city is settled it does NOT need to
+        // re-evaluate 24×/sec. Run it ~2×/sec and reuse the cached network otherwise — pure CPU saving, it
+        // only delays the density ramp by a couple seconds of dwell (no car-following / distribution change).
+        let network;
+        if(!idleNet || now - idleNetAt > 480){ network = ensureTrafficNetwork(); idleNet = network; idleNetAt = now; }
+        else network = idleNet;
+        updateTrafficCars(network, mobileLike ? dt * .82 : dt);
+        if(HEAT_NOCARS) trafficCtx.clearRect(0, 0, trafficCanvas.width, trafficCanvas.height);   // ?heat=nocars → clear + skip the DRAW so cars truly vanish (A/B diagnostic)
+        else renderTraffic(network);
+        TRAFFIC.idleDraws = (TRAFFIC.idleDraws | 0) + 1;
+        window.__idleTrafficDraws = TRAFFIC.idleDraws;
+        window.__trafficDraws = (window.__trafficDraws | 0) + 1;   // shared traffic-canvas redraw counter (all modes)
+        if(!document.hidden) updateQaMetricsPanel();
+      }catch(err){
+        TRAFFIC.renderErrorCount++;
+        TRAFFIC.diagnostics.reason = 'traffic-render-error';
+        if(TRAFFIC.debug) console.warn('Idle traffic render error', err);
+      }
+      idleTimer = setTimeout(idleTrafficTick, 1000 / IDLE_TRAFFIC_FPS);
+    }
+
+    function startLoop(){
+      // Guard so only one rAF is ever in flight (and never run while paused).
+      if(rafId != null || window.__mapPaused) return;
+      // Leaving the low-rate idle traffic loop → cancel its pending tick so the cars don't double-advance
+      // (the 60fps loop drives them from here on; baselines reset just below so its first dt is normal).
+      if(idleTimer != null){ clearTimeout(idleTimer); idleTimer = null; }
+      // Hitch-free wake after an idle freeze: reset the frame-time baselines to NOW so the first resumed
+      // frame computes a normal one-frame dt (not a huge accumulated catch-up across the idle gap). The
+      // camera then eases from its exact current position and the traffic advances one normal step — no
+      // teleport. During continuous scroll the loop never stops, so this reset never runs then and the
+      // motion is identical to the original.
+      const _t = performance.now();
+      TRAFFIC.lastEaseTs = _t;
+      TRAFFIC.lastFrame  = _t;
+      TRAFFIC.lastRaf    = 0;   // drop the stale realFrameMs sample that would otherwise span the idle gap
+      rafId = requestAnimationFrame(render);
+    }
+
+    // Resume hook: the host drives pause/resume via window.__mapPaused. Intercept assignments so
+    // clearing the pause restarts the cancelled render loop, and setting it cancels the in-flight
+    // rAF immediately. Only genuine transitions act, so redundant writes can't double-schedule.
+    (function(){
+      let paused = !!window.__mapPaused;
+      try{
+        Object.defineProperty(window, '__mapPaused', {
+          configurable:true,
+          get(){ return paused; },
+          set(v){
+            const nv = !!v;
+            if(nv === paused) return;
+            paused = nv;
+            if(nv){
+              if(rafId != null){ cancelAnimationFrame(rafId); rafId = null; }
+              if(idleTimer != null){ clearTimeout(idleTimer); idleTimer = null; }
+            }
+            else { startLoop(); }
+          }
+        });
+      }catch(e){ /* defineProperty unavailable: render() still self-stops on pause via its guard */ }
+    })();
+
+    // Path B WAKE hook: the host writes window.__journeyProgress (0..1) into this iframe on scroll/resize
+    // (and zero times while the page is still). Intercept the assignment so every numeric write records
+    // the change time (which keeps the ~250ms motion window open) and WAKES a frozen loop. startLoop() is
+    // a no-op if the loop is already running, so writes during an active scroll are essentially free. When
+    // the user stops scrolling the host stops writing → no wake → the loop settles and freezes.
+    (function(){
+      let jp = (typeof window.__journeyProgress === 'number') ? window.__journeyProgress : null;
+      try{
+        Object.defineProperty(window, '__journeyProgress', {
+          configurable:true,
+          get(){ return jp; },
+          set(v){
+            jp = v;
+            if(typeof v === 'number'){
+              lastProgressChangeTime = performance.now();
+              startLoop();
+            }
+          }
+        });
+      }catch(e){ /* defineProperty unavailable: loop still wakes via resize/visibilitychange */ }
+    })();
+
+    window.addEventListener('scroll', requestTarget, {passive:true});
+    window.addEventListener('resize', () => { map.resize(); resizeTrafficCanvas(); lastProgressChangeTime = performance.now(); requestTarget(); startLoop(); }, {passive:true});
+    // Tab hidden → FULL freeze (cancel the idle traffic ticker too — no work behind a hidden tab). Tab
+    // re-shown → wake so a repaint happens after the browser throttled/parked rAF while it was hidden.
+    document.addEventListener('visibilitychange', () => {
+      if(document.hidden){
+        if(idleTimer != null){ clearTimeout(idleTimer); idleTimer = null; }
+        if(TRAFFIC.diagnostics.reason === 'idle-traffic') TRAFFIC.diagnostics.reason = 'idle-frozen';
+      }else{
+        lastProgressChangeTime = performance.now();
+        startLoop();
+      }
+    }, {passive:true});
+    window.__mapState = function(){
+      return {
+        zoom:+camera.zoom.toFixed(2), lat:+camera.lat.toFixed(3), lng:+camera.lng.toFixed(3),
+        targetZoom:+target.zoom.toFixed(2),
+        drawn:TRAFFIC.stats.drawn, cars:TRAFFIC.stats.cars, lanes:TRAFFIC.stats.lanes,
+        roadLayers:TRAFFIC.roadLayerIds.length, reason:TRAFFIC.diagnostics.reason,
+        city:TRAFFIC.activeCityId, progress:window.__journeyProgress,
+        realFrameMs:+(TRAFFIC.realFrameMs || 0).toFixed(1),
+        fps:+(1000 / Math.max(1, TRAFFIC.realFrameMs || 16)).toFixed(0),
+        frames:TRAFFIC.frames | 0,        // Path B: cumulative CAMERA rAF-frame count (flat ⇒ camera frozen)
+        running:(rafId != null),          // Path B: is the 60fps camera rAF loop currently scheduled?
+        idle:(idleTimer != null),         // Path B: is the low-rate idle traffic ticker running?
+        idleFps:IDLE_TRAFFIC_FPS,         // Path B: the idle-traffic knob (0 = full freeze)
+        idleDraws:TRAFFIC.idleDraws | 0,  // Path B: cumulative idle traffic redraws (climbs ~12/s when idle)
+        trafficDraws:window.__trafficDraws | 0   // Path B: cumulative traffic-canvas redraws (all modes)
+      };
+    };
+    // Lightweight read-only car-MOVEMENT health probe (for automated tests / debugging). A car counts as
+    // "stuck" at speed < 0.3 m/s; a steady non-trivial `stuck` while `moving` stays high = a flow bug.
+    window.__carHealth = function(){
+      var net = TRAFFIC.lastVisibleNetwork;
+      if(!net || !net.cars || !net.cars.length) return {cars:0, stuck:0, moving:0};
+      var cars = net.cars, n = cars.length, stuck = 0, moving = 0, sumSpeed = 0, sumMove = 0;
+      for(var i=0;i<n;i++){
+        var s = cars[i].speed || 0; sumSpeed += s;
+        if(s < 0.3) stuck++; else { moving++; sumMove += s; }
+      }
+      return {
+        city: TRAFFIC.activeCityId, cars: n, stuck: stuck, moving: moving,
+        pctStuck: +(100*stuck/n).toFixed(1),
+        avgSpeed: +(sumSpeed/n).toFixed(2),
+        avgMovingSpeed: +(moving ? sumMove/moving : 0).toFixed(2)
+      };
+    };
+    updateTarget();
+    startLoop();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start, {once:true});
+  }else{
+    start();
+  }
+})();
+</script>
+</body>
+</html>
