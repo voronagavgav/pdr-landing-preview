@@ -129,6 +129,11 @@
     window.addEventListener('resize', function(){
       place(seg.querySelector('button[aria-checked="true"]') || btns[0]);
     });
+    // Fonts change button metrics — on slower phone font loads the thumb can land a few px off. Re-place
+    // once the web fonts are ready so the thumb aligns to the final text width.
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(function(){ place(seg.querySelector('button[aria-checked="true"]') || btns[0]); });
+    }
   })();
 
   /* ---------- Interactive sample question ---------- */
@@ -357,6 +362,14 @@
   // "no-map floor" RAM, to measure the live map's true memory share before committing to a pre-render rebuild.
   function mapOff(){ try{ return new URLSearchParams(location.search).get('map')==='off'; }catch(e){ return false; } }
   function allowed(){ return !mapOff() && mqDevice.matches && !mqReduce.matches && !mqReduceTransp.matches && !saveData() && !tooWeak(); }
+  // PHONE PERF: do NOT auto-run the live WebGL map on phones/touch — the scroll-fps WebGL render + the
+  // traffic canvas is the main mobile lag/heat source (measured on-device: laggy even at idle). Phones
+  // default to the calm STATIC pastel field; the living map is OPT-IN via the toggle (or force ?map=on).
+  // Desktop is unchanged. allowed() still returns true for a capable phone so the toggle CAN enable it —
+  // only the AUTO-boot below is gated by !phoneLike.
+  var phoneLike = false;
+  try{ phoneLike = matchMedia('(max-width: 760px)').matches || matchMedia('(pointer: coarse)').matches; }catch(e){}
+  function mapForced(){ try{ return new URLSearchParams(location.search).get('map')==='on'; }catch(e){ return false; } }
   // Diagnostic: ?blur=off kills every backdrop-filter on the page (works with ?map=off too) → measures the
   // glass's share of the RAM floor. ?map=off&blur=off = the bare-HTML floor (no map, no glass).
   (function(){ try{ if(new URLSearchParams(location.search).get('blur')==='off'){
@@ -377,7 +390,7 @@
     if(new URLSearchParams(location.search).get('glass')==='emu' || weak){ document.body.classList.add('glass-emu'); }
   }catch(e){} })();
 
-  var syncing = false, loaded = false, mapPref = true;
+  var syncing = false, loaded = false, mapPref = (!phoneLike || mapForced());
 
   // Calibration: anchor each city's MAX zoom to a block of interest. While that block is centered
   // the camera holds at street zoom (a hold band); in the gaps it pulls back, travels and zooms
@@ -530,7 +543,7 @@
   // first-interaction boot is instant. A long safety timer covers a visitor who never interacts (it
   // fires well after the page has gone quiet / TTI, so it never re-introduces the boot cost into the
   // measured window). The Tweaks effect reconciles to the persisted preference after boot.
-  if(allowed()){
+  if(allowed() && (!phoneLike || mapForced())){
     // (1) early, low-priority network warm — so the interaction-boot has the ~1 MB already cached
     ['vendor/maplibre-gl.js','vendor/maplibre-gl.css'].forEach(function(href){
       try{ var l=document.createElement('link'); l.rel='prefetch';
@@ -554,6 +567,12 @@
     };
     if(document.readyState==='complete') __armMapBoot();
     else window.addEventListener('load', __armMapBoot, {once:true});
+  }
+  else if(allowed() && phoneLike && toggleBtn){
+    // Phone: the map isn't auto-run — expose the toggle (in the "off" state) so a user can opt INTO the
+    // live map on demand; the default stays the calm static field. Tapping it calls __setMapBg(true).
+    toggleBtn.classList.add('show');
+    reflectToggle(false);
   }
   // Re-evaluate when the device context changes (rotate, resize across the threshold, reduced-motion
   // toggle) so the map switches on/off to match capability without a reload.

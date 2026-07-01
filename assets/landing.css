@@ -171,7 +171,8 @@ html.bg-idle .drift{will-change:auto}
    once the living map is capable (JS adds .show); keyboard-focusable; honours reduced-motion implicitly
    (the map never loads there, so the control never appears). */
 .mapbg-toggle{
-  position:fixed; right:18px; bottom:18px; z-index:50; display:none; align-items:center; justify-content:center;
+  position:fixed; right:max(18px, env(safe-area-inset-right) + 12px); bottom:max(18px, env(safe-area-inset-bottom) + 12px);
+  z-index:50; display:none; align-items:center; justify-content:center;
   width:42px; height:42px; padding:0; border-radius:var(--radius-pill);
   background:hsl(152 47% 83% / .92); color:var(--green-ink);
   border:1px solid hsl(152 50% 99% / .7);
@@ -188,13 +189,11 @@ html.bg-idle .drift{will-change:auto}
 @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-3vw,3vh) scale(1.05)}}
 @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(2vw,-3vh) scale(1.07)}}
 /* PHONE FPS: the 3 big filter:blur(70px) drift blobs animating scale re-rasterize a huge blurred
-   texture every frame → tanks the whole page's FPS on a mobile GPU (mascot included — it's just a
-   victim of the saturated GPU). Freeze them to a static painted state (composited once, held while
-   scrolling): identical calm pastel look, zero per-frame blur recompute. Also lighten the blur/size
-   a touch so the one-time paint + layer memory stays cheap on weak phones. */
+   texture every frame → tanks the whole page's FPS on a mobile GPU. The map is OFF by default on phones
+   now, and even FROZEN these blurred fixed layers cost compositor memory — so just remove them (+ the
+   .bg-detail grid). The static pastel field + veil carry the calm look on phones. */
 @media(max-width:760px),(pointer:coarse){
-  .drift{animation:none!important;will-change:auto;filter:blur(52px);opacity:.26}
-  .drift.b1,.drift.b2,.drift.b3{max-width:420px;max-height:420px}
+  .drift,.bg-detail{display:none!important}
   /* Mascot: it animates svFloat/svShadow AND the body carries an SVG feDropShadow (filter:url(#mglow)).
      An animated filtered SVG element re-renders that filter EVERY frame — a real phone GPU cost, and it
      runs even at idle if the JS idle-freeze doesn't catch it. On phones: freeze the float + shadow and
@@ -362,6 +361,9 @@ body.glass-emu .nav{ background:hsl(var(--glass-tint)/.88); }
     hsl(0 0% 100% / .55), hsl(0 0% 100% / .12) 30%, transparent 60%);
   mix-blend-mode:screen;transition:opacity .35s var(--calm-ease)}
 .reactive:hover .sheen{opacity:1}
+/* Touch devices emulate :hover and can leave the sheen stuck lit after a tap — hide it entirely where
+   there's no real hover pointer. (The sheen is a mouse-pointer specular; it has no purpose on touch.) */
+@media(hover:none){ .reactive .sheen{display:none!important} }
 
 /* ============================================================
    MOTION (v3 addendum) — all GPU-cheap: transform / opacity / gradient.

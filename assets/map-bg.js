@@ -30,13 +30,18 @@
   // display (the glass blur did NOT hide it). So fps is not a free heat lever — it trades against idle
   // smoothness 1:1. Reverted to 24. The clean way to cut idle heat is to stop car motion from re-blurring
   // the glass at all (decouple the car layer) — a structural change, not this knob.
-  const IDLE_TRAFFIC_FPS = (window.matchMedia('(pointer: coarse)').matches
-                         || window.matchMedia('(max-width: 1024px)').matches) ? 15 : 24;
+  // Phone/touch: FULLY FREEZE idle traffic (0) — a phone user who stops scrolling won't notice the cars
+  // stop, but WILL notice the device warming / battery draining from the continuous canvas redraw. Desktop
+  // keeps 24fps idle motion. (This only applies when a phone user opts INTO the map; off by default there.)
+  const __mobileLikeEarly = window.matchMedia('(pointer: coarse)').matches
+                         || window.matchMedia('(max-width: 1024px)').matches;
+  const IDLE_TRAFFIC_FPS = __mobileLikeEarly ? 0 : 24;
 
   // How many cars to keep CLEARLY VISIBLE in frame at a settled city (the adaptive density controller
   // tops the network up until ~this many are drawn). With the solid car opacity below, drawn ≈ visible,
   // so this is effectively "cars you see". Single knob — raise for a fuller city, lower for calmer.
-  const TRAFFIC_VISIBLE_TARGET = 140;
+  // Phones get a much lower cap (65) — 140 is too much for a decorative mobile background; desktop stays 140.
+  const TRAFFIC_VISIBLE_TARGET = __mobileLikeEarly ? 65 : 140;
 
   const cities = {
     kyiv:    {lat:50.44765,lng:30.52295},  // Khreshchatyk / Maidan area
