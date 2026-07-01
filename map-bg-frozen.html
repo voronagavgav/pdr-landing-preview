@@ -625,6 +625,16 @@ body{
     // TileJSON, replace the source `url` with explicit `tiles` + maxzoom 13, and drop the building layer.
     // Falls back to the plain style URL (full native z14, with buildings) if any fetch fails.
     let __mapStyleSpec = 'https://tiles.openfreemap.org/styles/positron';
+    // Lighter map (A/B via `?map=lite` on the HOST url): strip every label/symbol + admin-boundary + aeroway
+    // layer. They are 100% invisible under the page's heavy glass blur + veil, but MapLibre pays full RAM for
+    // them — glyph atlas (fonts), the label-collision index, and per-tile symbol geometry — plus the glyph
+    // network fetches. Dropping them = same look behind the blur, materially less memory. Roads/water/land
+    // (the visible map + the car substrate) are untouched, so cars + calibration are identical.
+    const __mapLite = (function(){
+      let s=''; try{ if(window.parent && window.parent!==window) s=window.parent.location.search||''; }catch(e){}
+      if(!s) s=location.search||'';
+      try{ return new URLSearchParams(s).get('map')==='lite'; }catch(e){ return false; }
+    })();
     try{
       // P4: hard timeout — a HUNG (never-resolving) fetch would stall start() forever and the map would
       // never construct (the parent's load-watchdog can't catch it, since the iframe 'load' already fired).
@@ -644,7 +654,16 @@ body{
           __s.maxzoom = 13;   // ← never fetch z14 (buildings live there); overzoom z13 for the z14 camera
         }
       }
-      __sj.layers = (__sj.layers || []).filter(L => (L['source-layer'] || '') !== 'building');
+      __sj.layers = (__sj.layers || []).filter(L => {
+        if((L['source-layer'] || '') === 'building') return false;   // never fetched (z13 source cap); belt+braces
+        if(__mapLite){
+          if(L.type === 'symbol') return false;                      // ALL labels / place-names / POI (glyph atlas) — invisible under the blur
+          if((L['source-layer'] || '') === 'boundary') return false; // thin admin border lines — invisible under the blur
+          if((L['source-layer'] || '') === 'aeroway') return false;  // runways — noise
+        }
+        return true;
+      });
+      if(__mapLite) delete __sj.glyphs;   // no symbol layers left → skip the glyph endpoint entirely (no font fetches/atlas)
       __mapStyleSpec = __sj;
     }catch(__e){ /* offline / blocked → plain URL style (full native z14, with buildings) */ }
 
