@@ -168,6 +168,9 @@ button{font-family:inherit;cursor:pointer}
    30→15, `paused` did not). Mirrors the reduced-motion "off" state below. Tiny reposition on toggle is
    imperceptible (30%-opacity, 70px-blurred blobs behind glass). */
 html.bg-idle .drift,html.bg-idle .mbody,html.bg-idle .msh{animation:none!important}
+/* Once idle-frozen, the drift blobs no longer transform — drop the `will-change:transform` promotion so
+   the compositor can release those big blurred layers (GPU-memory relief; JS restores motion on input). */
+html.bg-idle .drift{will-change:auto}
 
 /* faint masked grid ONLY under the hero zone — fine high-contrast edges the lens can bend */
 .bg-detail{
@@ -2037,18 +2040,21 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   function fillReadyArc(){
     var arc = document.getElementById('readyArc');
     if(!arc || arc.dataset.filled) return; arc.dataset.filled = '1';
+    var card = arc.closest('.ready-card');
+    var num = card && card.querySelector('.ready-num');
+    // Single source of truth: the readiness % lives in .ready-num[data-target]; the arc fill AND the
+    // count-up numeral both derive from it, so changing the HTML value can't desync the arc from the
+    // number. (251 = the arc path's stroke-dasharray length — a fixed geometric constant.)
+    var target = num ? (parseInt(num.getAttribute('data-target'), 10) || 78) : 78;
     requestAnimationFrame(function(){
       arc.style.transition = reduceMotion ? 'none' : 'stroke-dashoffset 1.5s cubic-bezier(0.16,1,0.3,1)';
-      arc.style.strokeDashoffset = 251 * (1 - 78/100);
+      arc.style.strokeDashoffset = 251 * (1 - target/100);
     });
     if(reduceMotion) return;
-    var card = arc.closest('.ready-card');
     var bloom = card && card.querySelector('.bloom');
-    var num = card && card.querySelector('.ready-num');
     if(bloom) setTimeout(function(){ bloom.classList.add('lit'); }, 250);
     /* count the numeral 0 -> target in sync with the arc settling (the emotional payoff) */
     if(num){
-      var target = parseInt(num.getAttribute('data-target'), 10) || 78;
       num.textContent = '0%';
       var t0 = null, dur = 1500;
       requestAnimationFrame(function step(ts){
@@ -2348,7 +2354,10 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     });
     // (2) boot on first interaction (or a long safety fallback)
     var __mapBooted=false, __mapSafety=0;
-    var __mapEvents=['pointerdown','pointermove','mousemove','wheel','scroll','touchstart','keydown'];
+    // Boot on DELIBERATE engagement only — NOT hover: pointermove/mousemove would boot the ~2.7s
+    // MapLibre parse on incidental mouse movement, back inside the initial-interactivity window. The map
+    // is a scroll-driven journey background, so scroll/wheel/tap/key are the signals that actually matter.
+    var __mapEvents=['pointerdown','wheel','scroll','touchstart','keydown'];
     var __bootMapBg=function(){
       if(__mapBooted) return; __mapBooted=true;
       __mapEvents.forEach(function(ev){ window.removeEventListener(ev, __bootMapBg); });
