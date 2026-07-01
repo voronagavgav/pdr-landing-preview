@@ -1,6 +1,9 @@
 (function(){
   "use strict";
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Real mouse pointer only — the pointer-sheen (and other hover-specular effects) are pointless on touch,
+  // where they also cost pointermove work during scroll. Gate the JS the same way the CSS gates the sheen.
+  var fineHover = !!(window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)').matches);
 
   /* ---------- Liquid-glass refraction gate (Chromium renders SVG-on-backdrop) ---------- */
   try{
@@ -40,7 +43,7 @@
   })();
 
   /* ---------- Pointer-reactive sheen (rAF-throttled). No tilt/pull — it blurred the glass text. ---------- */
-  if(!reduceMotion){
+  if(!reduceMotion && fineHover){
     document.querySelectorAll('.reactive').forEach(function(el){
       var raf = 0, lx = 50, ly = 50;
       el.addEventListener('pointermove', function(e){
@@ -321,18 +324,15 @@
   }
 
   var mqReduce = matchMedia('(prefers-reduced-motion: reduce)');
-  // The living map now PERSISTS across ALL devices (phones, tablets, desktop) — each gets a
-  // device-appropriate cost profile (map-bg.html runs a LITE traffic/render mode on touch / small /
-  // low-power devices, see its `mobileLike` / `lowPowerDevice`). We keep only a sane capability
-  // floor + the honest opt-outs: reduced-motion, reduced-transparency (glass refraction is the whole
-  // point), and save-data / reduced-data (don't pull ~1 MB MapLibre on a metered link). The floor is
-  // min-height 480 (skips tiny landscape phones held sideways) + `tooWeak()` (truly ancient / low-end
-  // devices fall back to the static pastel-glass field — no map download).
-  // PHONES RE-ENABLED: the map's own work is light (main thread ~90% idle); the phone HEAT was the page's
-  // glass `backdrop-filter` re-blurring the moving map every frame. The mobile theme (≤760px / coarse)
-  // now DROPS that blur entirely (backdrop-filter:none), so the map renders at normal "map-app" cost,
-  // which phones handle fine — so the living map runs on phones again. Only the honest opt-outs below
-  // (reduced-motion / reduced-transparency / save-data / tooWeak) still fall back to the static field.
+  // On DESKTOP the living map auto-runs (after first interaction). We keep a sane capability floor +
+  // the honest opt-outs: reduced-motion, reduced-transparency (glass refraction is the whole point),
+  // and save-data / reduced-data (don't pull ~1 MB MapLibre on a metered link). The floor is min-height
+  // 480 (skips tiny landscape phones held sideways) + `tooWeak()` (truly ancient / low-end devices fall
+  // back to the static pastel-glass field — no map download).
+  // PHONES: the map is OFF by DEFAULT — the scroll-fps WebGL render + traffic canvas was the main mobile
+  // lag/heat source (laggy even at idle on real devices). `phoneLike` gates the AUTO-boot below, so phones
+  // show the calm static pastel field; the live map is OPT-IN via the toggle (or ?map=on). `allowed()`
+  // still returns true for a capable phone so the toggle CAN enable it. Only the AUTO-run differs by device.
   var mqDevice = matchMedia('(min-height: 480px)');
   var mqReduceData = matchMedia('(prefers-reduced-data: reduce)');
   var mqReduceTransp = matchMedia('(prefers-reduced-transparency: reduce)');

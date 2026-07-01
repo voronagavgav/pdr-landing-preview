@@ -823,16 +823,15 @@ section{position:relative}
 /* DESKTOP FAN-RELIEF: #readiness + nav also dropped to plain blur (were url(#lg) — see note above) */
 .lg-everywhere.refraction-ok #readiness .glass.lens::before{ -webkit-backdrop-filter:var(--e3-blur); backdrop-filter:var(--e3-blur); }
 .lg-everywhere.refraction-ok .nav{ -webkit-backdrop-filter:var(--e1-blur); backdrop-filter:var(--e1-blur); }
-/* ===== MOBILE: LIVE MAP, ZERO GLASS (Path B phone theme) ==============================
-   The CPU profile showed the map's own work is light (main thread ~90% idle); the phone HEAT was the
-   page's glass `backdrop-filter` re-blurring the MOVING map every single frame. So on phone we keep the
-   FULL living map in the background but DROP the glass entirely: every frosted surface gets
-   backdrop-filter:none (kills the per-frame re-blur — the whole point) and the url(#lg) refraction is
-   gone, and the translucent fills become CLEAN OPAQUE PASTEL panels (built from --glass-tint, alpha
-   ~.94–.97) that keep their borders, radius and soft shadows so they still read as the same cards.
+/* ===== MOBILE: STATIC FIELD, ZERO GLASS (Path B phone theme) ==========================
+   Phone default = the calm STATIC pastel field (the live map is OFF by default on phones now — opt-in via
+   the toggle; see landing.js `phoneLike`). This block also DROPS the glass entirely on phones: every
+   frosted surface gets backdrop-filter:none and the url(#lg) refraction is gone, and the translucent fills
+   become CLEAN OPAQUE PASTEL panels (built from --glass-tint, alpha ~.94–.97) that keep their borders,
+   radius and soft shadows so they still read as the same cards. (This matters both for the static default
+   AND if a user opts INTO the map — a moving map under a backdrop-filter is the per-frame re-blur cost.)
    Scoped to ≤760px + (pointer:coarse) so the mouse desktop (≥761, fine) keeps the full liquid glass —
-   DESKTOP IS UNTOUCHED. Net phone look: live map shows in the hero + margins + gaps, solid pastel cards
-   on top, zero backdrop-filter anywhere. */
+   DESKTOP IS UNTOUCHED. Net phone look: static pastel field, solid pastel cards, zero backdrop-filter. */
 @media(max-width:760px), (pointer:coarse){
   /* (1) KILL every live blur + the url(#lg) refraction on ALL glass surfaces — !important so it beats
          the higher-specificity desktop refraction rules regardless of source order. */
