@@ -336,6 +336,7 @@
   var mqDevice = matchMedia('(min-height: 480px)');
   var mqReduceData = matchMedia('(prefers-reduced-data: reduce)');
   var mqReduceTransp = matchMedia('(prefers-reduced-transparency: reduce)');
+  var mqContrast = matchMedia('(prefers-contrast: more)');   // CSS hides .mapbg for these users — gate the BOOT too (no invisible ~1MB MapLibre)
   function saveData(){ try{ return !!(navigator.connection && navigator.connection.saveData) || mqReduceData.matches; }catch(e){ return mqReduceData.matches; } }
   // Only TRULY weak / ancient devices skip the map entirely; weak-but-usable devices still get it in
   // LITE mode (map-bg.html reduces car count, canvas pixel-ratio, max zoom & frame-rate for them).
@@ -361,7 +362,7 @@
   // Diagnostic: ?map=off fully skips the map boot (iframe src never set → no MapLibre loads at all) → the
   // "no-map floor" RAM, to measure the live map's true memory share before committing to a pre-render rebuild.
   function mapOff(){ try{ return new URLSearchParams(location.search).get('map')==='off'; }catch(e){ return false; } }
-  function allowed(){ return !mapOff() && mqDevice.matches && !mqReduce.matches && !mqReduceTransp.matches && !saveData() && !tooWeak(); }
+  function allowed(){ return !mapOff() && mqDevice.matches && !mqReduce.matches && !mqReduceTransp.matches && !mqContrast.matches && !saveData() && !tooWeak(); }
   // PHONE PERF: do NOT auto-run the live WebGL map on phones/touch — the scroll-fps WebGL render + the
   // traffic canvas is the main mobile lag/heat source (measured on-device: laggy even at idle). Phones
   // default to the calm STATIC pastel field; the living map is OPT-IN via the toggle (or force ?map=on).
@@ -581,6 +582,7 @@
     mqReduce.addEventListener('change', onEnv);
     mqDevice.addEventListener('change', onEnv);
     mqReduceTransp.addEventListener('change', onEnv);
+    mqContrast.addEventListener('change', onEnv);
     mqReduceData.addEventListener('change', onEnv);
   }
 

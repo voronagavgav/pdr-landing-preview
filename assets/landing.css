@@ -486,7 +486,7 @@ header.site{
   -webkit-backdrop-filter:var(--e1-blur);
           backdrop-filter:var(--e1-blur);
   box-shadow:var(--e1-shadow), var(--rim-pill);
-  isolation:isolate;will-change:transform;
+  isolation:isolate;
   transition:background .3s var(--calm-ease), box-shadow .3s var(--calm-ease);
 }
 /* scroll-lift: capsule rises e1→e2 when floating over content */
@@ -970,10 +970,12 @@ section{position:relative}
 
 @media(min-width:760px){.game-grid{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1040px){.game-grid{grid-template-columns:repeat(3,1fr)}.game-card.span2{grid-column:span 2}.game-card.span3{grid-column:1/-1}}
-/* keep co-visible blur layers ≤5: the two wide span2 cards (path + badges, chip-heavy)
+/* keep co-visible blur layers ≤5: the two wide cards (topic-path = span3, badges = span2; chip-heavy)
    step to a flat tinted fill instead of a 3rd/4th blur plane — visually near-identical */
-.glass.game-card.span2::before{ -webkit-backdrop-filter:none; backdrop-filter:none; }
-.glass.game-card.span2{ background:hsl(var(--glass-tint) / .66); }
+.glass.game-card.span2::before,
+.glass.game-card.span3::before{ -webkit-backdrop-filter:none; backdrop-filter:none; }
+.glass.game-card.span2,
+.glass.game-card.span3{ background:hsl(var(--glass-tint) / .66); }
 
 /* ---------- features bento (reading content = near-opaque) ---------- */
 .bento{display:grid;gap:18px}
