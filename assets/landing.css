@@ -848,18 +848,21 @@ section{position:relative}
   }
   /* (2) OPAQUE PASTEL FILLS from the existing palette tokens (NOT flat white — --glass-tint is a soft
          cool-white, so ~.95 reads as a calm pastel panel). Borders / radius / shadows stay (set elsewhere). */
-  .glass{ background:hsl(var(--glass-tint) / .95) !important; }
-  .glass.e1{ background:hsl(var(--glass-tint) / .96) !important; }
-  .glass.tray, #features .glass.tray{ background:hsl(var(--glass-tint) / .94) !important; }
-  .glass.game-card{ background:hsl(var(--glass-tint) / .96) !important; }
-  .chip-glass{ background:hsl(var(--glass-tint) / .96) !important; }
-  /* signature lens panels (hero quiz + readiness gauge) — opaque so their text stays crisp over the now-sharp map */
-  #sample.glass.lens, #readiness .glass.lens{ background:hsl(var(--glass-tint) / .96) !important; }
-  .nav{ background:hsl(var(--glass-tint) / .95) !important; }
-  .nav.stuck{ background:hsl(var(--glass-tint) / .97) !important; }
-  .mobile-menu{ background:hsl(var(--glass-tint) / .97) !important; }
-  .eyebrow{ background:hsl(var(--glass-tint) / .94) !important; }
-  footer.site{ background:hsl(var(--glass-tint) / .96) !important; }
+  /* EMULATED GLASS on phone: the map is static by default now, so translucent fills are safe (no moving
+     map behind to hurt text). Semi-transparent tint + the kept ::after gloss + rim/inset shadow = a glassy
+     "Рідке скло" look with NO backdrop-filter cost. Reading-heavy panels stay a bit more opaque for contrast. */
+  .glass{ background:hsl(var(--glass-tint) / .78) !important; }
+  .glass.e1{ background:hsl(var(--glass-tint) / .80) !important; }
+  .glass.tray, #features .glass.tray{ background:hsl(var(--glass-tint) / .74) !important; }
+  .glass.game-card{ background:hsl(var(--glass-tint) / .82) !important; }
+  .chip-glass{ background:hsl(var(--glass-tint) / .80) !important; }
+  /* signature lens panels (hero quiz + readiness gauge) — a touch more opaque so their text stays crisp */
+  #sample.glass.lens, #readiness .glass.lens{ background:hsl(var(--glass-tint) / .84) !important; }
+  .nav{ background:hsl(var(--glass-tint) / .82) !important; }
+  .nav.stuck{ background:hsl(var(--glass-tint) / .88) !important; }
+  .mobile-menu{ background:hsl(var(--glass-tint) / .92) !important; }   /* over content → keep legible */
+  .eyebrow{ background:hsl(var(--glass-tint) / .80) !important; }
+  footer.site{ background:hsl(var(--glass-tint) / .86) !important; }
   /* PRO pricing card keeps its soft green tint, just opaque */
   .glass.pro, .plan.pro{ background:hsl(152 44% 93%) !important; }
   /* (3) text floating DIRECTLY over the now-sharper map stays readable: strengthen the map veil a touch
