@@ -232,6 +232,13 @@ html.bg-idle .drift,html.bg-idle .mbody,html.bg-idle .msh{animation:none!importa
 @media(max-width:760px),(pointer:coarse){
   .drift{animation:none!important;will-change:auto;filter:blur(52px);opacity:.26}
   .drift.b1,.drift.b2,.drift.b3{max-width:420px;max-height:420px}
+  /* Mascot: it animates svFloat/svShadow AND the body carries an SVG feDropShadow (filter:url(#mglow)).
+     An animated filtered SVG element re-renders that filter EVERY frame — a real phone GPU cost, and it
+     runs even at idle if the JS idle-freeze doesn't catch it. On phones: freeze the float + shadow and
+     DROP the SVG shadow filter (mascot stays crisp, just loses the soft drop-shadow). Zero continuous
+     GPU work from the mascot; the reactive float stays a desktop-only touch. */
+  .mbody,.msh{animation:none!important}
+  .mbody{filter:none!important}
 }
 
 /* ============================================================
