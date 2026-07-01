@@ -569,6 +569,13 @@ header.site .wrap{position:relative}
   .cta-full{display:none}
   .cta-short{display:inline}
 }
+/* sub-390 phones (360px Androids, 375px SE): the brand wordmark + persistent CTA + burger can't all
+   fit — the burger was overflowing off-screen (unreachable). Below iPhone-14 width, show the "ПДР"
+   chip alone as the logo mark (standard mobile pattern) so the CTA + hamburger always stay reachable. */
+@media(max-width:389px){
+  .brand-word{display:none}
+  .brand{gap:0}
+}
 
 /* ============================================================
    HERO
@@ -1277,7 +1284,7 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
       <span class="sheen" aria-hidden="true"></span>
       <a class="brand" href="#top">
         <span class="badge-mark" aria-hidden="true">ПДР</span>
-        <span>Drivers&nbsp;School</span>
+        <span class="brand-word">Drivers&nbsp;School</span>
       </a>
       <div class="nav-links">
         <a href="#features">Можливості</a>
@@ -1797,15 +1804,34 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     }
   }catch(e){/* no-op: frosted-glass floor stays in effect */}
 
-  /* ---------- Mobile nav menu (hamburger) toggle ---------- */
+  /* ---------- Mobile nav menu (hamburger) toggle + focus management ---------- */
   (function(){
     var burger=document.querySelector('.nav-burger'), menu=document.getElementById('mobile-menu');
     if(!burger||!menu) return;
-    function setOpen(o){ burger.setAttribute('aria-expanded',o?'true':'false'); menu.classList.toggle('open',o); }
-    burger.addEventListener('click',function(e){ e.stopPropagation(); setOpen(burger.getAttribute('aria-expanded')!=='true'); });
-    menu.querySelectorAll('a').forEach(function(a){ a.addEventListener('click',function(){ setOpen(false); }); });
-    document.addEventListener('click',function(e){ if(menu.classList.contains('open') && !menu.contains(e.target)) setOpen(false); });
-    window.addEventListener('keydown',function(e){ if(e.key==='Escape') setOpen(false); });
+    var links = Array.prototype.slice.call(menu.querySelectorAll('a'));
+    function isOpen(){ return burger.getAttribute('aria-expanded')==='true'; }
+    // restoreFocus: pull focus back to the burger (Escape / toggle-close) so keyboard + SR users
+    // aren't stranded. On open, move focus INTO the menu (first link) so it's announced + navigable.
+    function setOpen(o, restoreFocus){
+      burger.setAttribute('aria-expanded', o?'true':'false');
+      menu.classList.toggle('open', o);
+      if(o){ if(links[0]) links[0].focus(); }
+      else if(restoreFocus){ burger.focus(); }
+    }
+    burger.addEventListener('click',function(e){ e.stopPropagation(); setOpen(!isOpen(), false); });
+    // link click closes + navigates (anchor takes focus naturally — don't yank it back to the burger)
+    links.forEach(function(a){ a.addEventListener('click',function(){ setOpen(false, false); }); });
+    document.addEventListener('click',function(e){ if(isOpen() && !menu.contains(e.target) && e.target!==burger) setOpen(false, false); });
+    document.addEventListener('keydown',function(e){
+      if(!isOpen()) return;
+      if(e.key==='Escape'){ setOpen(false, true); return; }
+      if(e.key==='Tab'){
+        // trap focus across [burger + menu links] while the menu is open
+        var order = [burger].concat(links), i = order.indexOf(document.activeElement);
+        if(e.shiftKey && i<=0){ e.preventDefault(); order[order.length-1].focus(); }
+        else if(!e.shiftKey && i===order.length-1){ e.preventDefault(); order[0].focus(); }
+      }
+    });
   })();
 
   /* ---------- Pointer-reactive sheen (rAF-throttled). No tilt/pull — it blurred the glass text. ---------- */
