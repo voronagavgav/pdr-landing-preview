@@ -224,6 +224,15 @@ html.bg-idle .drift,html.bg-idle .mbody,html.bg-idle .msh{animation:none!importa
 @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(3vw,4vh) scale(1.06)}}
 @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-3vw,3vh) scale(1.05)}}
 @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(2vw,-3vh) scale(1.07)}}
+/* PHONE FPS: the 3 big filter:blur(70px) drift blobs animating scale re-rasterize a huge blurred
+   texture every frame → tanks the whole page's FPS on a mobile GPU (mascot included — it's just a
+   victim of the saturated GPU). Freeze them to a static painted state (composited once, held while
+   scrolling): identical calm pastel look, zero per-frame blur recompute. Also lighten the blur/size
+   a touch so the one-time paint + layer memory stays cheap on weak phones. */
+@media(max-width:760px),(pointer:coarse){
+  .drift{animation:none!important;will-change:auto;filter:blur(52px);opacity:.26}
+  .drift.b1,.drift.b2,.drift.b3{max-width:420px;max-height:420px}
+}
 
 /* ============================================================
    LIQUID GLASS — frosted floor (cross-browser) + SVG refraction
