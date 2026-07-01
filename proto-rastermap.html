@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tier 2 prototype — raster canvas map (no WebGL)</title>
+<style>
+  html,body{margin:0;height:100%;background:#eef3ea;overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
+  #map{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #map.blur{filter:blur(7px) saturate(1.04) brightness(1.02)}
+  #veil{position:fixed;inset:0;pointer-events:none;background:rgba(230,239,225,.28)}
+  #hud{position:fixed;left:12px;top:12px;z-index:10;background:rgba(18,28,22,.74);color:#dffbe9;
+       padding:9px 13px;border-radius:11px;font:12px/1.55 ui-monospace,SFMono-Regular,monospace;white-space:pre}
+  #ctr{position:fixed;right:12px;top:12px;z-index:10;display:flex;gap:8px}
+  #ctr button{background:rgba(18,28,22,.74);color:#dffbe9;border:1px solid #2f7a55;border-radius:9px;
+       padding:7px 11px;font:12px system-ui;cursor:pointer}
+  #note{position:fixed;left:12px;bottom:12px;z-index:10;color:#2b3a30;background:rgba(255,255,255,.6);
+       padding:6px 10px;border-radius:9px;font:12px system-ui;max-width:60ch}
+</style>
+</head>
+<body>
+<canvas id="map"></canvas>
+<div id="veil"></div>
+<div id="hud">booting…</div>
+<div id="ctr">
+  <button id="bBlur">toggle blur</button>
+  <button id="bPause">pause</button>
+  <button id="bScrub">scrub ↔ auto</button>
+</div>
+<div id="note">Tier-2 prototype · positron RASTER tiles on a 2D canvas · no WebGL, no vector workers. Same
+journey + ease as production. Watch fps stay ~60 and JS heap stay tiny. Toggle blur to see it as it'd look under the glass.</div>
+<script>
+(function(){
+  const cv=document.getElementById('map'), ctx=cv.getContext('2d',{alpha:true});
+  const hud=document.getElementById('hud');
+  const TILE=256, MINZ=3, MAXZ=15, CACHE_CAP=260;
+  const cities={
+    kyiv:{lat:50.44765,lng:30.52295}, odesa:{lat:46.48535,lng:30.73820},
+    kharkiv:{lat:50.00465,lng:36.23215}, dnipro:{lat:48.46490,lng:35.04690}
+  };
+  const stops=[
+    [0.000,48.62,31.20,8.60],[0.060,48.62,31.20,9.00],
+    [0.140,cities.kyiv.lat,cities.kyiv.lng,9.60],[0.230,cities.kyiv.lat,cities.kyiv.lng,11.60],
+    [0.320,cities.kyiv.lat,cities.kyiv.lng,13.20],[0.410,cities.kyiv.lat,cities.kyiv.lng,14.00],
+    [0.500,cities.kyiv.lat,cities.kyiv.lng,14.00],[0.560,cities.kyiv.lat,cities.kyiv.lng,10.00],
+    [0.640,48.55,30.62,9.20],[0.710,cities.odesa.lat,cities.odesa.lng,9.60],
+    [0.800,cities.odesa.lat,cities.odesa.lng,11.60],[0.890,cities.odesa.lat,cities.odesa.lng,13.20],
+    [0.980,cities.odesa.lat,cities.odesa.lng,14.00],[1.070,cities.odesa.lat,cities.odesa.lng,14.00],
+    [1.130,cities.odesa.lat,cities.odesa.lng,10.00],
+    [1.220,48.20,33.50,9.00],[1.290,cities.kharkiv.lat,cities.kharkiv.lng,9.60],
+    [1.380,cities.kharkiv.lat,cities.kharkiv.lng,11.60],[1.470,cities.kharkiv.lat,cities.kharkiv.lng,13.20],
+    [1.560,cities.kharkiv.lat,cities.kharkiv.lng,14.00],[1.650,cities.kharkiv.lat,cities.kharkiv.lng,14.00],
+    [1.710,cities.kharkiv.lat,cities.kharkiv.lng,10.00],
+    [1.780,49.22,35.62,9.80],[1.850,cities.dnipro.lat,cities.dnipro.lng,9.80],
+    [1.930,cities.dnipro.lat,cities.dnipro.lng,11.60],[2.010,cities.dnipro.lat,cities.dnipro.lng,13.20],
+    [2.090,cities.dnipro.lat,cities.dnipro.lng,14.00],[2.170,cities.dnipro.lat,cities.dnipro.lng,14.00]
+  ].map(s=>({p:s[0],lat:s[1],lng:s[2],zoom:s[3]}));
+  const routeEnd=stops[stops.length-1].p;
+
+  // 1x on purpose — behind the blur, retina tiles are wasted memory
+  function resize(){ cv.width=Math.round(innerWidth); cv.height=Math.round(innerHeight); }
+  addEventListener('resize',resize); resize();
+
+  // ---- Web Mercator (matches MapLibre's map.project) ----
+  const worldX=(lng,z)=> (lng+180)/360 * TILE*Math.pow(2,z);
+  const worldY=(lat,z)=>{ const s=Math.sin(lat*Math.PI/180);
+    return (0.5 - Math.log((1+s)/(1-s))/(4*Math.PI)) * TILE*Math.pow(2,z); };
+
+  // ---- raster tile cache (positron = carto light) ----
+  const tiles=new Map(); const SUB=['a','b','c','d']; let loads=0, okc=0;
+  function getTile(z,x,y){
+    const k=z+'/'+x+'/'+y; let t=tiles.get(k);
+    if(t){ tiles.delete(k); tiles.set(k,t); return t; }   // LRU touch
+    const img=new Image(); img.crossOrigin='anonymous';
+    t={img,ok:false};
+    img.onload=()=>{ t.ok=true; okc++; }; img.onerror=()=>{ t.ok=false; };
+    img.src='https://'+SUB[(x+y)&3]+'.basemaps.cartocdn.com/light_all/'+z+'/'+x+'/'+y+'.png';
+    tiles.set(k,t); loads++;
+    return t;
+  }
+  function trim(){ while(tiles.size>CACHE_CAP){ const k=tiles.keys().next().value; tiles.delete(k); } }
+
+  // ---- camera ----
+  let cam={lng:stops[0].lng,lat:stops[0].lat,zoom:stops[0].zoom};
+  function targetAt(p){
+    p=Math.max(0,Math.min(routeEnd,p));
+    let i=0; while(i<stops.length-2 && p>stops[i+1].p) i++;
+    const a=stops[i],b=stops[i+1],t=(p-a.p)/Math.max(1e-6,(b.p-a.p));
+    return {lng:a.lng+(b.lng-a.lng)*t, lat:a.lat+(b.lat-a.lat)*t, zoom:a.zoom+(b.zoom-a.zoom)*t};
+  }
+
+  function draw(){
+    const w=cv.width,h=cv.height,Z=cam.zoom;
+    ctx.clearRect(0,0,w,h);
+    const tz=Math.max(MINZ,Math.min(MAXZ,Math.round(Z)));
+    const f=TILE*Math.pow(2,Z-tz);            // on-screen px size of a tz-tile at zoom Z
+    const left=worldX(cam.lng,Z)-w/2, top=worldY(cam.lat,Z)-h/2;
+    const n=Math.pow(2,tz);
+    const tx0=Math.floor(left/f), tx1=Math.floor((left+w)/f);
+    const ty0=Math.floor(top/f),  ty1=Math.floor((top+h)/f);
+    let drawn=0;
+    for(let tx=tx0;tx<=tx1;tx++) for(let ty=ty0;ty<=ty1;ty++){
+      if(ty<0||ty>=n) continue;
+      const wx=((tx%n)+n)%n;
+      const t=getTile(tz,wx,ty);
+      if(t.ok){ ctx.drawImage(t.img, Math.round(tx*f-left), Math.round(ty*f-top), Math.ceil(f), Math.ceil(f)); drawn++; }
+    }
+    return drawn;
+  }
+
+  let progress=0,last=performance.now(),paused=false,scrub=false;
+  const PAN_TAU=600,ZOOM_TAU=700;
+  let frames=0,fpsT=performance.now(),fps=0;
+  addEventListener('pointermove',e=>{ if(scrub) progress=(e.clientX/innerWidth)*routeEnd; });
+
+  function frame(now){
+    const dt=Math.min(50,now-last); last=now;
+    if(!paused && !scrub){ progress+=dt/1000*0.06; if(progress>routeEnd) progress=0; }
+    const tg=targetAt(progress);
+    const kP=1-Math.exp(-dt/PAN_TAU), kZ=1-Math.exp(-dt/ZOOM_TAU);
+    cam.lng+=(tg.lng-cam.lng)*kP; cam.lat+=(tg.lat-cam.lat)*kP; cam.zoom+=(tg.zoom-cam.zoom)*kZ;
+    const drawn=draw(); trim();
+    frames++; if(now-fpsT>=500){ fps=Math.round(frames*1000/(now-fpsT)); frames=0; fpsT=now; }
+    const mem=performance.memory?(performance.memory.usedJSHeapSize/1048576).toFixed(0)+'MB js heap':'js heap n/a';
+    hud.textContent=`fps ${fps}   drawn ${drawn}/${tiles.size} tiles (loaded ${okc}/${loads})\n`+
+                    `zoom ${cam.zoom.toFixed(2)}   progress ${progress.toFixed(2)}/${routeEnd}\n`+
+                    `${mem}   · 2D canvas · NO WebGL`;
+    window.__proto={fps,tiles:tiles.size,ok:okc,drawn,zoom:cam.zoom};
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  document.getElementById('bBlur').onclick=()=>cv.classList.toggle('blur');
+  document.getElementById('bPause').onclick=()=>paused=!paused;
+  document.getElementById('bScrub').onclick=()=>{ scrub=!scrub; document.getElementById('bScrub').textContent=scrub?'scrub ON':'scrub ↔ auto'; };
+})();
+</script>
+</body>
+</html>
