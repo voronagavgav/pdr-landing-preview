@@ -261,6 +261,27 @@ html.bg-idle .drift,html.bg-idle .mbody,html.bg-idle .msh{animation:none!importa
   .glass.game-card{ background:hsl(var(--glass-tint) / .66); }
 }
 
+/* ===== EMULATED GLASS (perf tier for 2016-era / weak GPUs) — the glass LOOK (translucent fill + border +
+   gloss highlight + rim light + soft shadow) is kept, but the EXPENSIVE per-frame backdrop-filter re-blur is
+   dropped on every panel EXCEPT the two signature lenses (#sample hero quiz + #readiness dial). Fills are
+   bumped more opaque so panels stay frosted/legible over the map without the blur. Same trick the mobile
+   theme uses above, extended to desktop. Toggle via ?glass=emu (body.glass-emu); auto for weak devices. ===== */
+body.glass-emu{ --e1-fill:hsl(var(--glass-tint)/.86); --e2-fill:hsl(var(--glass-tint)/.84); }
+body.glass-emu .glass:not(.lens)::before,
+body.glass-emu .nav,
+body.glass-emu .cta-glass::before,
+body.glass-emu .chip-glass::before,
+body.glass-emu .stat::before,
+body.glass-emu .seg::before,
+body.glass-emu .format-chip::before,
+body.glass-emu .btn::before, body.glass-emu .btn-ghost::before,
+body.glass-emu #mapbg-toggle, body.glass-emu #mobile-menu,
+body.glass-emu header.site, body.glass-emu footer.site{
+  -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+}
+/* nav + segmented lose their blur → give them a frosted fill so they still read as glass over the map */
+body.glass-emu .nav{ background:hsl(var(--glass-tint)/.88); }
+
 /* ---- calm ≤.10 pastel DEPTH POOL behind each glass zone (no extra blur) ---- */
 .zone{ position:relative; }
 .zone::before{
@@ -2090,6 +2111,8 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
     bs.textContent='*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}';
     (document.head||document.documentElement).appendChild(bs);
   } }catch(e){} })();
+  // ?glass=emu → emulated-glass tier (drops backdrop-filter on all but the 2 lenses; see body.glass-emu CSS)
+  (function(){ try{ if(new URLSearchParams(location.search).get('glass')==='emu') document.body.classList.add('glass-emu'); }catch(e){} })();
 
   var syncing = false, loaded = false, mapPref = true;
 
