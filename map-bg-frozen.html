@@ -3251,7 +3251,8 @@ body{
       if(!s) s = location.search || '';
       try{ return (new URLSearchParams(s).get('heat') || '').toLowerCase(); }catch(e){ return ''; }
     })();
-    const HEAT_NOCARS = /nocars/.test(HEAT);
+    const HEAT_NOCARS = /nocars/.test(HEAT);   // skip the car DRAW at idle (sim still runs)
+    const HEAT_FREEZE = /freeze/.test(HEAT);   // skip the WHOLE idle car tick — no sim, no draw (Path-B full freeze)
     if(/noblur/.test(HEAT)){
       try{
         const P = (window.parent && window.parent !== window) ? window.parent : window;
@@ -3727,6 +3728,7 @@ body{
       idleTimer = null;
       if(window.__mapPaused || rafId != null) return;     // paused, or the 60fps loop took over → stop idling
       if(!idleTrafficAllowed()){ TRAFFIC.diagnostics.reason = 'idle-frozen'; return; }
+      if(HEAT_FREEZE){ TRAFFIC.diagnostics.reason = 'idle-frozen(heat=freeze)'; return; }  // no reschedule ⇒ cars fully static
       const now = performance.now();
       const rawMs = Math.max(8, now - (idleLastTick || now));
       idleLastTick = now;
