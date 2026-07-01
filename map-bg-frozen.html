@@ -687,12 +687,11 @@ body{
       maxTileCacheSize: 300,   // was 3000→600→300 — caps RETAINED off-screen tile RAM; revisiting a city re-parses from the warm HTTP cache and behind the blur the re-parse is invisible. Bump up if tiles visibly re-pop while scrolling.
       maxTileCacheZoomLevels: mobileLike ? 8 : 10,
       cancelPendingTileRequestsWhileZooming:false,
-      // MapLibre canvas resolution = container size × pixelRatio (constructor MapOptions; defaults to
-      // devicePixelRatio). Capped at 0.7 (was 1.0) for EVERY device — the map is a blurred+veiled background, so
-      // rendering at 70% resolution is INVISIBLE under the 70px blur (the blur radius dwarfs the pixel size) but
-      // shrinks the GL framebuffer + every tile render-target ⇒ real GPU-memory + heat saving at zero visible cost.
-      // (Dial toward 0.6 for more, or 0.8 if the open runway areas read soft. 2D traffic canvas capped separately.)
-      pixelRatio:Math.min(window.devicePixelRatio || 1, 0.7),
+      // MapLibre canvas resolution = container size × pixelRatio.
+      // Kept at 1.0 — everything renders on ONE canvas, so lowering pixelRatio softens the LABEL TEXT too, and
+      // the place-names must stay crisp (readable in the open, un-blurred runway areas). Per Danil: reduce BASEMAP
+      // quality, leave NAMES untouched → resolution stays 1.0; cut basemap memory via cache + name-safe trims instead.
+      pixelRatio:Math.min(window.devicePixelRatio || 1, 1.0),
       canvasContextAttributes:{
         antialias:false,
         preserveDrawingBuffer:false,
