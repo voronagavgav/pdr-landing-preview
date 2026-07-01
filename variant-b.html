@@ -2083,6 +2083,13 @@ footer.site::before{content:"";position:absolute;left:0;right:0;top:-1px;height:
   // "no-map floor" RAM, to measure the live map's true memory share before committing to a pre-render rebuild.
   function mapOff(){ try{ return new URLSearchParams(location.search).get('map')==='off'; }catch(e){ return false; } }
   function allowed(){ return !mapOff() && mqDevice.matches && !mqReduce.matches && !mqReduceTransp.matches && !saveData() && !tooWeak(); }
+  // Diagnostic: ?blur=off kills every backdrop-filter on the page (works with ?map=off too) → measures the
+  // glass's share of the RAM floor. ?map=off&blur=off = the bare-HTML floor (no map, no glass).
+  (function(){ try{ if(new URLSearchParams(location.search).get('blur')==='off'){
+    var bs=document.createElement('style');
+    bs.textContent='*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}';
+    (document.head||document.documentElement).appendChild(bs);
+  } }catch(e){} })();
 
   var syncing = false, loaded = false, mapPref = true;
 
