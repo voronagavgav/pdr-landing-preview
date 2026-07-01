@@ -33,7 +33,7 @@ journey + ease as production. Watch fps stay ~60 and JS heap stay tiny. Toggle b
 (function(){
   const cv=document.getElementById('map'), ctx=cv.getContext('2d',{alpha:true});
   const hud=document.getElementById('hud');
-  const TILE=256, MINZ=3, MAXZ=15, CACHE_CAP=260;
+  const TILE=256, MINZ=3, MAXZ=15, CACHE_CAP=340;
   const cities={
     kyiv:{lat:50.44765,lng:30.52295}, odesa:{lat:46.48535,lng:30.73820},
     kharkiv:{lat:50.00465,lng:36.23215}, dnipro:{lat:48.46490,lng:35.04690}
@@ -78,7 +78,14 @@ journey + ease as production. Watch fps stay ~60 and JS heap stay tiny. Toggle b
     tiles.set(k,t); loads++;
     return t;
   }
-  function trim(){ while(tiles.size>CACHE_CAP){ const k=tiles.keys().next().value; tiles.delete(k); } }
+  function trim(){   // evict oldest, but PROTECT coarse base tiles (z<=9) so parent-fallback always has coverage
+    if(tiles.size<=CACHE_CAP) return;
+    for(const k of tiles.keys()){
+      if(tiles.size<=CACHE_CAP) break;
+      if((+k.slice(0,k.indexOf('/')))>9) tiles.delete(k);
+    }
+  }
+  function bump(k,t){ tiles.delete(k); tiles.set(k,t); }   // LRU touch
 
   // ---- camera ----
   let cam={lng:stops[0].lng,lat:stops[0].lat,zoom:stops[0].zoom};
@@ -89,23 +96,36 @@ journey + ease as production. Watch fps stay ~60 and JS heap stay tiny. Toggle b
     return {lng:a.lng+(b.lng-a.lng)*t, lat:a.lat+(b.lat-a.lat)*t, zoom:a.zoom+(b.zoom-a.zoom)*t};
   }
 
-  function draw(){
+  // Draw all tiles of `targetZ` visible in the viewport. If a tile isn't loaded yet, fall back to the best
+  // already-cached ANCESTOR (parent) tile, scaled to fill — so there's never a blank/pop when zoom crosses a
+  // level (the flicker fix; this is what MapLibre does internally). `request`=true also kicks off the load.
+  function drawLayer(targetZ, request){
     const w=cv.width,h=cv.height,Z=cam.zoom;
-    ctx.clearRect(0,0,w,h);
-    const tz=Math.max(MINZ,Math.min(MAXZ,Math.round(Z)));
-    const f=TILE*Math.pow(2,Z-tz);            // on-screen px size of a tz-tile at zoom Z
+    const f=TILE*Math.pow(2,Z-targetZ);
     const left=worldX(cam.lng,Z)-w/2, top=worldY(cam.lat,Z)-h/2;
-    const n=Math.pow(2,tz);
+    const n=Math.pow(2,targetZ);
     const tx0=Math.floor(left/f), tx1=Math.floor((left+w)/f);
     const ty0=Math.floor(top/f),  ty1=Math.floor((top+h)/f);
     let drawn=0;
     for(let tx=tx0;tx<=tx1;tx++) for(let ty=ty0;ty<=ty1;ty++){
       if(ty<0||ty>=n) continue;
       const wx=((tx%n)+n)%n;
-      const t=getTile(tz,wx,ty);
-      if(t.ok){ ctx.drawImage(t.img, Math.round(tx*f-left), Math.round(ty*f-top), Math.ceil(f), Math.ceil(f)); drawn++; }
+      const sx=Math.round(tx*f-left), sy=Math.round(ty*f-top), sz=Math.ceil(f)+1;
+      if(request){ const t=getTile(targetZ,wx,ty); if(t.ok){ ctx.drawImage(t.img,sx,sy,sz,sz); drawn++; continue; } }
+      for(let lv=1; lv<=6 && targetZ-lv>=MINZ; lv++){    // walk up to a cached ancestor
+        const az=targetZ-lv, sub=1<<lv, ax=wx>>lv, ay=ty>>lv;
+        const k=az+'/'+ax+'/'+ay, a=tiles.get(k);
+        if(a&&a.ok){ const ss=TILE/sub;
+          ctx.drawImage(a.img,(wx%sub)*ss,(ty%sub)*ss,ss,ss, sx,sy,sz,sz); bump(k,a); drawn++; break; }
+      }
     }
     return drawn;
+  }
+  function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    const tz=Math.max(MINZ,Math.min(MAXZ,Math.round(cam.zoom)));
+    drawLayer(Math.max(MINZ,tz-4), false);   // coarse base underneath (cached-only) → guaranteed coverage, no flick
+    return drawLayer(tz, true);              // sharp detail on top (request + parent-fallback)
   }
 
   let progress=0,last=performance.now(),paused=false,scrub=false;
