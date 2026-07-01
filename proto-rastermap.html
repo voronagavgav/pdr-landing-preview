@@ -33,7 +33,7 @@ journey + ease as production. Watch fps stay ~60 and JS heap stay tiny. Toggle b
 (function(){
   const cv=document.getElementById('map'), ctx=cv.getContext('2d',{alpha:true});
   const hud=document.getElementById('hud');
-  const TILE=256, MINZ=3, MAXZ=15, CACHE_CAP=340;
+  const TILE=256, MINZ=3, MAXZ=15, CACHE_CAP=150;   // small on purpose — caps the RAM peak while flying; base (z<=9) tiles are protected so coverage/flicker is unaffected
   const cities={
     kyiv:{lat:50.44765,lng:30.52295}, odesa:{lat:46.48535,lng:30.73820},
     kharkiv:{lat:50.00465,lng:36.23215}, dnipro:{lat:48.46490,lng:35.04690}
